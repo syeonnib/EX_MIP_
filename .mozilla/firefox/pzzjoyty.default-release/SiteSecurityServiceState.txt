@@ -16,6 +16,7 @@ cdn-client.medium.com^partitionKey=%28http%2Cmedium.com%29:HSTS	0	19373	16894269
 askubuntu.com^partitionKey=%28http%2Caskubuntu.com%29:HSTS	0	19423	1693738538673,1,0
 kkangsg.tistory.com^partitionKey=%28http%2Ctistory.com%29:HSTS	0	19415	1709041183506,1,1
 miro.medium.com^partitionKey=%28http%2Cmedium.com%29:HSTS	0	19373	1689426888054,1,1
+uang.tistory.com^partitionKey=%28http%2Ctistory.com%29:HSTS	0	19423	1709729824004,1,1
 passport.csdn.net^partitionKey=%28http%2Ccsdn.net%29:HSTS	0	19423	1709710080834,1,0
 firefox.settings.services.mozilla.com:HSTS	4	19423	1709708084167,1,0
 stackoverflow.com^partitionKey=%28http%2Cstackoverflow.com%29:HSTS	1	19423	1693738522419,1,0
@@ -53,7 +54,7 @@ aus5.mozilla.org:HSTS	4	19423	1709708175776,1,0
 shavar.services.mozilla.com^firstPartyDomain=safebrowsing.86868755-6b82-4842-b301-72671a0db32e.mozilla:HSTS	4	19423	1709708086534,1,1
 devzone.nordicsemi.com^partitionKey=%28http%2Cnordicsemi.com%29:HSTS	0	19423	1709723003974,1,1
 bydawn25.tistory.com^partitionKey=%28http%2Ctistory.com%29:HSTS	0	19423	1709728876296,1,1
-papago.naver.com^partitionKey=%28http%2Cnaver.com%29:HSTS	0	19419	1709355546612,1,1
+papago.naver.com^partitionKey=%28http%2Cnaver.com%29:HSTS	1	19423	1709729805835,1,1
 glyph.medium.com^partitionKey=%28http%2Cmedium.com%29:HSTS	0	19373	1689426887727,1,1
 location.services.mozilla.com:HSTS	3	19423	1709708954464,1,1
 openai.com^partitionKey=%28http%2Copenai.com%29:HSTS	0	19419	1688712342931,1,1
