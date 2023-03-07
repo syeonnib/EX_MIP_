@@ -1,0 +1,3349 @@
+define([ 'app', 'text!app/calendar/calendar-template.html', 'i18n!app/calendar/nls/calendar-i18n',
+		'app/calendar/calendar-models' ], function(app, template, i18n) {
+
+	app.module('calendar', function(calendar, app, Backbone, Marionette, $, _) {
+
+		calendar.$template = $(template);
+
+		$.datepicker.setDefaults(i18n.datepicker.options);
+
+		// jquery.ui.selectmenu 부분 custom (캘린더 선택 부분)
+		$.widget("custom.colorselectmenu", $.ui.selectmenu, {
+			_renderItem : function(ul, item) {
+				var li = $("<li>", {
+					text : item.label
+				});
+				li.css('background-color', "#" + item.element.attr("data-color"));
+				li.css('color', "#" + item.element.attr("text-color"))
+				return li.appendTo(ul);
+			},
+			_renderMenu : function(ul, items) {
+				var that = this;
+				$.each(items, function(index, item) {
+					that._renderItemData(ul, item);
+				});
+				$(ul).find("li:odd").addClass("odd");
+				$('.ui-front').css("z-index", "4999");
+
+			},
+		});
+
+		calendar.SidebarView = Backbone.Marionette.Layout.extend({
+			template : function(data) {
+				var html, compiledTemplate = calendar.SidebarView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = calendar.$template.filter('#sidebar-template').html();
+					compiledTemplate = _.template(html);
+					calendar.SidebarView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					app : app,
+					i18n : i18n,
+				});
+				return html;
+			},
+			regions : {
+				myCalednarRegion : '.mc-section_myMail .mc-list_menu',
+				otherCalednarRegion : '.mc-section_etcMail .mc-list_menu',
+			},
+			initialize : function(options) {
+				this.calendarCollection = options.calendarCollection;
+				this.calendarSharecollection = options.calendarSharecollection;
+				this.listenTo(this.calendarCollection, 'sync', this.render);
+				this.listenTo(this.calendarSharecollection, 'sync', this.render);
+
+			},
+			onRender : function() {
+				var self = this;
+
+				var $calendarPicker = this.$el.find("#calendarPicker");
+
+				$calendarPicker.datepicker({
+					showButtonPanel : false,
+					monthNamesShort : [ '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12' ],
+					onSelect : function(dateText, inst) {
+						calendar.controller.contentLayout.fullCalendarView.gotoDate(dateText);
+					},
+
+				});
+
+				$calendarPicker.find('.ui-datepicker').css({
+					width : 'auto',
+				});
+
+				var myCalendarView = new calendar.MyCalendarView({
+					collection : this.calendarCollection
+				});
+				this.myCalednarRegion.show(myCalendarView);
+
+				var otherCalendarView = new calendar.OtherCalendarView({
+					collection : this.calendarSharecollection,
+				});
+				this.otherCalednarRegion.show(otherCalendarView);
+
+				// Add Calendar
+				var $addCalendar = this.$el.find('a.mc-btn_add:first');
+				$addCalendar.click(function(event) {
+					event.preventDefault();
+					if (self.myCalednarRegion.$el.is(':hidden')) {
+						self.$el.find('.mc-section_myMail .mc-lft_mTit .mc-btn_fd_up').click();
+					}
+					myCalendarView.newCalendarItemView();
+					return true;
+				});
+
+				var $showAllCalendar = this.$el.find('#showAll');
+				$showAllCalendar.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var model = new (app.BackboneModel.extend({
+						urlRoot : 'calendar/calendars',
+						defaults : {
+							id : '',
+						},
+						url : function() {
+							return this.urlRoot + '/all/show';
+						},
+					}))();
+					model.save({
+
+					}, {
+						patch : true,
+						wait : true,
+						success : function(model, response, options) {
+							calendar.calendarCollection.fetch();
+							calendar.calendarShareCollection.fetch();
+							app.vent.trigger('reRender:calendar');
+						}
+					});
+					return false;
+				});
+
+				if (this.calendarContextMenuView)
+					this.calendarContextMenuView.close();
+				this.calendarContextMenuView = new calendar.CalendarContextMenuView();
+				this.$el.contextmenu(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					app.$hidablesListener.trigger('hide.all');
+					return false;
+				}).click(function(event) {
+					app.$hidablesListener.trigger('hide.all');
+					return true;
+				});
+			},
+
+		}); // calendar.SidebarView
+
+		calendar.CalendarItemView = Backbone.Marionette.ItemView.extend({
+			tagName : 'li',
+			template : function(data) {
+				var html, compiledTemplate = calendar.CalendarItemView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = calendar.$template.filter('#calendar-item-template').html();
+					compiledTemplate = _.template(html);
+					calendar.CalendarItemView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					calendar : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+			},
+			itemViewOptions : function(model, index) {
+			},
+			onRender : function() {
+				var self = this;
+				var calendarModel = this.model;
+				this.$calendarWrapper = this.$el.children('div.reverse-area');
+				this.$calendarLinks = this.$calendarWrapper.find('span.item_wrap a');
+				this.$calendarNameLink = this.$calendarLinks.filter('a.mc-folder_name');
+				this.$renameCalendar = this.$calendarLinks.filter('a.mc-btn_modify');
+				this.$inputWrapper = this.$calendarWrapper.find('p.mc-folder_name:first');
+				this.$input = this.$inputWrapper.children('input:text');
+				this.$calendarLabel = this.$el.find('label');
+
+				this.$el.on('mouseover', function(event) {
+					self.$calendarWrapper.addClass('ovr');
+					if (calendarModel.get('kind') > 3)
+						self.$renameCalendar.show();
+					return false;
+				});
+				this.$el.on('mouseout', function(event) {
+					self.$calendarWrapper.removeClass('ovr');
+					self.$renameCalendar.hide();
+					return false;
+				});
+
+				this.$el.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var calendarModel = self.model;
+
+					var model = new (app.BackboneModel.extend({
+						urlRoot : self.model.urlRoot,
+						defaults : {
+							id : calendarModel.id
+						},
+						url : function() {
+							return this.urlRoot + '/' + this.id + '/only';
+						},
+					}))();
+					model.save({
+
+					}, {
+						patch : true,
+						wait : true,
+						success : function(model, response, options) {
+							calendar.calendarCollection.fetch();
+							calendar.calendarShareCollection.fetch();
+							app.vent.trigger('reRender:calendar');
+						}
+					});
+
+					return false;
+				});
+
+				this.$calendarLabel.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					app.$hidablesListener.trigger('hide.all');
+					self.model.save({
+						display : self.model.get('display') === 0 ? 1 : 0,
+					}, {
+						patch : true,
+						wait : true,
+						silent : true,
+						success : function(model, response, options) {
+							var calendarId = self.model.get('id');
+							var calendarModel = calendar.calendarCollection.findModel('id', calendarId);
+							if (calendarModel) {
+								calendarModel.fetch();
+							}
+							app.vent.trigger('reRender:calendar');
+						},
+					});
+					return false;
+				});
+				this.$renameCalendar.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					app.$hidablesListener.trigger('hide.all');
+					self.$calendarWrapper.addClass('new_folder');
+					self.$calendarLinks.hide();
+					self.$inputWrapper.show();
+					self.$input.val(calendarModel.get('name'));
+					self.$input.focus().select();
+
+					return false;
+				});
+				this.$input.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					app.$hidablesListener.trigger('hide.all');
+					return false;
+				});
+				this.$input.keydown(function(event) {
+					event.stopPropagation();
+					if (event.which == 13) {
+						event.preventDefault();
+						self.$input.blur();
+					}
+				});
+				this.$input.blur(function(event) {
+					var calendarName = self.$input.val();
+					if (calendarName.length > 16) {
+						alert(i18n.calendarNameTooLong);
+						self.$input.select();
+						return false;
+					}
+					if (calendarModel.isNew()) {
+						if (!calendarName) {
+							self.remove();
+							return false;
+						}
+
+						calendarModel.save({
+							name : calendarName,
+						}, {
+							wait : true,
+							success : function(model, response, options) {
+								calendar.calendarCollection.fetch();
+							},
+							error : function(model, response, options) {
+								switch (response.status) {
+								case 409:
+									alert(i18n.calendarNameAlreadyExists + ': ' + calendarName);
+									break;
+								}
+								self.remove();
+							},
+						});
+					} else {
+						var originalCalendarName = calendarModel.get('name');
+						if (!calendarName || calendarName == originalCalendarName) {
+							self.$calendarWrapper.removeClass('new_folder');
+							self.$inputWrapper.hide();
+							self.$calendarLinks.not(self.$renameCalendar).css('display', 'inline-block');
+							return false;
+						}
+						calendarModel.save({
+							name : calendarName
+						}, {
+							patch : true,
+							wait : true,
+							success : function(model, response, options) {
+								calendar.calendarCollection.fetch();
+							},
+							error : function(model, response, options) {
+								switch (response.status) {
+								case 409:
+									alert(i18n.calendarNameAlreadyExists + ': ' + calendarName);
+									break;
+								}
+								self.$calendarNameLink.text(originalCalendarName);
+							},
+						});
+					}
+					self.$calendarWrapper.removeClass('new_folder');
+					self.$calendarNameLink.text(calendarName).show();
+					self.$inputWrapper.hide();
+					self.$calendarLinks.not(self.$renameMbox).show();
+					return false;
+				});
+				this.$calendarWrapper.contextmenu(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					app.vent.trigger('contextmenu:calendar', event, self.model, self);
+					return false;
+				});
+			},
+			appendHtml : function(collectionView, itemView) {
+				collectionView.$('ul:first').append(itemView.el);
+			},
+			newCalendarNameInput : function(collection) {
+				this.$calendarWrapper.addClass('new_folder');
+				this.$calendarLinks.hide();
+				this.$inputWrapper.show();
+				var newCaelndarName = i18n.newCalendar;
+				var model = collection.findModel('name', newCaelndarName);
+				for (var i = 0; model; i++) {
+					if (i >= 100)
+						break;
+					var beginIndex = newCaelndarName.lastIndexOf(' (');
+					var endIndex = newCaelndarName.lastIndexOf(')');
+					var number = 1;
+					if (beginIndex != -1 && endIndex != -1 && beginIndex < endIndex) {
+						number = newCaelndarName.substring(beginIndex + 2, endIndex);
+						number = parseInt(number);
+						if (isNaN(number))
+							number = 1;
+						else
+							number += 1;
+					}
+					newCaelndarName = i18n.newCalendar + ' (' + number + ')';
+					model = collection.findModel('name', newCaelndarName);
+				}
+				this.$input.val(newCaelndarName);
+				this.$input.focus().select();
+			},
+		}); // calendar.CalendarItemView
+
+		calendar.MyCalendarView = Backbone.Marionette.CollectionView.extend({
+			tagName : 'ul',
+			className : 'mc-user_folder',
+			itemView : calendar.CalendarItemView,
+			initialize : function(options) {
+
+			},
+			onRender : function() {
+				var self = this;
+			},
+			newCalendarItemView : function() {
+				var randomInt = Math.floor(Math.random() * 35);
+				var arrayColor = [];
+				$.each(i18n.color, function(i, color) {
+					arrayColor.push(i);
+				});
+
+				var itemView = new app.calendar.CalendarItemView({
+					model : new app.calendar.CalendarModel({
+						color : arrayColor[randomInt]
+					})
+				});
+				this.$el.prepend(itemView.render().$el);
+				itemView.newCalendarNameInput(this.collection);
+			},
+		});
+
+		calendar.CalendarShareItemView = Backbone.Marionette.ItemView.extend({
+			tagName : 'li',
+			template : function(data) {
+				var html, compiledTemplate = calendar.CalendarShareItemView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = calendar.$template.filter('#calendar-item-template').html();
+					compiledTemplate = _.template(html);
+					calendar.CalendarShareItemView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					calendar : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+
+			},
+			itemViewOptions : function(model, index) {
+			},
+			onRender : function() {
+				var self = this;
+				var calendarShareModel = this.model;
+				this.$calendarWrapper = this.$el.children('div.reverse-area');
+				this.$calendarLinks = this.$calendarWrapper.find('span.item_wrap a');
+				this.$calendarNameLink = this.$calendarLinks.filter('a.mc-folder_name');
+				this.$renameCalendar = this.$calendarLinks.filter('a.mc-btn_modify');
+				this.$inputWrapper = this.$calendarWrapper.find('p.mc-folder_name:first');
+				this.$input = this.$inputWrapper.children('input:text');
+				this.$calendarLabel = this.$el.find('label');
+
+				this.$el.on('mouseover', function(event) {
+					self.$calendarWrapper.addClass('ovr');
+					self.$renameCalendar.show();
+					return false;
+				});
+
+				this.$el.on('mouseout', function(event) {
+					self.$calendarWrapper.removeClass('ovr');
+					self.$renameCalendar.hide();
+					return false;
+				});
+
+				this.$el.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var calendarModel = self.model;
+
+					var model = new (app.BackboneModel.extend({
+						urlRoot : self.model.urlRoot,
+						defaults : {
+							id : calendarModel.id
+						},
+						url : function() {
+							return this.urlRoot + '/' + this.id + '/only';
+						},
+					}))();
+					model.save({
+
+					}, {
+						patch : true,
+						wait : true,
+						success : function(model, response, options) {
+							calendar.calendarCollection.fetch();
+							calendar.calendarShareCollection.fetch();
+							app.vent.trigger('reRender:calendar');
+						}
+					});
+
+					return false;
+				});
+
+				this.$calendarLabel.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					app.$hidablesListener.trigger('hide.all');
+					self.model.save({
+						display : self.model.get('display') === 0 ? 1 : 0,
+					}, {
+						patch : true,
+						wait : true,
+						silent : true,
+						success : function(model, response, options) {
+							var calendarId = self.model.get('id');
+							var calendarShareModel = calendar.calendarShareCollection.findModel('id', calendarId);
+							if (calendarShareModel) {
+								calendarShareModel.fetch();
+							}
+							app.vent.trigger('reRender:calendar');
+						},
+					});
+					return false;
+				});
+
+				this.$renameCalendar.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					app.$hidablesListener.trigger('hide.all');
+					self.$calendarWrapper.addClass('new_folder');
+					self.$calendarLinks.hide();
+					self.$inputWrapper.show();
+					self.$input.val(calendarShareModel.get('name'));
+					self.$input.focus().select();
+
+					return false;
+				});
+
+				this.$input.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					app.$hidablesListener.trigger('hide.all');
+					return false;
+				});
+
+				this.$input.keydown(function(event) {
+					event.stopPropagation();
+					if (event.which == 13) {
+						event.preventDefault();
+						self.$input.blur();
+					}
+				});
+
+				this.$input.blur(function(event) {
+					var calendarName = self.$input.val();
+					if (calendarName.length > 16) {
+						alert(i18n.calendarNameTooLong);
+						self.$input.select();
+						return false;
+					}
+					if (calendarShareModel.isNew()) {
+						if (!calendarName) {
+							self.remove();
+							return false;
+						}
+						calendarShareModel.save({
+							name : calendarName
+						}, {
+							wait : true,
+							success : function(model, response, options) {
+								calendar.calendarShareCollection.fetch();
+							},
+							error : function(model, response, options) {
+								switch (response.status) {
+								case 409:
+									alert(i18n.calendarNameAlreadyExists + ': ' + calendarName);
+									break;
+								}
+								self.remove();
+							},
+						});
+					} else {
+						var originalCalendarName = calendarShareModel.get('name');
+						if (!calendarName || calendarName == originalCalendarName) {
+							self.$calendarWrapper.removeClass('new_folder');
+							self.$inputWrapper.hide();
+							self.$calendarLinks.not(self.$renameCalendar).css('display', 'inline-block');
+							return false;
+						}
+						calendarShareModel.save({
+							name : calendarName
+						}, {
+							patch : true,
+							wait : true,
+							error : function(model, response, options) {
+								switch (response.status) {
+								case 409:
+									alert(i18n.calendarNameAlreadyExists + ': ' + calendarName);
+									break;
+								}
+								self.$calendarNameLink.text(originalCalendarName);
+							},
+						});
+					}
+					self.$calendarWrapper.removeClass('new_folder');
+					self.$calendarNameLink.text(calendarName).show();
+					self.$inputWrapper.hide();
+					self.$calendarLinks.not(self.$renameMbox).show();
+					return false;
+				});
+
+				this.$calendarWrapper.contextmenu(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					app.vent.trigger('contextmenu:calendar', event, self.model, self);
+					return false;
+				});
+			},
+			appendHtml : function(collectionView, itemView) {
+				collectionView.$('ul:first').append(itemView.el);
+			},
+			newCalendarNameInput : function(collection) {
+				this.$calendarWrapper.addClass('new_folder');
+				this.$calendarLinks.hide();
+				this.$inputWrapper.show();
+
+				var newCaelndarName = i18n.newCalendar;
+				var model = collection.findModel('name', newCaelndarName);
+
+				for (var i = 0; model; i++) {
+					if (i >= 100)
+						break;
+					var beginIndex = newCaelndarName.lastIndexOf(' (');
+					var endIndex = newCaelndarName.lastIndexOf(')');
+					var number = 1;
+					if (beginIndex != -1 && endIndex != -1 && beginIndex < endIndex) {
+						number = newCaelndarName.substring(beginIndex + 2, endIndex);
+						number = parseInt(number);
+						if (isNaN(number))
+							number = 1;
+						else
+							number += 1;
+					}
+					newCaelndarName = i18n.newCalendar + ' (' + number + ')';
+
+					model = collection.findModel('name', newCaelndarName);
+				}
+
+				this.$input.val(newCaelndarName);
+				this.$input.focus().select();
+			},
+		}); // calendar.CalendarItemView
+
+		calendar.OtherCalendarView = Backbone.Marionette.CollectionView.extend({
+			tagName : 'ul',
+			className : 'mc-user_folder',
+			itemView : calendar.CalendarShareItemView,
+			initialize : function(options) {
+
+			},
+			onRender : function() {
+				var self = this;
+			},
+			newCalendarItemView : function() {
+				var itemView = new app.calendar.CalendarItemView({
+					model : new app.calendar.CalendarModel()
+				});
+
+				this.$el.prepend(itemView.render().$el);
+				itemView.newCalendarNameInput(this.collection);
+			},
+		});
+
+		calendar.CalendarContextMenuView = Backbone.Marionette.ItemView.extend({
+			tagName : 'div',
+			id : 'calendar-contextmenu',
+			className : 'calendar_menu_wrap',
+			attributes : {
+				style : 'display: none; z-index: 2015;',
+			},
+			template : function(data) {
+				var html, compiledTemplate = calendar.CalendarContextMenuView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = calendar.$template.filter('#calendar-contextmenu-template').html();
+					compiledTemplate = _.template(html);
+					calendar.CalendarContextMenuView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					calendar : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				this.listenTo(app.vent, 'contextmenu:calendar', this.showContextMenu);
+			},
+			onRender : function() {
+				var self = this;
+				var $contextMenu = $('body > #calendar-contextmenu');
+				if ($contextMenu.length)
+					$contextMenu.remove();
+				$contextMenu = this.$el.appendTo('body');
+				$contextMenu.css({
+					'position' : 'absolute',
+					'top' : 'auto',
+					'right' : 'auto',
+					'bottom' : 'auto',
+					'left' : 'auto',
+				});
+				$contextMenu.attr('hidable', true);
+				$contextMenu.click(function(event) {
+					event.stopPropagation();
+				});
+				var event = this.mouseEvent;
+				var viewportX, viewportY;
+				if (window.innerHeight) {
+					viewportX = window.innerWidth;
+					viewportY = window.innerHeight;
+				} else if (document.documentElement && document.documentElement.clientHeight) {
+					viewportX = document.documentElement.clientWidth;
+					viewportY = document.documentElement.clientHeight;
+				} else if (document.body) {
+					viewportX = document.body.clientWidth;
+					viewportY = document.body.clientHeight;
+				}
+				if ($contextMenu.outerHeight() > (viewportY - event.pageY)) {
+					$contextMenu.css('bottom', (viewportY - event.pageY) + 'px');
+				} else {
+					$contextMenu.css('top', event.pageY + 'px');
+				}
+				if ($contextMenu.outerWidth() > (viewportX - event.pageX)) {
+					$contextMenu.css('right', (viewportX - event.pageX) + 'px');
+				} else {
+					$contextMenu.css('left', event.pageX + 'px');
+				}
+
+				var $onlyDisplay = this.$el.find('#onlyDisplay');
+				$onlyDisplay.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var calendarModel = self.model;
+
+					var model = new (app.BackboneModel.extend({
+						urlRoot : self.model.urlRoot,
+						defaults : {
+							id : calendarModel.id
+						},
+						url : function() {
+							return this.urlRoot + '/' + this.id + '/only';
+						},
+					}))();
+					model.save({
+
+					}, {
+						patch : true,
+						wait : true,
+						success : function(model, response, options) {
+							calendar.calendarCollection.fetch();
+							calendar.calendarShareCollection.fetch();
+							app.vent.trigger('reRender:calendar');
+						}
+					});
+
+					self.$el.hide();
+					return false;
+				});
+
+				var $thisCompose = this.$el.find('#thisCompose');
+				$thisCompose.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var calendarModel = self.model;
+					location.hash = 'compose-schedule/' + calendarModel.get('id');
+					self.$el.hide();
+					return false;
+				});
+
+				var $removeCalendar = this.$el.find('#removeCalendar');
+				$removeCalendar.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var calendarModel = self.model;
+					if (!confirm(i18n.confirmRemove)) {
+						self.$el.hide();
+						return false;
+					}
+					calendarModel.destroy({
+						async : false,
+						wait : true,
+					});
+					self.$el.hide();
+					return false;
+				});
+
+				var $renameCalendar = this.$el.find('#renameCalendar');
+				$renameCalendar.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.calendarItemView.$renameCalendar.click();
+					self.$el.hide();
+					return false;
+				});
+
+				var $colorLabel = this.$el.find('input[name="colorLabel"]');
+				$colorLabel.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var calendarModel = self.model;
+					calendarModel.save({
+						color : this.value
+					}, {
+						patch : true,
+						wait : true,
+						success : function(model, response, options) {
+							calendar.calendarCollection.fetch();
+							app.vent.trigger('fullcalendar:calendar');
+						}
+					});
+					self.$el.hide();
+					return false;
+				});
+
+				var $shareCalendar = this.$el.find('#shareCalendar');
+				$shareCalendar.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var calendarModel = self.model;
+					location.hash = '#calendar/share-setting/' + calendarModel.get('id');
+					self.$el.hide();
+					return false;
+				});
+
+			}, // onRender : function() {...}
+			showContextMenu : function(mouseEvent, calendarModel, calendarItemView) {
+				this.mouseEvent = mouseEvent;
+				this.model = calendarModel;
+				this.calendarItemView = calendarItemView;
+				this.render().$el.show();
+			}
+		});
+
+		calendar.ContentLayout = Backbone.Marionette.Layout.extend({
+			template : function() {
+				var html = calendar.$template.filter('#calendar-layout-template').html();
+				var compiledTemplate = _.template(html);
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			regions : {
+				calendarHeaderRegion : '#calendarHeadDiv',
+				simpleSearchRegion : '#searchInputDiv',
+				calendarContentRegion : '#calendarContent',
+				composeHeaderRegion : '#writeHeadDiv',
+				composeRegion : '#writeWrap',
+				composeToolbarRegion : '#writeBtnMenu',
+				shareSettingHeaderRegion : '#shareSettingHeadDiv',
+				shareSettingRegion : '#shareSettingWrap',
+				shareSettingToolbarRegion : '#shareSettingBtnMenu',
+				shareSettingOrgRegion : 'div.setting-share-calendar',
+			},
+			initialize : function(options) {
+				this.model = app.userModel;
+				this.calendarCollection = options.calendarCollection;
+				this.listenTo(app.vent, 'show:calendar-share-org-settings', this.showShareSettingOrgView);
+			},
+			onRender : function() {
+				this.calendarHeaderRegion.show(new calendar.ContentHeaderView({
+
+				}));
+
+				this.composeHeaderRegion.show(new calendar.ComposeHeaderView({
+
+				}));
+
+				this.simpleSearchRegion.show(new calendar.SimpleSearchView({
+
+				}));
+
+				this.composeToolbarRegion.show(new calendar.ComposeToolbarView({
+
+				}));
+
+				this.composeRegion.show(new calendar.ComposeScheduleView({
+					collection : this.calendarCollection,
+				}));
+
+				this.shareSettingHeaderRegion.show(new calendar.ShareSettingHeaderView({
+
+				}));
+
+				this.shareSettingToolbarRegion.show(new calendar.ShareSettingToolbarView({
+
+				}));
+
+				this.shareSettingRegion.show(new calendar.ShareSettingView({
+					model : new Backbone.Model({
+						calendar : new calendar.CalendarModel(),
+						shareCollection : new calendar.CalendarShareCollection(),
+					}),
+					userModel : this.model,
+				}));
+
+			},
+			onShow : function() {
+				var $parent = this.$el.parent('div.content_cst');
+				$parent.removeClass().addClass('content_cst');
+			},
+			showFullCalendarView : function() {
+
+				// header regions
+				this.calendarHeaderRegion.$el.show();
+				this.simpleSearchRegion.$el.show();
+				this.composeHeaderRegion.$el.hide();
+				this.shareSettingHeaderRegion.$el.hide();
+
+				// toolbar regions
+				this.composeToolbarRegion.$el.hide();
+				this.shareSettingToolbarRegion.$el.hide();
+
+				// content regions
+				this.shareSettingRegion.$el.hide();
+				this.composeRegion.$el.hide();
+
+				if (!this.calendarContentRegion.$el) {
+					this.fullCalendarView = new calendar.FullCalendarView({
+						parentView : this,
+						collection : this.collection,
+					});
+					this.calendarContentRegion.show(this.fullCalendarView);
+					this.fullCalendarView.toDay();
+				} else {
+					this.calendarContentRegion.$el.show();
+				}
+			},
+			showComposeView : function(param) {
+
+				// header regions
+				this.calendarHeaderRegion.$el.hide();
+				this.simpleSearchRegion.$el.hide();
+				this.composeHeaderRegion.$el.show();
+				this.shareSettingHeaderRegion.$el.hide();
+
+				// toolbar regions
+				this.composeToolbarRegion.$el.show();
+				this.shareSettingToolbarRegion.$el.hide();
+
+				// content regions
+				this.calendarContentRegion.$el.hide();
+				this.shareSettingRegion.$el.hide();
+
+				this.composeRegion.$el.show();
+
+				this.composeRegion.show(new calendar.ComposeScheduleView({
+					collection : this.calendarCollection,
+					param : param,
+				}));
+
+			},
+			showShareSettingView : function(id) {
+				// header regions
+				this.calendarHeaderRegion.$el.hide();
+				this.simpleSearchRegion.$el.hide();
+				this.composeHeaderRegion.$el.hide();
+				this.shareSettingHeaderRegion.$el.show();
+
+				// toolbar regions
+				this.composeToolbarRegion.$el.hide();
+				this.shareSettingToolbarRegion.$el.show();
+
+				// content regions
+				this.calendarContentRegion.$el.hide();
+				this.composeRegion.$el.hide();
+				this.shareSettingRegion.$el.show();
+
+				var calendarModel = this.calendarCollection.findModel('id', id);
+				var myCalendarShareCollection = new calendar.CalendarShareCollection();
+				myCalendarShareCollection.url = 'calendar/calendars/' + calendarModel.get('id') + '/shares';
+				myCalendarShareCollection.fetch({
+					async : false,
+				});
+
+				this.shareSettingRegion.show(new calendar.ShareSettingView({
+					model : new Backbone.Model({
+						calendar : calendarModel,
+						shareCollection : myCalendarShareCollection,
+					}),
+					userModel : this.model,
+				}));
+
+			},
+			showShareSettingOrgView : function(myCalendarShareCollection) {
+				var self = this;
+				this.shareSettingOrgRegion.show(new calendar.CalendarShareSettingOrgLayout({
+					userModel : this.model, // app.userModel
+					myCalendarShareCollection : myCalendarShareCollection,
+					parentView : this,
+				}));
+				this.shareSettingOrgRegion.$el.show();
+				this.shareSettingOrgRegion.$el.appendTo('body');
+				this._centerLayerInWindow(this.shareSettingOrgRegion.$el);
+			},
+			_centerLayerInWindow : function($layer) {
+				var $viewport = $(window);
+				$viewport.off('resize.shareSettingorgLayer');
+				$viewport.on('resize.shareSettingorgLayer', function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var viewportWidth = $viewport.width();
+					var viewportHeight = $viewport.height();
+					var width = $layer.width(), height = $layer.height();
+					var top = Math.floor((viewportHeight / 2) - (height * 0.5));
+					var left = Math.floor((viewportWidth / 2) - (width / 2));
+					$layer.css({
+						// width : width,
+						// height : height,
+						top : top,
+						left : left
+					});
+					return false;
+				});
+				$viewport.trigger('resize.shareSettingorgLayer');
+			},
+		}); // calendar.ContentLayout
+
+		calendar.FullCalendarView = Backbone.Marionette.ItemView.extend({
+			// template: _.template(""),
+			template : function() {
+				var html = calendar.$template.filter('#calendar-content-template').html();
+				var compiledTemplate = _.template(html);
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				this.collection = options.collection, this.parentView = options.parentView;
+				this.listenTo(this.collection, 'sync', this.addAll);
+				this.listenTo(this.collection, 'change', this.change);
+				this.listenTo(app.vent, 'fullcalendar:calendar', this.addAll);
+				this.listenTo(app.vent, 'reRender:calendar', this.reRender);
+				this.listenTo(app.vent, 'fullcalendar:next', this.next);
+				this.listenTo(app.vent, 'fullcalendar:prev', this.prev);
+			},
+			onRender : function() {
+				var defaultView = 'month';
+				var name = 'calendar-view-type=';
+				var cookies = document.cookie;
+				var pos = cookies.indexOf(name);
+				if (pos != -1) {
+					var start = pos + name.length;
+					var end = cookies.indexOf(';', start);
+					if (end == -1)
+						end = cookies.length;
+					var cvalue = cookies.substring(start, end);
+					cvalue = decodeURIComponent(cvalue);
+					if (cvalue)
+						defaultView = cvalue;
+				}
+				this.$el.find("#fullCalendar").fullCalendar(
+						{
+							customButtons : {
+								refresh : {
+									text : 'refresh',
+									click : function() {
+										app.vent.trigger('reRender:calendar');
+									}
+								},
+								print : {
+									text : 'print',
+									click : function() {
+										window.print();
+									}
+								},
+								prev : {
+									icon : 'left-single-arrow',
+									click : function() {
+										calendar.overlayView.showLoading();
+										setTimeout(function() {
+											app.vent.trigger('fullcalendar:prev');
+										}, 10);
+										calendar.overlayView.hideLoading();
+									}
+								},
+								next : {
+									icon : 'right-single-arrow',
+									click : function() {
+										calendar.overlayView.showLoading();
+										setTimeout(function() {
+											app.vent.trigger('fullcalendar:next');
+										}, 10);
+										calendar.overlayView.hideLoading();
+									}
+								}
+							},
+							header : {
+								left : 'today, prev,next, title',
+								center : '',
+								right : 'agendaDay,agendaWeek,month,listMonth, print, refresh',
+							},
+							eventLimit : true,
+							eventLimitText : '',
+							dayPopoverFormat : 'YYYY.MM.DD',
+							selectable : true,
+							selectHelper : true,
+							editable : true,
+							height : $(window).height() - 160,
+							displayEventTime : true,
+							select : this.select,
+							eventClick : this.eventClick,
+							eventResize : this.eventDropOrResize,
+							eventDrop : this.eventDropOrResize,
+							forceEventDuration : true,
+							views : {
+								month : {
+									displayEventTime : true,
+									timeFormat : 'HH:mm',
+								},
+								agenda : {
+									slotLabelFormat : 'HH',
+									titleFormat : 'MM.DD',
+									timeFormat : 'HH:mm',
+								},
+								list : {
+									displayEventTime : true,
+									listDayFormat : 'YYYY.MM.DD [(]dddd[)]',
+									listDayAltFormat : '',
+									timeFormat : 'HH:mm',
+								}
+							},
+							viewRender : function(view, element) {
+								var params = $.param({
+									SCHEDULE_SDATE : view.start.format('YYYY-MM-DD'),
+									SCHEDULE_EDATE : view.end.format('YYYY-MM-DD')
+								});
+								calendar.scheduleCollection.fetch({
+									data : params,
+								});
+								element.find('.fc-sun').css({
+									color : 'red'
+								});
+								element.find('.fc-sat').css({
+									color : 'blue'
+								});
+							},
+							eventDataTransform : function(eventData) {
+								var event = $.extend({}, eventData);
+
+								var USERS_IDX = calendar.userModel.get('USERS_IDX');
+
+								if (event.SCHEDULE_DAYLY === 1) {
+									event.allDay = true;
+									event.end = $.fullCalendar.moment(event.end).add(1, 'd').format();
+								}
+
+								if (event.SCHEDULE_SHARE || event.SCHEDULE_SHARE === 0) {
+									var caldendarModel;
+									switch (event.SCHEDULE_SHARE) {
+									case 0:
+										if (event.calendarId || event.calendarId === 0) {
+											caldendarModel = calendar.calendarCollection.findModel('id',
+													event.calendarId);
+											break;
+										}
+									case 1:
+									case 2:
+										caldendarModel = calendar.calendarCollection.findModel('kind',
+												event.SCHEDULE_SHARE);
+										break;
+									case 3:
+									case 4:
+									default:
+										caldendarModel = calendar.calendarCollection.findModel('id', event.calendarId);
+									}
+									if (!caldendarModel) {
+										caldendarModel = calendar.calendarShareCollection.findModel('calendarId',
+												event.calendarId);
+									}
+
+									if (caldendarModel) {
+										var color = i18n.color[caldendarModel.get('color')];
+										event.color = "#" + color.bgColor;
+										event.textColor = "#" + color.textColor;
+										if (color.borderColor)
+											event.borderColor = "#" + color.borderColor;
+										if (color.backTextColor)
+											event.backTextColor = "#" + color.backTextColor;
+										else
+											event.backTextColor = "#" + color.bgColor;
+									}
+								}
+
+								if (!event.USERS_IDX || event.USERS_IDX != USERS_IDX) {
+									event.editable = false;
+								}
+
+								if (event.SCHEDULE_REPEAT > 0) {
+									event.editable = false;
+								}
+								return event;
+							},
+							eventRender : function(event, element, view) {
+								if (view.name === 'month' && !event.allDay) {
+									if (event.start.isSame(event.end, 'day')) {
+										event.color = "transparent";
+										event.textColor = event.backTextColor;
+										event.borderColor = "transparent";
+									}
+								}
+
+								var self = this;
+								element.attr('title', event.SCHEDULE_STMT);
+								var $title;
+								if (view.name === 'listMonth') {
+									$title = element.find('.fc-list-item-title');
+								} else {
+									$title = element.find('.fc-title');
+								}
+								if (event.SCHEDULE_TYPE != 'none') {
+									$title.prepend('<strong>[' + i18n.category[event.SCHEDULE_TYPE] + ']</strong> ');
+								}
+
+								var calendarModel;
+								if (event.SCHEDULE_SHARE || event.SCHEDULE_SHARE === 0) {
+									switch (event.SCHEDULE_SHARE) {
+									case 0:
+										if (event.calendarId || event.calendarId === 0) {
+											calendarModel = calendar.calendarCollection.findModel('id',
+													event.calendarId);
+											break;
+										}
+									case 1:
+									case 2:
+										calendarModel = calendar.calendarCollection.findModel('kind',
+												event.SCHEDULE_SHARE);
+										break;
+									case 3:
+									case 4:
+									default:
+										calendarModel = calendar.calendarCollection.findModel('id', event.calendarId);
+									}
+									if (!calendarModel) {
+										calendarModel = calendar.calendarShareCollection.findModel('calendarId',
+												event.calendarId);
+									}
+								}
+
+								if (calendarModel && calendarModel.get('kind') === 3) {
+									var $checkbox = $("<input>", {
+										type : 'checkbox',
+										name : event.id,
+										value : event.id,
+										checked : event.todo === 1 ? true : false
+									});
+
+									$checkbox.click(function(event) {
+										var scheduleModel = calendar.scheduleCollection.findModel('SCHEDULE_IDX',
+												self.id);
+
+										scheduleModel.save({
+											todo : this.checked ? 1 : 0,
+										}, {
+											patch : true,
+											wait : true,
+											silent : true,
+											async : false,
+										});
+
+										if (this.checked) {
+											$(this).parent().css('text-decoration', 'line-through');
+										} else {
+											$(this).parent().css('text-decoration', 'none');
+										}
+									});
+									$title.prepend($checkbox);
+
+									if (event.todo === 1) {
+										$title.css('text-decoration', 'line-through');
+									}
+								}
+
+								if (view.name === 'listMonth' && calendarModel) {
+									var $marker = element.find('.fc-list-item-marker');
+									$marker.empty();
+
+									var $square = $('<span>', {
+										title : calendarModel.get('name')
+									});
+									$square.attr('class', 'calen_bar cc_'
+											+ i18n.color[calendarModel.get('color')].bgColor);
+									var $thisCalendar = $('<span>', {
+										title : calendarModel.get('name')
+									});
+
+									$thisCalendar.text(calendarModel.get('name'));
+									$thisCalendar.css('vertical-align', 'top');
+									$thisCalendar.css('padding-left', '5px');
+
+									$square.appendTo($marker);
+									$thisCalendar.appendTo($marker);
+								}
+							},
+							// businessHours : {
+							// dow : [ 1, 2, 3, 4, 5 ],
+							// start : '09:00',
+							// end : '18:00',
+							// },
+							defaultView : defaultView,
+						});
+
+				$(window).on('resize.calendarHeight', _.bind(this.onResize, this));
+
+				setTimeout(function() {
+					$(window).trigger('resize.calendarHeight');
+				}, 100);
+
+				var $viewButtons = this.$el.find('div.fc-button-group button');
+				$viewButtons.click(function(event) {
+					var value = 'month';
+					var expires = 1;
+					if ($(this).hasClass('fc-agendaDay-button'))
+						value = 'agendaDay';
+					else if ($(this).hasClass('fc-agendaWeek-button'))
+						value = 'agendaWeek';
+					else if ($(this).hasClass('fc-month-button'))
+						value = 'month';
+					else if ($(this).hasClass('fc-listMonth-button'))
+						value = 'listMonth';
+					else
+						return false;
+					var now = new Date();
+					now.setDate(now.getDate() + expires);
+					document.cookie = 'calendar-view-type=' + encodeURIComponent(value) + '; path=/; expires='
+							+ now.toGMTString() + ';';
+				});
+			},
+			addAll : function() {
+				var events = this.collection.toJSON();
+				var renderEvents = [];
+
+				_.each(events, function(event) {
+					event.start = event.SCHEDULE_SDATE;
+					event.end = event.SCHEDULE_EDATE;
+					event.title = event.SCHEDULE_TITLE;
+					event.id = event.SCHEDULE_IDX;
+					if (event.SCHEDULE_REPEAT > 0) {
+						var start = $.fullCalendar.moment(event.start);
+						var end = $.fullCalendar.moment(event.end);
+
+						var dateType;
+						switch (Number(event.SCHEDULE_REPEAT)) {
+						case 1: // everyDay
+							dateType = 'days';
+							break;
+						case 2: // everyWeek
+							dateType = 'weeks';
+							break;
+						case 3: // everyMoneth
+							dateType = 'months';
+							break;
+						case 4: // everyYear
+							dateType = 'years';
+							break;
+						default:
+							dateType = 'days';
+							break;
+						}
+						var diff = end.diff(start, dateType);
+						for (var i = 0; i <= diff; i++) {
+							var repeatEvent = _.clone(event);
+							repeatEvent.start = start.clone().add(i, dateType);
+							repeatEvent.end = repeatEvent.start.clone().set('hour', end.get('hour')).set('minute',
+									end.get('minute')).format('YYYY-MM-DD HH:mm:ss');
+							repeatEvent.start = repeatEvent.start.format('YYYY-MM-DD HH:mm:ss');
+
+							renderEvents.push(repeatEvent);
+						}
+					} else {
+						renderEvents.push(event);
+					}
+				});
+				this.$el.find("#fullCalendar").fullCalendar('removeEventSources');
+				this.$el.find("#fullCalendar").fullCalendar('addEventSource', renderEvents);
+				this.$el.find("#fullCalendar").fullCalendar('refetchEvents');
+			},
+			reRender : function(searchTerm) {
+
+				location.hash = '#calendar';
+				app.$hidablesListener.trigger('hide.all');
+				var view = this.$el.find("#fullCalendar").fullCalendar('getView');
+				calendar.scheduleCollection.fetch({
+					data : {
+						_method : 'GET',
+						SCHEDULE_SDATE : view.start.format('YYYY-MM-DD'),
+						SCHEDULE_EDATE : view.end.format('YYYY-MM-DD'),
+						searchTerm : searchTerm
+					},
+					type : 'POST',
+					async : false,
+				});
+			},
+			toDay : function() {
+				this.$el.find("#fullCalendar").fullCalendar('today');
+			},
+			next : function() {
+				this.$el.find("#fullCalendar").fullCalendar('next');
+			},
+			prev : function() {
+				this.$el.find("#fullCalendar").fullCalendar('prev');
+			},
+			next : function() {
+				this.$el.find("#fullCalendar").fullCalendar('next');
+			},
+			prev : function() {
+				this.$el.find("#fullCalendar").fullCalendar('prev');
+			},
+			gotoDate : function(date) {
+				location.hash = '#calendar';
+				this.$el.find("#fullCalendar").fullCalendar('gotoDate', date);
+			},
+			onClose : function() {
+				$(window).off('resize.calendarHeight');
+			},
+			onResize : function() {
+				var calHeight = $(window).height() - 160;
+				this.$el.find("#fullCalendar").fullCalendar('option', 'height', calHeight);
+			},
+			select : function(startDate, endDate, jsEvent, view) {
+				startDate = $.fullCalendar.moment(startDate).format('YYYY-MM-DD HH:mm:ss');
+				var allDay;
+				if (endDate.hasTime()) {
+					endDate = $.fullCalendar.moment(endDate).format('YYYY-MM-DD HH:mm:ss');
+					allDay = 0;
+				} else {
+					endDate = $.fullCalendar.moment(endDate).add(-1, 's').format('YYYY-MM-DD HH:mm:ss');
+					allDay = 1;
+				}
+
+				var composeSimpleView = new calendar.ComposeSimpleView({
+					model : new Backbone.Model({
+						calendarCollection : calendar.calendarCollection,
+						startDate : startDate,
+						endDate : endDate,
+						allDay : allDay,
+					}),
+				});
+				composeSimpleView.render();
+			},
+			change : function(event) {
+				// alert(event);
+			},
+			eventDropOrResize : function(fcEvent) {
+				var start = $.fullCalendar.moment(fcEvent.start).format('YYYY-MM-DD HH:mm:ss');
+				var end = fcEvent.allDay ? $.fullCalendar.moment(fcEvent.end).add(-1, 's')
+						.format('YYYY-MM-DD HH:mm:ss') : $.fullCalendar.moment(fcEvent.end).format(
+						'YYYY-MM-DD HH:mm:ss');
+				var scheduleModel = calendar.scheduleCollection.findModel('SCHEDULE_IDX', fcEvent.id);
+				scheduleModel.save({
+					SCHEDULE_SDATE : start,
+					SCHEDULE_EDATE : end,
+					SCHEDULE_DAYLY : fcEvent.allDay,
+				}, {
+					patch : true,
+					wait : true,
+					silent : true,
+					success : function(model, resp, options) {
+						if (fcEvent.allDay) {
+							app.vent.trigger('reRender:calendar');
+						}
+					},
+				});
+			},
+			eventClick : function(calEvent, jsEvent, view) {
+				var scheduleModel = calendar.scheduleCollection.findModel('SCHEDULE_IDX', calEvent.id);
+				if (view.scheduleDetailView) {
+					view.scheduleDetailView.$layer.remove();
+				}
+
+				view.scheduleDetailView = new calendar.ScheduleDetailView({
+					model : scheduleModel,
+					userModel : app.userModel,
+				});
+				view.scheduleDetailView.render();
+			}
+		}); // contact.FullCalendarView
+
+		calendar.ContentHeaderView = Backbone.Marionette.ItemView.extend({
+			template : function() {
+				var html, compiledTemplate = calendar.ContentHeaderView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = calendar.$template.filter('#calendar-header-template').html();
+					compiledTemplate = _.template(html);
+					calendar.ContentHeaderView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				// this.collection = contact.ContactPaginator
+				this.parentView = options.parentView;
+			},
+			onRender : function() {
+			},
+		}); // contact.ContentHeaderView
+
+		calendar.ComposeHeaderView = Backbone.Marionette.ItemView.extend({
+			template : function(data) {
+				var html, compiledTemplate = calendar.ComposeHeaderView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = calendar.$template.filter('#compose-header-template').html();
+					compiledTemplate = _.template(html);
+					calendar.ComposeHeaderView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				this.listenTo(app.vent, 'show:compose-calendar-header-name', this.render);
+			},
+			onRender : function() {
+				var hash = location.hash;
+				pathname = hash.substring(hash.indexOf('#') + 1);
+				if (pathname.indexOf('/') != 0) {
+					var lastSlashIndex = pathname.lastIndexOf('/');
+					if (lastSlashIndex != -1)
+						pathname = pathname.substring(0, lastSlashIndex);
+				}
+				$headTitle = this.$el.find(".mc-folderName");
+				switch (pathname) {
+				case 'compose-todo':
+					$headTitle.text(i18n.composeTodo);
+					break;
+				case 'compose-schedule':
+					$headTitle.text(i18n.composeSchedule);
+					break;
+				case 'calendar/schedule-edit':
+					if (hash.substring(hash.indexOf('#') + 1) == 'calendar/schedule-edit/0') {
+						$headTitle.text(i18n.composeSchedule);
+					} else {
+						$headTitle.text(i18n.editSchedule);
+					}
+					break;
+				}
+			}
+		}); // calendar.ComposeHeaderView
+
+		calendar.ShareSettingHeaderView = Backbone.Marionette.ItemView.extend({
+			template : function(data) {
+				var html, compiledTemplate = calendar.ShareSettingHeaderView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = calendar.$template.filter('#shareSetting-header-template').html();
+					compiledTemplate = _.template(html);
+					calendar.ShareSettingHeaderView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+			},
+		}); // calendar.ShareSettingHeaderView
+
+		calendar.SimpleSearchView = Backbone.Marionette.ItemView.extend({
+			template : function() {
+				var html, compiledTemplate = calendar.SimpleSearchView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = calendar.$template.filter('#simple-search-template').html();
+					compiledTemplate = _.template(html);
+					calendar.SimpleSearchView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				this.parentView = options.parentView;
+			},
+			onRender : function() {
+				var self = this;
+				var $searchInput = this.$el.find('.mc-search');
+				$searchInput.keydown(function(event) {
+					if (event.which == 13) {
+						var term = $(this).val();
+						if (term) {
+							self.search(term);
+						}
+						$(this).val('');
+					}
+				});
+				var $searchBtn = this.$el.find('.mc-search_btn');
+				$searchBtn.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var term = $searchInput.val();
+					if (term) {
+						self.search(term);
+					}
+					$searchInput.val('');
+				});
+			},
+			search : function(term) {
+				if (term && (term.indexOf('%') != -1 || term.indexOf('_') != -1)) {
+					alert(i18n.search.invalidToken);
+					return;
+				}
+				app.vent.trigger('reRender:calendar', term);
+			},
+		}); // calendar.SimpleSearchView
+
+		calendar.ComposeToolbarView = Backbone.Marionette.ItemView.extend({
+			template : function(data) {
+				var html, compiledTemplate = calendar.ComposeToolbarView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = calendar.$template.filter('#compose-toolbar-template').html();
+					compiledTemplate = _.template(html);
+					calendar.ComposeToolbarView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function() {
+				this.listenTo(app.vent, 'show:compose-calendar-toolbar-name', this.render);
+			},
+			onRender : function() {
+				var $save = this.$el.find('.save-schedule');
+				var $cancel = this.$el.find('.cancel-schedule');
+
+				var hash = location.hash;
+				pathname = hash.substring(hash.indexOf('#') + 1);
+				if (pathname.indexOf('/') != 0) {
+					var lastSlashIndex = pathname.lastIndexOf('/');
+					if (lastSlashIndex != -1)
+						pathname = pathname.substring(0, lastSlashIndex);
+				}
+				switch (pathname) {
+				case 'compose-todo':
+				case 'compose-schedule':
+					$save.text(i18n.compose.regist);
+					break;
+				case 'calendar/schedule-edit':
+					$save.text(i18n.compose.save);
+					break;
+				}
+
+				$save.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					app.vent.trigger('save:schedule');
+					return false;
+				});
+
+				$cancel.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					location.hash = '#calendar';
+					return false;
+				});
+
+			},
+		}); // calendar.ComposeToolbarView
+
+		calendar.ShareSettingToolbarView = Backbone.Marionette.ItemView.extend({
+			template : function(data) {
+				var html, compiledTemplate = calendar.ShareSettingToolbarView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = calendar.$template.filter('#shareSetting-toolbar-template').html();
+					compiledTemplate = _.template(html);
+					calendar.ShareSettingToolbarView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function() {
+
+			},
+			onRender : function() {
+				var $save = this.$el.find('.save-share');
+				var $cancel = this.$el.find('.cancel-share');
+
+				$save.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					app.vent.trigger('save:share-setting');
+					return false;
+				});
+
+				$cancel.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					location.hash = '#calendar';
+					return false;
+				});
+			},
+		}); // calendar.shareSettingToolbarRegion
+
+		calendar.ComposeScheduleView = Backbone.Marionette.ItemView.extend({
+			tagName : 'div',
+			className : 'mc-division',
+			template : function(data) {
+				var html, compiledTemplate = calendar.ComposeScheduleView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = calendar.$template.filter('#compose-schedule-template').html();
+					compiledTemplate = _.template(html);
+					calendar.ComposeScheduleView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+					calendarCollection : data.calendarCollection.toJSON(),
+				});
+				return html;
+			},
+			initialize : function(options) {
+				this.calendarCollection = options.collection;
+				this.param = options.param;
+				this.params = {};
+				this.model = new Backbone.Model({
+					calendarCollection : this.calendarCollection,
+				});
+				this.listenTo(this.calendarCollection, 'all', this.render);
+				this.listenTo(app.vent, 'save:schedule', this.save);
+			},
+			onBeforeRender : function() {
+				var self = this;
+				if (location.hash) {
+					var hash = location.hash;
+					pathname = hash.substring(hash.indexOf('#') + 1);
+					if (pathname.indexOf('/') != 0) {
+						var lastSlashIndex = pathname.lastIndexOf('/');
+						if (lastSlashIndex != -1)
+							pathname = pathname.substring(0, lastSlashIndex);
+					}
+					switch (pathname) {
+					case 'compose-schedule':
+						this.params.calendar = this.param;
+						break;
+					case 'calendar/schedule-edit':
+						this.params.schedule = calendar.scheduleCollection.findModel('SCHEDULE_IDX', this.param);
+						break;
+					case 'compose-todo':
+						var calendarModel = this.calendarCollection.findModel('kind', 3);
+						this.params.calendar = calendarModel.get('id');
+						this.params.todo = true;
+						break;
+					default:
+						break;
+					}
+				}
+
+			},
+			onRender : function() {
+				app.vent.trigger('show:compose-calendar-header-name');
+				app.vent.trigger('show:compose-calendar-toolbar-name');
+				var self = this;
+
+				var $selectCalendar = this.$el.find('select[name="selectCalendar"]');
+				var $selectCategory = this.$el.find('select[name="selectCategory"]');
+				var $start = this.$el.find('input[name="start"]');
+				var $end = this.$el.find('input[name="end"]');
+				var $selectStartTime = this.$el.find('select[name="selectStartTime"]');
+				var $selectEndTime = this.$el.find('select[name="selectEndTime"]');
+				var $repeat = this.$el.find('input[name="repeat"]');
+				var $title = this.$el.find('input[name="title"]');
+				var $allDay = this.$el.find('input[name="allDay"]');
+				var $description = this.$el.find('textarea[name="description"]');
+				var $mail = this.$el.find('input[name="mail"]');
+				var $sms = this.$el.find('input[name="sms"]');
+				var $SCHEDULE_ALAM = this.$el.find('select[name="SCHEDULE_ALAM"]');
+				var $repeatArea = this.$el.find('#repeatArea');
+
+				if (this.params.calendar) {
+					$selectCalendar.val(this.params.calendar);
+				}
+				if (this.params.todo) {
+					this.$el.find('#calendarArea').hide();
+				}
+				$end.datepicker();
+				$start.datepicker({
+					onSelect : function(dateText, inst) {
+						$end.val(dateText);
+						$end.datepicker("option", "minDate", dateText);
+					},
+				});
+
+				if (this.params.schedule) {
+					var scheduleModel = this.params.schedule;
+					var caldendarModel;
+					switch (scheduleModel.get('SCHEDULE_SHARE')) {
+					case 0:
+						if (scheduleModel.get('calendarId') || scheduleModel.get('calendarId') === 0) {
+							caldendarModel = calendar.calendarCollection.findModel('id', scheduleModel
+									.get('calendarId'));
+							break;
+						}
+					case 1:
+					case 2:
+						caldendarModel = calendar.calendarCollection.findModel('kind', scheduleModel
+								.get('SCHEDULE_SHARE'));
+						break;
+					case 3:
+					case 4:
+					default:
+						caldendarModel = calendar.calendarCollection.findModel('id', scheduleModel.get('calendarId'));
+					}
+
+					$selectCalendar.val(caldendarModel.get('id'));
+					$selectCategory.val(scheduleModel.get('SCHEDULE_TYPE'));
+					$start.val($.format.date(scheduleModel.get('SCHEDULE_SDATE'), 'yyyy-MM-dd'));
+					$end.val($.format.date(scheduleModel.get('SCHEDULE_EDATE'), 'yyyy-MM-dd'));
+					$end.datepicker("option", "minDate", $.format.date(scheduleModel.get('SCHEDULE_SDATE'),
+							'yyyy-MM-dd'));
+					$selectStartTime.val($.format.date(scheduleModel.get('SCHEDULE_SDATE'), 'HH:mm'));
+					$selectEndTime.val($.format.date(scheduleModel.get('SCHEDULE_EDATE'), 'HH:mm'));
+					if ($selectEndTime.val() == null)
+						$selectEndTime.val('00:00');
+					$repeat.prop("checked", scheduleModel.get('SCHEDULE_REPEAT') === 0 ? false : true);
+					if ($repeat.is(':checked')) {
+						$repeatArea.show();
+						this.$el.find(
+								'input[name="repeatTime"]:input[value=' + scheduleModel.get('SCHEDULE_REPEAT') + ']')
+								.attr("checked", true);
+					}
+					$title.val(scheduleModel.get('SCHEDULE_TITLE'));
+					$allDay.prop("checked", scheduleModel.get('SCHEDULE_DAYLY'));
+					$description.val(scheduleModel.get('SCHEDULE_STMT'));
+					var alram = scheduleModel.get('SCHEDULE_ALAM_WAY');
+					switch (alram) {
+					case 0:
+						break;
+					case 1:
+						$mail.prop("checked", true);
+						break;
+					case 2:
+						$sms.prop("checked", true);
+						break;
+					case 3:
+						$mail.prop("checked", true);
+						$sms.prop("checked", true);
+						break;
+					default:
+						break;
+
+					}
+					$SCHEDULE_ALAM.val(scheduleModel.get('SCHEDULE_ALAM'));
+				} else {
+					$start.val($.format.date(new Date(), 'yyyy-MM-dd'));
+					$end.val($.format.date(new Date(), 'yyyy-MM-dd'));
+					$end.datepicker("option", "minDate", $.format.date(new Date(), 'yyyy-MM-dd'));
+					$selectStartTime.val($.format.date($.fullCalendar.moment(new Date()).add(1, 'Hour').format(),
+							'HH:00'));
+					$selectEndTime.val($.format
+							.date($.fullCalendar.moment(new Date()).add(2, 'Hour').format(), 'HH:00'));
+				}
+
+				$selectCalendar.colorselectmenu({
+					width : 200,
+					create : function(event, ui) {
+						var selectedColor = $(this).find("option:selected").attr("data-color");
+						var selectedTextColor = $(this).find("option:selected").attr("text-color");
+						var hiddenSelectMenuBtn = "#" + $(this).attr("id") + "-button .ui-selectmenu-text"
+						$(this).parent().find(hiddenSelectMenuBtn).css('background-color', "#" + selectedColor).css(
+								'color', "#" + selectedTextColor);
+						$(this).parent().find(hiddenSelectMenuBtn).css('color', "#" + selectedTextColor);
+					},
+					select : function(event, ui) {
+						var selectedColor = $(this).find("option:selected").attr("data-color");
+						var selectedTextColor = $(this).find("option:selected").attr("text-color");
+						var hiddenSelectMenuBtn = "#" + $(this).attr("id") + "-button .ui-selectmenu-text"
+						$(hiddenSelectMenuBtn).css('background-color', "#" + selectedColor).css('color',
+								"#" + selectedTextColor);
+						$(hiddenSelectMenuBtn).css('color', "#" + selectedTextColor);
+					},
+					change : function(event, ui) {
+						var selectedColor = $(this).find("option:selected").attr("data-color");
+						var selectedTextColor = $(this).find("option:selected").attr("text-color");
+						var hiddenSelectMenuBtn = "#" + $(this).attr("id") + "-button .ui-selectmenu-text"
+						$(hiddenSelectMenuBtn).css('background-color', "#" + selectedColor)
+						$(hiddenSelectMenuBtn).css('color', "#" + selectedTextColor);
+					},
+				});
+
+				$allDay.click(function(event) {
+					if (this.checked) {
+						$selectStartTime.hide();
+						$selectEndTime.hide();
+					} else {
+						$selectStartTime.show();
+						$selectEndTime.show();
+						$selectStartTime.val($.format.date($.fullCalendar.moment(new Date()).add(1, 'Hour').format(),
+								'HH:00'));
+						$selectEndTime.val($.format.date($.fullCalendar.moment(new Date()).add(2, 'Hour').format(),
+								'HH:00'));
+					}
+				});
+
+				if ($allDay.is(':checked')) {
+					$selectStartTime.hide();
+					$selectEndTime.hide();
+				}
+
+				$repeat.click(function(event) {
+					if (this.checked) {
+						$repeatArea.show();
+					} else {
+						$repeatArea.hide();
+					}
+				});
+
+			},
+			_validateForm : function() {
+				var $title = this.$el.find('input[name="title"]');
+				if (!$title.val()) {
+					alert(i18n.emptyTitle);
+					return false;
+				}
+				return true;
+			},
+			save : function() {
+				var self = this;
+				var isValidForm = this._validateForm();
+				if (!isValidForm) {
+					return;
+				}
+
+				var $selectCalendar = this.$el.find('select[name="selectCalendar"]');
+				var $selectCategory = this.$el.find('select[name="selectCategory"]');
+				var $start = this.$el.find('input[name="start"]');
+				var $end = this.$el.find('input[name="end"]');
+				var $selectStartTime = this.$el.find('select[name="selectStartTime"]');
+				var $selectEndTime = this.$el.find('select[name="selectEndTime"]');
+				var $repeat = this.$el.find('input[name="repeat"]');
+				var $repeatTime = this.$el.find('input[name="repeatTime"]:checked');
+				var $title = this.$el.find('input[name="title"]');
+				var $allDay = this.$el.find('input[name="allDay"]');
+				var $description = this.$el.find('textarea[name="description"]');
+				var $mail = this.$el.find('input[name="mail"]');
+				var $sms = this.$el.find('input[name="sms"]');
+				var $SCHEDULE_ALAM = this.$el.find('select[name="SCHEDULE_ALAM"]');
+				var startDate = $.fullCalendar.moment($start.val() + " " + $selectStartTime.val(), "YYYY-MM-DD HH:mm");
+				var endDate = $.fullCalendar.moment($end.val() + " " + $selectEndTime.val(), "YYYY-MM-DD HH:mm");
+
+				if (!$.fullCalendar.moment(endDate).isAfter(startDate)) {
+					if ($allDay.is(":checked")) {
+						if (!$.fullCalendar.moment(endDate).isSameOrAfter(startDate)) {
+							alert(i18n.beforeDate);
+							return;
+						}
+					} else {
+						alert(i18n.beforeDate);
+						return;
+					}
+				}
+
+				var share;
+				var repeat = 0;
+				var allDay = 0;
+				var alram = 0;
+				var calendarModel = this.calendarCollection.findModel('id', $selectCalendar.val());
+				switch (calendarModel.get('kind')) {
+				case 0:
+					share = 0;
+					break;
+				case 1:
+					share = 1;
+					break;
+				case 2:
+					share = 2;
+					break;
+				case 3:
+				case 4:
+				default:
+					share = 0;
+				}
+
+				if ($repeat.is(":checked")) {
+					repeat = $repeatTime.val();
+				}
+
+				if ($allDay.is(":checked")) {
+					allDay = 1;
+				}
+
+				if ($mail.is(":checked"))
+					alram = 1;
+				if ($sms.is(":checked"))
+					alram = 2;
+				if ($mail.is(":checked") && $sms.is(":checked"))
+					alram = 3;
+
+				var scheduleModel;
+
+				if (this.params.schedule) {
+					scheduleModel = this.params.schedule;
+				} else {
+					scheduleModel = new calendar.ScheduleModel();
+				}
+
+				var scheduleType;
+				switch ($selectCategory.val()) {
+				case 'personal':
+					scheduleType = 0;
+					break;
+				case 'visit':
+					scheduleType = 1;
+					break;
+				case 'task':
+					scheduleType = 2;
+					break;
+				case 'leave':
+					scheduleType = 3;
+					break;
+				case 'inspection':
+					scheduleType = 4;
+					break;
+				case 'participation':
+					scheduleType = 5;
+					break;
+				case 'notice':
+					scheduleType = 6;
+					break;
+				case 'nationalHoliday':
+					scheduleType = 7;
+					break;
+				case 'none':
+					scheduleType = 8;
+					break;
+				case 'holiday':
+					scheduleType = 9;
+					break;
+				default:
+					scheduleType = 0;
+				}
+
+				var scheduleAlarm;
+				switch ($SCHEDULE_ALAM.val()) {
+				case 'noAlarm':
+					scheduleAlarm = 0;
+					break;
+				case 'startTime':
+					scheduleAlarm = 1;
+					break;
+				case 'oneHourAgo':
+					scheduleAlarm = 2;
+					break;
+				case 'oneDayAgo':
+					scheduleAlarm = 3;
+					break;
+				case 'twoDayAgo':
+					scheduleAlarm = 4;
+					break;
+				case 'threeDayAgo':
+					scheduleAlarm = 5;
+					break;
+				case 'oneWeekAgo':
+					scheduleAlarm = 6;
+					break;
+				default:
+					scheduleAlarm = 0;
+				}
+
+				scheduleModel.set({
+					SCHEDULE_TITLE : $title.val(),
+					SCHEDULE_STMT : $description.val(),
+					SCHEDULE_SDATE : $start.val() + " " + $selectStartTime.val(),
+					SCHEDULE_EDATE : $end.val() + " " + $selectEndTime.val(),
+					SCHEDULE_SHARE : share,
+					SCHEDULE_TYPE : scheduleType,
+					SCHEDULE_REPEAT : repeat,
+					SCHEDULE_DAYLY : allDay,
+					SCHEDULE_ALAM : scheduleAlarm,
+					SCHEDULE_ALAM_DATE : '',
+					SCHEDULE_ALAM_WAY : alram,
+					calendarId : Number($selectCalendar.val()),
+				});
+
+				var patch = false;
+				if (this.params.schedule) {
+					if (this.params.schedule.get("SCHEDULE_IDX") != 0)
+						patch = true;
+				}
+
+				scheduleModel.save(null, {
+					patch : patch,
+					async : false,
+					wait : true,
+					success : function(model, resp, options) {
+						self.render();
+						location.hash = '#calendar';
+						setTimeout(function() {
+							app.vent.trigger('reRender:calendar');
+						}, 100);
+					},
+					error : function(model, resp, options) {
+						alert(i18n.compose.failedToSave);
+					},
+				});
+			}
+		}); // calendar.ComposeScheduleView
+
+		calendar.ShareSettingView = Backbone.Marionette.ItemView.extend({
+			tagName : 'div',
+			className : 'mc-division',
+			template : function(data) {
+				var html, compiledTemplate = calendar.ShareSettingView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = calendar.$template.filter('#shareSetting-content-template').html();
+					compiledTemplate = _.template(html);
+					calendar.ShareSettingView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					calendar : data.calendar.toJSON(),
+					shareCollection : data.shareCollection,
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				this.userModel = options.userModel;
+				this.calendarModel = options.model.get('calendar');
+				this.shareCollection = options.model.get('shareCollection');
+				this.listenTo(app.vent, 'show:share-setting-view', this.replaceRender);
+				this.listenTo(app.vent, 'save:share-setting', this.saveShareSettings);
+			},
+			onRender : function() {
+				var self = this;
+
+				var $addShare = this.$el.find('button.add-share');
+				var $removeShare = this.$el.find('button.remove-share');
+				var $orgShare = this.$el.find('button.org-share');
+				var $shareId = this.$el.find('input[name="share_id"]');
+
+				$shareId.keydown(function(event) {
+					event.stopPropagation();
+					if (event.which == 13) {
+						event.preventDefault();
+						$addShare.click();
+					}
+				});
+
+				$addShare.click(function(event) {
+					var shareId = $shareId.val();
+					var personal, address;
+
+					try {
+						var addr = InternetAddress.parseHeader(shareId, false);
+						personal = addr[0].getPersonal();
+						address = addr[0].getAddress();
+					} catch (e) {
+						address = shareId;
+						personal = '';
+					}
+
+					if (address == self.userModel.get('USERS_IDX')) {
+						alert(i18n.shareSettings.alertSelfCalendarShare);
+						$shareId.val('');
+						return;
+					}
+
+					var domain = address.substring(address.indexOf("@") + 1, address.length);
+
+					var userCheck = true;
+
+					if (domain != self.userModel.get('DOMAIN')) {
+						alert(i18n.notMatchedDomain);
+						return;
+					}
+					var data = {
+						USERS_ID : address.substring(0, address.indexOf("@")),
+					};
+
+					$.ajax({
+						type : "POST",
+						contentType : 'application/json',
+						url : '/mail/signup/' + domain + "/duplication-check",
+						data : JSON.stringify(data),
+						async : false,
+						success : function(data) {
+							if (data.duplicationmsg != 'DuplicationId') {
+								alert(i18n.notMatchedDomain);
+								userCheck = false;
+								return;
+							}
+						},
+					});
+
+					var shareModel = self.shareCollection.findModel('sharee', address);
+					if (shareModel) {
+						$shareId.val('');
+						alert(i18n.existUser);
+						return;
+					}
+
+					if (!userCheck)
+						return;
+
+					self.shareCollection.add([ {
+						sharee : address,
+						userName : personal
+					} ]);
+					$shareId.val('');
+					app.vent.trigger('show:share-setting-view');
+				});
+
+				$removeShare.click(function(event) {
+					var $checkboxes = self.$el.find('input[name="share_user_id"]');
+					$checkboxes.each(function(index, element) {
+						var $checkbox = $(element);
+						if ($checkbox.is(':checked')) {
+							var shareModel = self.shareCollection.findModel('sharee', $checkbox.val());
+							self.shareCollection.remove(shareModel);
+						}
+					});
+					app.vent.trigger('show:share-setting-view');
+				});
+
+				$orgShare.click(function(event) {
+					app.vent.trigger('show:calendar-share-org-settings', self.shareCollection);
+				});
+
+			}, // calendar.ShareSettingView.onRander
+			replaceRender : function() {
+				var calendarModelClone = this.calendarModel.clone();
+				var $shared = this.$el.find('input[name="shared"]:checked');
+				this.calendarModel.set('shared', Number($shared.val()));
+				this.render();
+				this.calendarModel.set('shared', Number(calendarModelClone.get('shared')));
+			},
+			saveShareSettings : function() {
+				var self = this;
+				var $checkboxes = this.$el.find('input[name="share_user_id"]');
+				var newUserIds = [];
+				var userIdSaveHash = {}, userIdDeleteHash = {};
+				var $shared = this.$el.find('input[name="shared"]:checked');
+
+				$checkboxes.each(function() {
+					newUserIds.push(this.value);
+				});
+
+				var myCalendarShareCollection = new calendar.CalendarShareCollection();
+				myCalendarShareCollection.url = 'calendar/calendars/' + this.calendarModel.get('id') + '/shares';
+				myCalendarShareCollection.fetch({
+					async : false,
+				});
+
+				var orignalUserIds = myCalendarShareCollection.pluck('sharee');
+
+				userIdSaveHash['userIds'] = _.difference(newUserIds, orignalUserIds);
+				userIdDeleteHash[this.calendarModel.get('id')] = _.difference(orignalUserIds, newUserIds);
+
+				var model = new (app.BackboneModel.extend({
+					url : 'calendar/calendars/' + this.calendarModel.get('id') + '/shares',
+				}))();
+
+				model.save(userIdSaveHash, {
+					async : false,
+					wait : true,
+				});
+
+				model = new (app.BackboneModel.extend({
+					url : function() {
+						var url = 'calendar/calendars/' + self.calendarModel.get('id') + '/shares';
+						url += '?model=' + JSON.stringify(userIdDeleteHash);
+						return url;
+					},
+					defaults : {
+						id : 'calendarId'
+					}
+				}))();
+				model.destroy({
+					async : false,
+					wait : true,
+				});
+
+				this.calendarModel.save({
+					shared : Number($shared.val()),
+				}, {
+					patch : true,
+					wait : true,
+					success : function(model, response, options) {
+						location.hash = "#calendar";
+						calendar.calendarCollection.fetch();
+					},
+				});
+
+			},
+
+		}); // calendar.ShareSettingView
+
+		calendar.ComposeSimpleView = Backbone.Marionette.ItemView.extend({
+			template : function(data) {
+				var html, compiledTemplate = calendar.ComposeSimpleView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = calendar.$template.filter('#compose-simple-template').html();
+					compiledTemplate = _.template(html);
+					calendar.ComposeSimpleView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					calendarCollection : data.calendarCollection.toJSON(),
+					startDate : data.startDate,
+					endDate : data.endDate,
+					allDay : data.allDay,
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				this.calendarCollection = options.model.get('calendarCollection');
+				this.allDay = options.model.get('allDay');
+			},
+			onRender : function() {
+				var self = this;
+				// 레이어 중간에 보여주기
+				this.$layer = this.$el.children().appendTo('body');
+				this._centerLayerInWindow(this.$layer);
+				this.$layer.show();
+
+				var $selectCalendar = this.$layer.find('select[name="selectCalendar"]');
+				var $selectCategory = this.$layer.find('select[name="selectCategory"]');
+				var $close = this.$layer.find('.ic_cancle:first');
+				var $modify = this.$layer.find('#closeLayerBtn:first');
+				var $regist = this.$layer.find('#registLayerBtn:first');
+				var $registDetail = this.$layer.find('#registDetailLayerBtn:first');
+				var $title = this.$layer.find('input[name="title"]');
+				var $description = this.$layer.find('textarea[name="description"]');
+				var $startDate = this.$layer.find('input[name="startDate"]');
+				var $endDate = this.$layer.find('input[name="endDate"]');
+
+				$title.placeholder();
+				$description.placeholder();
+
+				this.calendarCollection.some(function(calendar) {
+					if (calendar.get('display') === 1) {
+						$selectCalendar.val(calendar.get('id'));
+						return true;
+					}
+				});
+
+				$selectCalendar.colorselectmenu({
+					width : 200,
+					create : function(event, ui) {
+						var selectedColor = $(this).find("option:selected").attr("data-color");
+						var selectedTextColor = $(this).find("option:selected").attr("text-color");
+						var hiddenSelectMenuBtn = "#" + $(this).attr("id") + "-button .ui-selectmenu-text"
+						$(this.parentNode).find(hiddenSelectMenuBtn).css('background-color', "#" + selectedColor).css(
+								'color', "#" + selectedTextColor);
+						$(this.parentNode).find(hiddenSelectMenuBtn).css('color', "#" + selectedTextColor);
+					},
+					select : function(event, ui) {
+						var selectedColor = $(this).find("option:selected").attr("data-color");
+						var selectedTextColor = $(this).find("option:selected").attr("text-color");
+						var hiddenSelectMenuBtn = "#" + $(this).attr("id") + "-button .ui-selectmenu-text"
+						$(hiddenSelectMenuBtn).css('background-color', "#" + selectedColor).css('color',
+								"#" + selectedTextColor);
+						$(hiddenSelectMenuBtn).css('color', "#" + selectedTextColor);
+					},
+					change : function(event, ui) {
+						var selectedColor = $(this).find("option:selected").attr("data-color");
+						var selectedTextColor = $(this).find("option:selected").attr("text-color");
+						var hiddenSelectMenuBtn = "#" + $(this).attr("id") + "-button .ui-selectmenu-text"
+						$(hiddenSelectMenuBtn).css('background-color', "#" + selectedColor)
+						$(hiddenSelectMenuBtn).css('color', "#" + selectedTextColor);
+					},
+				});
+
+				$close.add($modify).click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.$layer.remove();
+					self.remove();
+					calendar.overlayView.hideOverlay();
+					return false;
+				});
+
+				$registDetail.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.$layer.remove();
+					self.remove();
+
+					var calendarModel = self.calendarCollection.findModel('id', $selectCalendar.val());
+					var share = 0;
+					switch (calendarModel.get('kind')) {
+					case 0:
+						share = 0;
+						break;
+					case 1:
+						share = 1;
+						break;
+					case 2:
+						share = 2;
+						break;
+					case 3:
+					case 4:
+					default:
+						share = 0;
+					}
+
+					var scheduleModel = new calendar.ScheduleModel();
+					scheduleModel.set({
+						SCHEDULE_IDX : 0,
+						SCHEDULE_TITLE : $title.val(),
+						SCHEDULE_STMT : $description.val(),
+						SCHEDULE_SDATE : $startDate.val(),
+						SCHEDULE_EDATE : $endDate.val(),
+						SCHEDULE_SHARE : share,
+						calendarId : $selectCalendar.val(),
+						SCHEDULE_DAYLY : self.allDay,
+						SCHEDULE_TYPE : $selectCategory.val(),
+					});
+
+					var oldSchedule = calendar.scheduleCollection.findModel('SCHEDULE_IDX', 0);
+
+					if (oldSchedule) {
+						calendar.scheduleCollection.remove(oldSchedule);
+					}
+					calendar.scheduleCollection.add(scheduleModel);
+
+					location.hash = '#calendar/schedule-edit/0';
+
+					calendar.overlayView.hideOverlay();
+					return false;
+				});
+
+				$regist.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+
+					var calendarModel = self.calendarCollection.findModel('id', $selectCalendar.val());
+					var share = 0;
+					switch (calendarModel.get('kind')) {
+					case 0:
+						share = 0;
+						break;
+					case 1:
+						share = 1;
+						break;
+					case 2:
+						share = 2;
+						break;
+					case 3:
+					case 4:
+					default:
+						share = 0;
+					}
+
+					var scheduleType;
+					switch ($selectCategory.val()) {
+					case 'personal':
+						scheduleType = 0;
+						break;
+					case 'visit':
+						scheduleType = 1;
+						break;
+					case 'task':
+						scheduleType = 2;
+						break;
+					case 'leave':
+						scheduleType = 3;
+						break;
+					case 'inspection':
+						scheduleType = 4;
+						break;
+					case 'participation':
+						scheduleType = 5;
+						break;
+					case 'notice':
+						scheduleType = 6;
+						break;
+					case 'nationalHoliday':
+						scheduleType = 7;
+						break;
+					case 'none':
+						scheduleType = 8;
+						break;
+					case 'holiday':
+						scheduleType = 9;
+						break;
+					default:
+						scheduleType = 0;
+					}
+
+					if (!$title.val()) {
+						alert(i18n.emptyTitle);
+						return false;
+					}
+
+					var scheduleModel = new calendar.ScheduleModel();
+					scheduleModel.set({
+						SCHEDULE_TITLE : $title.val(),
+						SCHEDULE_STMT : $description.val(),
+						SCHEDULE_SDATE : $startDate.val(),
+						SCHEDULE_EDATE : $endDate.val(),
+						SCHEDULE_SHARE : share,
+						calendarId : $selectCalendar.val(),
+						SCHEDULE_DAYLY : self.allDay,
+						SCHEDULE_TYPE : scheduleType,
+						SCHEDULE_ALAM : 0
+					});
+
+					scheduleModel.save(null, {
+						async : false,
+						wait : true,
+						success : function(model, resp, options) {
+							app.vent.trigger('reRender:calendar');
+							self.$layer.remove();
+							self.remove();
+							calendar.overlayView.hideOverlay();
+						},
+						error : function(model, resp, options) {
+							alert(i18n.compose.failedToSave);
+						},
+					});
+					return false;
+				});
+
+				calendar.overlayView.showOverlay();
+			},
+			_centerLayerInWindow : function($layer) {
+				var $viewport = $(window);
+				$viewport.off('resize.composeSimpleLayer');
+				$viewport.on('resize.composeSimpleLayer', function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var viewportWidth = $viewport.width();
+					var viewportHeight = $viewport.height();
+					// var width = $layer.width(), height = $layer.height();
+					var width = 400;
+					var top = Math.floor((viewportHeight / 2) - ($layer.height() * 0.5));
+					var left = Math.floor((viewportWidth / 2) - (width / 2));
+					$layer.css({
+						width : width,
+						top : top,
+						left : left
+					});
+					return false;
+				});
+				$viewport.trigger('resize.composeSimpleLayer');
+			},
+		}); // calendar.ComposeSimpleView
+
+		calendar.ScheduleDetailView = Backbone.Marionette.ItemView.extend({
+			template : function(data) {
+				var html, compiledTemplate = calendar.ScheduleDetailView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = calendar.$template.filter('#schedule-detail-template').html();
+					compiledTemplate = _.template(html);
+					calendar.ScheduleDetailView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					calendarCollection : calendar.calendarCollection,
+					calendarShareCollection : calendar.calendarShareCollection,
+					schedule : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				this.userModel = options.userModel;
+				this.model = options.model; // scheduleModel
+			},
+			onRender : function() {
+				var self = this;
+				// 레이어 중간에 보여주기
+				this.$layer = this.$el.children().appendTo('body');
+				this.$layer.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					return false;
+				});
+				this._centerLayerInWindow(this.$layer);
+				this.$layer.show();
+				this.$layer.attr('hidable', false);
+
+				var $close = this.$layer.find('.ic_cancle:first');
+				var $cancel = this.$layer.find('#closeLayerBtn:first');
+				var $modify = this.$layer.find('#modifyLayerBtn:first');
+				var $remove = this.$layer.find('#removeLayerBtn:first');
+
+				$close.add($cancel).click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.$layer.remove();
+					self.remove();
+					return false;
+				});
+
+				$modify.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					location.hash = '#calendar/schedule-edit/' + self.model.get('SCHEDULE_IDX');
+					self.$layer.remove();
+					self.remove();
+					return false;
+				});
+
+				$remove.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					if (!confirm(i18n.confirmRemove)) {
+						self.$layer.remove();
+						self.remove();
+						return false;
+					}
+
+					self.model.destroy({
+						async : false,
+						wait : true,
+						success : function(model, response, options) {
+							app.vent.trigger('reRender:calendar');
+						},
+					});
+
+					self.$layer.remove();
+					self.remove();
+					return false;
+				});
+
+				if (this.model.get('USERS_IDX') != this.userModel.get('USERS_IDX')) {
+					$modify.add($remove).hide();
+				}
+
+			},
+
+			_centerLayerInWindow : function($layer) {
+				var $viewport = $(window);
+				$viewport.off('resize.scheduleDetailLayer');
+				$viewport.on('resize.scheduleDetailLayer', function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var viewportWidth = $viewport.width();
+					var viewportHeight = $viewport.height();
+					// var width = $layer.width(), height = $layer.height();
+					var width = 400;
+					// var height = 300;
+					var top = Math.floor((viewportHeight / 2) - ($layer.height() * 0.5));
+					var left = Math.floor((viewportWidth / 2) - (width / 2));
+					$layer.css({
+						width : width,
+						// height : height,
+						top : top,
+						left : left
+					});
+					return false;
+				});
+				$viewport.trigger('resize.scheduleDetailLayer');
+			},
+		}); // calendar.ComposeSimpleView
+
+		calendar.CalendarShareSettingOrgLayout = Backbone.Marionette.Layout.extend({
+			template : function(data) {
+				var $template = calendar.$template;
+				var templateID = '#calendar-share-setting-org-layout-template';
+				var html = $template.filter(templateID).html();
+				var compiledTemplate = _.template(html);
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			regions : {
+				headerRegion : 'div.calendar-sharing-header',
+				orgTreeRegion : 'div.treeWrapping',
+				orgUserSearchRegion : 'div.calendar-sharing-search',
+				orgUserListRegion : 'div.calendar-org-users',
+				calendarShareeRegion : 'div.calendar-sharee-users',
+				footerRegion : 'div.calendar-sharing-footer',
+				paginationRegion : '.page_ctrl',
+			},
+			initialize : function(options) {
+				this.userModel = options.userModel;
+				this.myCalendarShareCollection = options.myCalendarShareCollection;
+				this.contentLayoutView = options.parentView;
+				this.listenTo(app.vent, 'paginate:calendar-shared-org-entries', this.showOrgUserListView);
+			},
+			onRender : function() {
+				var self = this;
+				this.headerRegion.show(new calendar.CalendarOrgHeaderView({
+					contentLayoutView : this.contentLayoutView,
+				}));
+				var orgRootEntryModel = new app.org.OrgEntryModel({
+					id : 'root'
+				});
+				orgRootEntryModel.fetch();
+				this.listenTo(orgRootEntryModel, 'change', function() {
+					var attributes = orgRootEntryModel.get('attributes');
+					var member = attributes.member;
+					var collection = new app.org.OrgEntryCollection(member);
+					self.orgTreeRegion.show(new calendar.CalendarOrgTreeRootView({
+						model : orgRootEntryModel,
+						collection : collection,
+						parentView : self,
+					}));
+				});
+				this.orgUserSearchRegion.show(new calendar.CalendarOrgUserSearchView({
+					model : orgRootEntryModel,
+					parentView : this,
+				}));
+				this.showOrgUserListView();
+				this.calendarShareeRegion.show(new calendar.CalendarOrgShareeListView({
+					collection : this.myCalendarShareCollection,
+					parentView : this,
+				}));
+				this.footerRegion.show(new calendar.CalendarOrgSettingsFooterView({
+					userModel : this.userModel,
+					parentView : this,
+					contentLayoutView : this.contentLayoutView,
+					collection : this.myCalendarShareCollection,
+				}));
+				// // Buttons: append [->] | remove [<-]
+				var $append = this.$el.find('.btn_add');
+				var $remove = this.$el.find('.btn_remove');
+				var $checkAll = this.$el.find('#mbox-sharing-all-user');
+				$append.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.trigger('append:calendar-sharees');
+					$checkAll.removeProp('checked');
+				});
+				$remove.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.trigger('remove:calendar-sharees');
+				});
+				$checkAll.change(function() {
+					var checked = $(this).is(':checked');
+					var $checkboxes = self.orgUserListRegion.$el.find('input[type=checkbox]');
+					if (checked) {
+						$checkboxes.prop('checked', 'checked');
+					} else {
+						$checkboxes.removeProp('checked');
+					}
+				});
+				this.$el.click(function(event) {
+					event.stopPropagation();
+				});
+			},
+			showOrgUserListView : function(params) {
+				var self = this;
+				var paginator = new calendar.OrgEntryPaginator();
+				if (params && params.url) {
+					paginator.paginator_core.url = params.url;
+					delete params.url;
+				}
+				var url = 'org/root/entries';
+				if (!params) {
+					params = {};
+					paginator.paginator_core.url = url;
+				}
+				params._method = 'GET';
+				paginator.setParams(params);
+				paginator.fetch({
+					success : function(collection, response, options) {
+						collection.pager();
+						var shareOrgListView = new calendar.CalendarOrgUserListView({
+							model : self.userModel, // app.userModel
+							collection : paginator,
+							parentView : self,
+						});
+						self.orgUserListRegion.show(shareOrgListView);
+						// Pagination
+
+						var paginationView = new calendar.CalendarOrgPaginationView({
+							collection : paginator,
+						});
+						self.paginationRegion.show(paginationView);
+					},
+					silent : true,
+				});
+			},
+		}); // calendar.CalendarShareSettingOrgLayout
+
+		calendar.CalendarOrgHeaderView = Backbone.Marionette.ItemView.extend({
+			template : function(data) {
+				var $template = calendar.$template;
+				var html = $template.filter('#calendar-org-header-template').html();
+				var compiledTemplate = _.template(html);
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				this.contentLayoutView = options.contentLayoutView;
+			},
+			onRender : function() {
+				var self = this;
+				var $close = this.$el.find('a#txt_pop_close');
+				$close.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.contentLayoutView.shareSettingOrgRegion.$el.hide();
+				});
+			},
+		}); // calendar.CalendarOrgHeaderView
+
+		calendar.CalendarOrgPaginationView = Backbone.Marionette.ItemView.extend({
+			initialize : function(options) {
+				// this.collection == org.OrgEntryPaginator
+				this.collection.on('reset', this.render, this);
+			},
+			render : function() {
+				var html, selfView = calendar.CalendarOrgPaginationView;
+				var compiledTemplate = selfView.compiledTemplate;
+				if (!compiledTemplate) {
+					var $template = calendar.$template;
+					html = $template.filter('#calendar-org-settings-pagination-template').html();
+					compiledTemplate = _.template(html);
+					selfView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					info : this.collection.info(),
+					i18n : i18n,
+				});
+				this.$el.html(html);
+				var $firstPage = this.$el.find('a.btn_first');
+				$firstPage.click($.proxy(this.gotoFirst, this));
+				var $prevPage = this.$el.find('a.btn_prev');
+				$prevPage.click($.proxy(this.gotoPrev, this));
+				var $nextPage = this.$el.find('a.btn_next');
+				$nextPage.click($.proxy(this.gotoNext, this));
+				var $lastPage = this.$el.find('a.btn_last');
+				$lastPage.click($.proxy(this.gotoLast, this));
+				return this;
+			},
+			gotoFirst : function(event) {
+				event.preventDefault() && event.stopPropagation();
+				this.collection.goTo(1);
+			},
+			gotoPrev : function(event) {
+				event.preventDefault() && event.stopPropagation();
+				this.collection.previousPage();
+			},
+			gotoNext : function(event) {
+				event.preventDefault() && event.stopPropagation();
+				this.collection.nextPage();
+			},
+			gotoLast : function(event) {
+				event.preventDefault() && event.stopPropagation();
+				this.collection.goTo(this.collection.information.lastPage);
+			},
+			gotoPage : function(event) {
+				event.stopPropagation();
+				if (event.which == 13) {
+					event.preventDefault();
+					var page = $(event.target).val();
+					if (this.collection.totalPages >= page) {
+						this.collection.goTo(page);
+					}
+				}
+			},
+		}); // calendar.CalendarOrgPaginationView
+
+		calendar.CalendarOrgTreeEntryView = Backbone.Marionette.CompositeView.extend({
+			tagName : "li",
+			template : function(data) {
+				var html, selfView = calendar.CalendarOrgTreeEntryView;
+				var compiledTemplate = selfView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = calendar.$template.filter('#calendar-org-entry-template').html();
+					compiledTemplate = _.template(html);
+					selfView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					entry : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				this.collection = this.model.member;
+			},
+			onRender : function() {
+				var self = this, $el = this.$el;
+				var attributes = this.model.get('attributes');
+				var $nodeIcon = $el.children('.orgNode');
+				var $label = $el.children('label:first');
+				var $list = $el.children('ul:first').hide();
+				this.applyClassToItems($list.children('li'));
+				$nodeIcon.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					if ($el.hasClass('orgNode_p')) { // [+]
+						$el.removeClass().addClass('orgNode_m');
+						if (self.collection.size() === 0) {
+							self.model.fetch();
+							self.listenToOnce(self.model, 'change', function() {
+								self.applyClassToItems($list.children('li'));
+								$list.slideDown();
+							});
+						} else {
+							$list.slideDown();
+						}
+					} else if ($el.hasClass('orgNode_m')) { // [-]
+						$el.removeClass().addClass('orgNode_p');
+						$list.slideUp();
+					} else if ($el.hasClass('orgNode_pBott')) { // [+]
+						$el.removeClass().addClass('orgNode_mBott');
+						if (self.collection.size() === 0) {
+							self.model.fetch();
+							self.listenToOnce(self.model, 'change', function() {
+								self.applyClassToItems($list.children('li'));
+								$list.slideDown();
+							});
+						} else {
+							$list.slideDown();
+						}
+					} else if ($el.hasClass('orgNode_mBott')) { // [-]
+						$el.removeClass().addClass('orgNode_pBott');
+						$list.slideUp();
+					} else {
+						// no action
+					}
+				});
+				$label.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var urlRoot = _.result(self.model, 'urlRoot');
+					var url = urlRoot.replace(/([^\/])$/, '$1/') + encodeURIComponent(self.model.id) + '/entries';
+					var params = {
+						url : url
+					};
+					app.vent.trigger('paginate:calendar-shared-org-entries', params);
+				});
+				if (_.contains(attributes.objectClass, 'groupOfNames')) {
+					this.$el.data('oc', 'group'); // objectClass
+					if (attributes.cn && attributes.cn[0]) {
+						this.$el.data('cn', attributes.cn[0]); // common
+						// name
+						this.$el.data('mail', '$' + attributes.cn[0]); // email
+						this.$el.data('id', this.model.get('id')); // user_group_idx
+					}
+				}
+			},
+			appendHtml : function(collectionView, itemView, index) {
+				var $list = collectionView.$("ul:first");
+				var $item = itemView.$el;
+				var objectClass = itemView.model.get('attributes').objectClass;
+				if (_.contains(objectClass, 'group')) {
+					$list.append($item);
+				}
+			},
+			applyClassToItems : function($items) {
+				$items.each(function(index, element) {
+					var $item = $(element);
+					var lastItem = index == $items.length - 1 ? true : false;
+					var $li = $item.find('ul:first li');
+					var objectClass = $item.data('oc');
+					switch (objectClass) {
+					case 'group':
+						if (lastItem)
+							$item.removeClass().addClass('orgNode_pBott');
+						else
+							$item.removeClass().addClass('orgNode_p');
+						break;
+					}
+				});
+			}
+		}); // calendar.CalendarOrgTreeEntryView
+
+		calendar.CalendarOrgTreeRootView = Backbone.Marionette.CompositeView.extend({
+			template : function(data) {
+				var html, selfView = calendar.CalendarOrgTreeRootView;
+				var compiledTemplate = selfView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = calendar.$template.filter('#calendar-org-root-template').html();
+					compiledTemplate = _.template(html);
+					selfView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					entry : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			itemView : calendar.CalendarOrgTreeEntryView,
+			itemViewContainer : "ul#shareOrgContainer:first",
+			initialize : function(options) {
+				this.parentView = options.parentView; // calendar.CalendarOrgSettingsLayout
+			},
+			onRender : function() {
+				var self = this;
+				var $items = this.$el.children('ul:first').children('li');
+				$items.show();
+				$items.each(function(index, element) {
+					var $item = $(element);
+					var lastItem = index == $items.length - 1 ? true : false;
+					var $li = $item.find('ul:first li');
+					var objectClass = $item.data('oc');
+					switch (objectClass) {
+					case 'group':
+						if (lastItem)
+							$item.removeClass().addClass('orgNode_pBott');
+						else
+							$item.removeClass().addClass('orgNode_p');
+						break;
+					}
+				});
+				var topParentNode = this.$el.find('#topParentNode');
+				topParentNode.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var checked = $(this).is(':checked');
+					// var urlRoot = _.result(self.model, 'urlRoot');
+					// var url = urlRoot.replace(/([^\/])$/, '$1/')
+					// + encodeURIComponent(self.model.id) + '/entries';
+					app.vent.trigger('paginate:calendar-shared-org-entries');
+				});
+			},
+			appendHtml : function(collectionView, itemView, index) {
+				var $list = collectionView.$("ul:first");
+				var $item = itemView.$el;
+				var objectClass = itemView.model.get('attributes').objectClass;
+				if (_.contains(objectClass, 'group')) {
+					$list.append($item);
+				}
+			},
+		}); // calendar.CalendarOrgTreeRootView
+
+		calendar.CalendarOrgUserView = Backbone.Marionette.ItemView.extend({
+			tagName : 'li',
+			template : function(data) {
+				var html, $template = calendar.$template;
+				html = $template.filter('#calendar-org-user-item-template').html();
+				var compiledTemplate = _.template(html);
+				html = compiledTemplate({
+					entry : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			onRender : function() {
+				var attributes = this.model.get('attributes');
+				if (_.contains(attributes.objectClass, 'groupOfNames')) {
+					this.$el.data('oc', 'group'); // objectClass
+					if (attributes.cn && attributes.cn[0]) {
+						this.$el.data('cn', attributes.cn[0]); // common
+						// name
+						this.$el.data('mail', '$' + attributes.cn[0]); // email
+						this.$el.data('id', this.model.get('id')); // idx
+					}
+				} else {
+					this.$el.data('oc', 'user'); // objectClass
+					if (attributes.cn && attributes.cn[0]) // common
+						// name
+						this.$el.data('cn', attributes.cn[0]);
+					if (attributes.mail && attributes.mail[0]) // email
+						// address
+						this.$el.data('mail', attributes.mail[0]);
+					this.$el.data('id', this.model.get('id')); // idx
+				}
+			},
+		}); // calendar.CalendarOrgUserView
+
+		calendar.CalendarOrgUserListView = Backbone.Marionette.CompositeView.extend({
+			itemView : calendar.CalendarOrgUserView,
+			itemViewContainer : 'ul',
+			template : function(data) {
+				var html;
+				var selfView = calendar.CalendarOrgUserListView;
+				var compiledTemplate = calendar.compiledTemplate;
+				if (!compiledTemplate) {
+					var $template = calendar.$template;
+					html = $template.filter('#calendar-org-user-list-template').html();
+					compiledTemplate = _.template(html);
+					selfView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				this.parentView = options.parentView; // calendar.CalendarOrgSettingsLayout
+				this.listenTo(this.parentView, 'append:calendar-sharees', this.appendSharees);
+				this.listenTo(this.parentView, 'remove:calendar-sharees', this.removeSharees);
+			},
+			onRender : function() {
+			},
+			appendHtml : function(collectionView, itemView, index) {
+				var $list = collectionView.$("ul:first");
+				var $item = itemView.$el;
+				$list.append($item);
+			},
+			appendSharees : function() {
+				var self = this;
+				var $checkboxes = this.$el.find('input[type="checkbox"]:checked');
+				var recipients = [];
+				$checkboxes.each(function(index, element) {
+					var $checkbox = $(element);
+					var $item = $checkbox.parent();
+					var share = {
+						type : $item.data('oc'),
+						personal : $item.data('cn'),
+						address : $item.data('mail'),
+						id : $item.data('id'),
+					};
+
+					if ($item.data('mail') == self.model.get('USERS_IDX')) {
+						alert(i18n.shareSettings.alertSelfCalendarShare);
+						return;
+					}
+					recipients.push(share);
+				});
+				$checkboxes.prop('checked', false);
+				this.parentView.trigger('add:calendar-sharees', recipients);
+			},
+			removeSharees : function() {
+				this.parentView.trigger('remove:calendar-sharee');
+			},
+		}); // calendar.CalendarOrgUserListView
+
+		calendar.CalendarOrgUserSearchView = Backbone.Marionette.ItemView.extend({
+			template : function(data) {
+				var html, compiledTemplate = calendar.CalendarOrgUserSearchView.compiledTemplate;
+				var $template = calendar.$template;
+				if (!compiledTemplate) {
+					html = $template.filter('#calendar-org-settings-search-template').html();
+					compiledTemplate = _.template(html);
+					calendar.CalendarOrgUserSearchView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+			},
+			onRender : function() {
+				var self = this;
+				var $searchInput = this.$el.find('input[type=text]');
+				var $searchBtn = this.$el.find('button[type=submit]');
+				$searchInput.keydown(function(event) {
+					event.stopPropagation();
+					if (event.which == 13) {
+						event.preventDefault();
+						self.filterOrgUsers($(this).val());
+					}
+				});
+				$searchBtn.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.filterOrgUsers($searchInput.val());
+				});
+			},
+			filterOrgUsers : function(keyword) {
+				if (keyword && (keyword.indexOf('%') != -1 || keyword.indexOf('_') != -1)) {
+					alert(i18n.search.invalidToken);
+					return;
+				}
+				app.vent.trigger('paginate:calendar-shared-org-entries', {
+					search : encodeURIComponent(keyword),
+				});
+			},
+		}); // calendar.CalendarOrgUserSearchView
+
+		calendar.CalendarOrgShareeItemView = Backbone.Marionette.ItemView.extend({
+			tagName : 'li',
+			template : function(data) {
+				var html, $template = calendar.$template;
+				html = $template.filter('#calendar-org-sharee-item-template').html();
+				var compiledTemplate = _.template(html);
+				html = compiledTemplate({
+					entry : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+			},
+			onRender : function() {
+				this.initData();
+			},
+			initData : function() {
+				var type = this.model.get('type');
+				var USER_GROUP_IDX = this.model.get('USER_GROUP_IDX') || this.model.get('id');
+				if (!type && (!USER_GROUP_IDX || USER_GROUP_IDX == 0)) {
+					type = 'user';
+				} else if (!type && (USER_GROUP_IDX && USER_GROUP_IDX != 0)) {
+					type = 'group';
+				}
+				this.$el.data('SHARE_EMAIL', this.model.get('SHARE_EMAIL'));
+				this.$el.data('USER_GROUP_IDX', USER_GROUP_IDX);
+				this.$el.data('type', type);
+				this.$el.data('SHARE_NAME', this.model.get('SHARE_NAME'));
+			},
+		}); // calendar.CalednarOrgShareeItemView
+
+		calendar.CalendarOrgShareeListView = Backbone.Marionette.ItemView.extend({
+			template : function(data) {
+				var html;
+				var selfView = calendar.CalendarOrgShareeListView;
+				var compiledTemplate = selfView.compiledTemplate;
+				if (!compiledTemplate) {
+					var $template = calendar.$template;
+					html = $template.filter('#calendar-org-sharee-list-template').html();
+					compiledTemplate = _.template(html);
+					selfView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				this.collection = options.collection;
+				this.parentView = options.parentView; // calendar.CalendarOrgSettingsLayout
+				this.listenTo(this.parentView, 'add:calendar-sharees', this.addSharees);
+				this.listenTo(this.parentView, 'remove:calendar-sharee', this.removeSharee);
+			},
+			onRender : function() {
+				var self = this;
+				if (this.collection && !this.collection.isEmpty()) {
+					this.collection.forEach(function(share) {
+						var type = 'user';
+						var model = new Backbone.Model({
+							type : 'user',
+							SHARE_NAME : share.get('userName'),
+							SHARE_EMAIL : share.get('sharee'),
+						});
+						var recipientsItemView = new calendar.CalendarOrgShareeItemView({
+							model : model,
+							parentView : self,
+						});
+						self.$el.find('ul').append(recipientsItemView.render().el);
+					});
+				}
+			},
+			addSharees : function(sharees) {
+				var self = this, $el = this.$el;
+				$.each(sharees, function(index, sharee) {
+					var isDuplicate = self.checkDuplicate(sharee);
+					if (isDuplicate)
+						return;
+					var model = new Backbone.Model({
+						type : sharee.type,
+						SHARE_NAME : sharee.personal,
+						SHARE_EMAIL : sharee.address,
+						id : sharee.id,
+					});
+					var recipientsItemView = new calendar.CalendarOrgShareeItemView({
+						model : model,
+						parentView : self,
+					});
+					$el.find('ul').append(recipientsItemView.render().el);
+				});
+				this.parentView.trigger('update:calendar-sharee-count', this.$el.find('li').length);
+			},
+			removeSharee : function() {
+				var $checkbox = this.$el.find('.org-recipient-item');
+				$checkbox.filter(':checked').parent('li').hide();
+				$checkbox.attr('id', $checkbox.attr('id') + '-hide');
+			},
+			checkDuplicate : function(sharee) {
+				var $item = this.$el.find('li label');
+				var isDuplicate = false;
+				$item.each(function() {
+					var addr = $(this).text();
+					var id;
+					if (addr.charAt(0) == '$') {
+						id = sharee.address;
+					} else {
+						if (sharee.personal) {
+							id = '"' + sharee.personal + '"' + '<' + sharee.address + '>';
+						} else {
+							id = '<' + sharee.address + '>';
+						}
+					}
+					if (addr && $.trim(addr) == $.trim(id)) {
+						isDuplicate = true;
+						return false;
+					}
+				});
+				return isDuplicate;
+			}
+		}); // calendar.CalendarOrgShareeListView
+
+		calendar.CalendarOrgSettingsFooterView = Backbone.Marionette.ItemView.extend({
+			template : function(data) {
+				var $template = calendar.$template;
+				var html = $template.filter('#calendar-org-settings-footer-template').html();
+				var compiledTemplate = _.template(html);
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				this.userModel = options.userModel;
+				this.parentView = options.parentView;
+				this.contentLayoutView = options.contentLayoutView;
+				this.collection = options.collection;
+			},
+			onRender : function() {
+				var self = this;
+				var $save = this.$el.find('button.org-user-group-save');
+				var $cancel = this.$el.find('button.org-user-group-cancel');
+				$save.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.collection.reset();
+					var $list = self.parentView.calendarShareeRegion.$el.find('li');
+					$list.each(function() {
+						var $item = $(this);
+						if (!$item.is(':visible'))
+							return true;
+						var userId = $.trim($item.data('SHARE_EMAIL'));
+						var userName = $.trim($item.data('SHARE_NAME'));
+						if (!userId) {
+							return true;
+						}
+						if (userId == self.userModel.get('USERS_IDX')) {
+							return true;
+						}
+						self.collection.add([ {
+							sharee : userId,
+							userName : userName
+						} ]);
+					});
+					app.vent.trigger('show:share-setting-view');
+					self.contentLayoutView.shareSettingOrgRegion.$el.hide();
+				});
+
+				$cancel.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.contentLayoutView.shareSettingOrgRegion.$el.hide();
+				});
+			},
+		}); // calendar.CalendarOrgSettingsFooterView
+
+		calendar.OverlayView = Backbone.Marionette.ItemView.extend({
+			tagName : 'div',
+			attributes : {
+				style : 'display: none;',
+			},
+			template : function(data) {
+				var html;
+				var compiledTemplate = calendar.OverlayView.compiledTemplate;
+				if (!compiledTemplate) {
+					var templateId = '#calendar-overlay-template';
+					html = calendar.$template.filter(templateId).html();
+					compiledTemplate = _.template(html);
+					calendar.OverlayView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				// this.model == No Model
+			},
+			onRender : function() {
+				var self = this;
+				this.$overlay = this.$el.children('#calendar-overlay');
+				this.$loadingLayer = this.$overlay.children('.calendar-loading-layer');
+				this.$processingLayer = this.$overlay.children('.calendar-processing-layer');
+				this.$overlay.on('mousedown', function(event) {
+					event.preventDefault() && event.stopPropagation();
+				});
+				this.$viewport = $(window);
+				this.$viewport.resize(function(event) {
+					var viewportWidth = self.$viewport.width();
+					var viewportHeight = self.$viewport.height();
+					var width = self.$loadingLayer.width();
+					var height = self.$loadingLayer.height();
+					var top = Math.floor((viewportHeight / 2) - (height / 2));
+					var left = Math.floor((viewportWidth / 2) - (width / 2));
+					self.$loadingLayer.css({
+						'top' : top,
+						'left' : left,
+					});
+					width = self.$processingLayer.width();
+					height = self.$processingLayer.height();
+					top = Math.floor((viewportHeight / 2) - (height / 2));
+					left = Math.floor((viewportWidth / 2) - (width / 2));
+					self.$processingLayer.css({
+						'top' : top,
+						'left' : left,
+					});
+				});
+				this.$viewport.resize();
+				this.$loadingLayer.hide();
+				this.$processingLayer.hide();
+				this.$overlay.hide();
+				this.$overlay.appendTo('body');
+			},
+			onClose : function() {
+				this.$overlay.remove();
+			},
+			showOverlay : function() {
+				this.$viewport.trigger('resize');
+				this.$overlay.show();
+			},
+			hideOverlay : function() {
+				this.$overlay.fadeOut();
+			},
+			showLoading : function() {
+				this.showOverlay();
+				this.$loadingLayer.show();
+			},
+			hideLoading : function() {
+				this.$loadingLayer.fadeOut();
+				this.hideOverlay();
+			},
+			showProcessing : function() {
+				this.showOverlay();
+				this.$processingLayer.show();
+			},
+			hideProcessing : function() {
+				this.$processingLayer.hide();
+				this.hideOverlay();
+			},
+		});
+
+	}); // app.module('calendar', function(calendar, app, Backbone,
+	// Marionette, $,
+	// _) {...})
+});v���?      d߸d߸EUUd7   l    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app/calendar/calendar-views.js necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"109177-1659949282000"
+Last-Modified: Mon, 08 Aug 2022 09:01:22 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 109177
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"109177-1659949282000"
+Last-Modified: Mon, 08 Aug 2022 09:01:22 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 109177
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ ctid 2 uncompressed-len 0 net-response-time-onstart 39 net-response-time-onstop 58  �y

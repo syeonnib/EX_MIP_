@@ -1,0 +1,2644 @@
+define([ 'app', 'app/app-models' ], function(app) {
+	app.module('mail', function(mail, app, Backbone, Marionette, $, _) {
+
+		function isPopup() {
+			try {
+				if (window.opener && window.opener.location.pathname != window.location.pathname)
+					return true;
+				if (/.*\/popup\/.*/.test(window.location.pathname))
+					return true;
+				else
+					return false;
+			} catch (error) {
+				if (/.*\/popup\/.*/.test(window.location.pathname))
+					return true;
+				else
+					return false;
+			}
+		}
+
+		mail.MboxModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../mboxes';
+				else
+					return 'mboxes';
+			},
+
+			idAttribute : 'MBOX_IDX',
+
+			defaults : {
+				// MBOX_IDX : 0,
+				USERS_IDX : '',
+				MBOX_TYPE : 0,
+				MBOX_REF : 0,
+				MBOX_NAME : '',
+				MBOX_SUBSCRIBE : '',
+				MBOX_PUBLIC : '',
+				MBOX_PASSWD : '',
+				MBOX_NOTIFICATION : '',
+				MBOX_NAME_ENG : '',
+				MBOX_SIZE : 0,
+				MBOX_MAILCOUNT : 0,
+				MBOX_NEW_MAILCOUNT : 0,
+				SHARING_MBOX_ID : 0,
+				SHARED_MBOX_ID : 0,
+			},
+
+			initialize : function(attributes, options) {
+				var mboxes = this.get("mboxes");
+				if (mboxes) {
+					this.mboxes = new mail.MboxCollection(mboxes);
+					this.unset('mboxes');
+				}
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+
+		}); // mail.MboxModel
+
+		mail.MboxCollection = app.BackboneCollection.extend({
+			url : function() {
+				if (isPopup())
+					return '../mboxes';
+				else
+					return 'mboxes';
+			},
+
+			model : mail.MboxModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.debug('mail.MboxCollection.parse(response, options) {...}');
+				return response;
+			},
+
+		}); // mail.MboxCollection
+
+		mail.MailModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../mails';
+				else
+					return 'mails';
+			},
+
+			idAttribute : 'M_IDX',
+
+			defaults : {
+				// M_IDX : 0,
+				M_ORDER : 0,
+				M_GROUP : 0,
+				MBOX_IDX : 0,
+				USERS_IDX : '',
+				M_SENDER : '',
+				M_SENDERNM : '',
+				M_RETURN : '',
+				M_TO : '',
+				M_CC : '',
+				M_BCC : '',
+				M_TITLE : '',
+				M_TIME : '',
+				M_SIZE : 0,
+				M_ISREAD : '',
+				M_FILENAME : '',
+				M_FILEPATH : '',
+				M_ATTACHE : '',
+				M_ATTACH_NUM : '',
+				M_ATTACH_NAME : '',
+				M_ATTACH_SIZE : '',
+				M_ATTACH_TYPE : '',
+				M_PRIORITY : 3,
+				M_INJURIOUSE : '',
+				M_DELETED : '',
+				MAIL_RECONF_MESSAGE_ID : '',
+				M_TYPE : '',
+				M_KIND : '',
+				M_ISPARSED : '',
+				M_REPLYED : '',
+				TAG_TYPE : 0,
+				M_SECURE_YN : '',
+				M_NOTICE : '',
+				M_CONTENT : '',
+				bodyText : '',
+				attachments : [],
+				mails : [],
+				individual : false,
+				importantSender : false,
+				geoIps : [],
+				labels : [],
+				delayDateTime : '',
+			},
+
+			initialize : function(attributes, options) {
+				app.BackboneModel.prototype.initialize.apply(this, arguments);
+			},
+
+			tagNames : {
+				"SVG" : 'svg',
+				// Head elements
+				"BASE" : 'base',
+				"META" : 'meta',
+				// Embedded and external document resource elements
+				"LINK" : 'link',
+				"SCRIPT" : 'script',
+				"STYLE" : 'style',
+				// Frame elements
+				"IFRAME" : 'iframe',
+				"FRAMESET" : 'frameset',
+				// Applet, media file and plug-in elements
+				"APPLET" : 'applet',
+				"EMBED" : 'embed',
+				"OBJECT" : 'object',
+				// Preformatted font elements
+				"RUBY" : 'ruby',
+				// Passive JavaScript execution via MathML on Firefox
+				"MATH" : 'math',
+				// Internet Explorer Data Islands executing JavaScript
+				"XML" : 'xml'
+			},
+
+			eventHandlers : {
+				"fsommand" : '[FSCommand]',
+				"onbegin" : '[onbegin]',
+				"onend" : '[onEnd]',
+				"onlayoutcomplete" : '[onLayoutComplete]',
+				"onmediacomplete" : '[onMediaComplete]',
+				"onmediaerror" : '[onMediaError]',
+				"onoutofsync" : '[onOutOfSync]',
+				"onpopstate" : '[onPopState]',
+				"onprogress" : '[onProgress]',
+				"onredo" : '[onRedo]',
+				"onrepeat" : '[onRepeat]',
+				"onresume" : '[onResume]',
+				"onreverse" : '[onReverse]',
+				"onstorage" : '[onStorage]',
+				"onsyncrestored" : '[onSyncRestored]',
+				"ontimeerror" : '[onTimeError]',
+				"ontrackchange" : '[onTrackChange]',
+				"onundo" : '[onUndo]',
+				"seeksegmenttime" : '[seekSegmentTime]',
+				// Character input and clipboard events
+				"onbeforecopy" : '[onbeforecopy]',
+				"onbeforecut" : '[onbeforecut]',
+				"onbeforepaste" : '[onbeforepaste]',
+				"oncopy" : '[oncopy]',
+				"oncut" : '[oncut]',
+				"oninput" : '[oninput]',
+				"onkeydown" : '[onkeydown]',
+				"onkeypress" : '[onkeypress]',
+				"onkeyup" : '[onkeyup]',
+				"onpaste" : '[onpaste]',
+				"textinput" : '[textInput]',
+				// Load, unload and state events
+				"onabort" : '[onabort]',
+				"onbeforeunload" : '[onbeforeunload]',
+				"onhashchange" : '[onhashchange]',
+				"onload" : '[onload]',
+				"onoffline" : '[onoffline]',
+				"ononline" : '[ononline]',
+				"onreadystatechange" : '[onreadystatechange]',
+				"onstop" : '[onstop]',
+				"onunload" : '[onunload]',
+				// Form events
+				"onreset" : '[onreset]',
+				"onsubmit" : '[onsubmit]',
+				// Mouse events and scrolling
+				"onclick" : '[onclick]',
+				"oncontextmenu" : '[oncontextmenu]',
+				"ondblclick" : '[ondblclick]',
+				"onlosecapture" : '[onlosecapture]',
+				"onmouseenter" : '[onmouseenter]',
+				"onmousedown" : '[onmousedown]',
+				"onmouseleave" : '[onmouseleave]',
+				"onmousemove" : '[onmousemove]',
+				"onmouseout" : '[onmouseout]',
+				"onmouseover" : '[onmouseover]',
+				"onmouseup" : '[onmouseup]',
+				"onmousewheel" : '[onmousewheel]',
+				"onscroll" : '[onscroll]',
+				// Move and drag events:
+				"onmove" : '[onmove]',
+				"onmoveend" : '[onmoveend]',
+				"onmovestart" : '[onmovestart]',
+				"ondrag" : '[ondrag]',
+				"ondragend" : '[ondragend]',
+				"ondragenter" : '[ondragenter]',
+				"ondragleave" : '[ondragleave]',
+				"ondragover" : '[ondragover]',
+				"ondragstart" : '[ondragstart]',
+				"ondrop" : '[ondrop]',
+				// Resize events
+				"onresize" : '[onresize]',
+				"onresizeend" : '[onresizeend]',
+				"onresizestart" : '[onresizestart]',
+				// Activation and focus events
+				"onactivate" : '[onactivate]',
+				"onbeforeactivate" : '[onbeforeactivate]',
+				"onbeforedeactivate" : '[onbeforedeactivate]',
+				"onbeforeeditfocus" : '[onbeforeeditfocus]',
+				"onblur" : '[onblur]',
+				"ondeactivate" : '[ondeactivate]',
+				"onfocus" : '[onfocus]',
+				"onfocusin" : '[onfocusin]',
+				"onfocusout" : '[onfocusout]',
+				// Selection events
+				"oncontrolselect" : '[oncontrolselect]',
+				"onselect" : '[onselect]',
+				"onselectionchange" : '[onselectionchange]',
+				"onselectstart" : '[onselectstart]',
+				// Print and help events
+				"onafterprint" : '[onafterprint]',
+				"onbeforeprint" : '[onbeforeprint]',
+				"onhelp" : '[onhelp]',
+				// Error events
+				"onerror" : '[onerror]',
+				"onerrorupdate" : '[onerrorupdate]',
+				// DataBound events
+				"onafterupdate" : '[onafterupdate]',
+				"onbeforeupdate" : '[onbeforeupdate]',
+				"oncellchange" : '[oncellchange]',
+				"ondataavailable" : '[ondataavailable]',
+				"ondatasetchanged" : '[ondatasetchanged]',
+				"ondatasetcomplete" : '[ondatasetcomplete]',
+				"onrowsenter" : '[onrowsenter]',
+				"onrowenter" : '[onrowenter]',
+				"onrowsexit" : '[onrowsexit]',
+				"onrowexit" : '[onrowexit]',
+				"onrowsdelete" : '[onrowsdelete]',
+				"onrowdelete" : '[onrowdelete]',
+				"onrowsinserted" : '[onrowsinserted]',
+				"onrowinserted" : '[onrowinserted]',
+				// Marquee events
+				"onbounce" : '[onbounce]',
+				"onfinish" : '[onfinish]',
+				"onstart" : '[onstart]',
+				// Change events
+				"onchange" : '[onchange]',
+				"onfilterchange" : '[onfilterchange]',
+				"onpropertychange" : '[onpropertychange]',
+				// Search event:
+				"onsearch" : '[onsearch]',
+				// Cross-document communication event
+				"onmessage" : '[onmessage]',
+				// XSS via formaction - requiring user interaction (1)
+				"formaction" : '[formaction]',
+				// JavaScript execution via <VIDEO> poster attribute
+				"poster" : '[poster]',
+				// Form surveillance with onformchange, onforminput
+				"onforminput" : '[onforminput]',
+				"onformchange" : '[onformchange]',
+				// Transparent overwriting of request-data
+				// using HTML5 "dirname" attributes
+				"dirname" : '[dirname]',
+				// Executing JavaScript via "srcdoc" attribute in Iframes
+				"srcdoc" : '[srcdoc]',
+				// JavaScript execution via <DETAILS> and ontoggle
+				"ontoggle" : '[ontoggle]',
+				// JavaScript execution via <VIDEO>
+				// with empty source and rate change events
+				"onratechange" : '[onratechange]',
+				// JavaScript execution via <FRAMESET> and onpageshow
+				"onpageshow" : '[onpageshow]',
+				// Video, Audio events
+				"onloadstart" : '[onloadstart]',
+				"onloadeddata" : '[onloadeddata]',
+				"onloadedmetadata" : '[onloadedmetadata]',
+				"oncanplay" : '[oncanplay]'
+			},
+
+			xssRegExp : new RegExp('x\\s*s\\s*s\\s*:' + '|' + 'j\\s*a\\s*v\\s*a\\s*s\\s*c\\s*r\\s*i\\s*p\\s*t' + '|'
+					+ 'e\\s*v\\s*a\\s*l' + '|' + 'e\\s*x\\s*p\\s*r\\s*e\\s*s\\s*s\\s*i\\s*o\\s*n' + '|'
+					+ 'b\\s*e\\s*h\\s*a\\s*v\\s*i\\s*o\\s*r' + '|' + 'm\\s*h\\s*t\\s*m\\s*l\\s*:', 'i'),
+
+			filterElements : function(index, element) {
+				var tagName = element.tagName || element.nodeName;
+				if (tagName.charAt(0) != tagName.charAt(0).toUpperCase())
+					tagName = tagName.toUpperCase();
+				if (this.tagNames[tagName]) {
+					element.parentNode.removeChild(element);
+					return false;
+				}
+				if (tagName == 'A') {
+					element.setAttribute('target', '_blank');
+					element.setAttribute('rel', 'noopener noreferrer');
+				} else if (tagName == 'FORM') {
+					element.setAttribute('target', '_blank');
+					element.setAttribute('rel', 'noopener noreferrer');
+					if (element.getAttribute('action')) {
+						var link = document.createElement("a");
+						link.href = element.getAttribute('action');
+						if (!link.hostname || location.hostname === link.hostname)
+							element.removeAttribute('action');
+					}
+				} else if (tagName == 'AREA') {
+					element.setAttribute('target', '_blank');
+					element.setAttribute('rel', 'noopener noreferrer');
+				}
+				try {
+					for (var i = element.attributes.length - 1; i >= 0; i--) {
+						var attr = element.attributes[i];
+						if (this.eventHandlers[attr.name]) {
+							element.removeAttribute(attr.name);
+							continue;
+						}
+						if (this.xssRegExp.test(attr.value)) {
+							element.removeAttribute(attr.name);
+							continue;
+						}
+					}
+				} catch (error) {
+					// ignore error
+				}
+				return true;
+			},
+
+			parse : function(response, options) {
+				if (this.collection) {
+					return response;
+				}
+				var self = this, html;
+				var mailId = response.M_IDX;
+				var mailSender = response.M_SENDER;
+				if (response.M_CONTENT) {
+					html = this._validateHTML(response.M_CONTENT);
+					html = this._replaceInlineImages(mailId, html, mailSender);
+					var frag = document.createDocumentFragment();
+					var $div = $('<div></div>', frag).html(html);
+					$div.find('*').filter(function(index, element) {
+						return self.filterElements(index, element);
+					});
+					response.M_CONTENT = $div.html();
+					response.bodyText = $div.text();
+				}
+				if (response.mails && response.mails.length) {
+					for (var i = 0; i < response.mails.length; i++) {
+						var mail = response.mails[i];
+						if (mail.M_CONTENT) {
+							html = this._validateHTML(mail.M_CONTENT);
+							html = this._replaceInlineImages(mailId, html, mailSender);
+							var frag = document.createDocumentFragment();
+							var $div = $('<div></div>', frag).html(html);
+							$div.find('*').filter(function(index, element) {
+								return self.filterElements(index, element);
+							});
+							mail.M_CONTENT = $div.html();
+						}
+					}
+				}
+				return response;
+			},
+
+			getUrlData : function(params) {
+				var data = {
+					_method : 'GET',
+				};
+				for ( var prop in params) {
+					switch (typeof params[prop]) {
+					case 'string':
+						data[prop] = params[prop];
+						break;
+					case 'object':
+						var param = params[prop];
+						for ( var p in param)
+							data[prop + '.' + p] = param[p];
+						break;
+					}
+				}
+				return data;
+			},
+
+			validate : function(attributes, options) {
+				app.debug('mail.MailModel.validate(attributes, options) {...}');
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+
+			_validateHTML : function(html) {
+				var p = /(<[A-Z][-:A-Z0-9]*)([\s\/]+[^\s>]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^>]+))?)+(\s*\/?>)/gi;
+				var result, lastIndex = 0, replacement = [];
+				while ((result = p.exec(html)) != null) {
+					replacement.push(result.input.substring(lastIndex, result.index));
+					if (/^(?:<applet)/i.test(result[1])) {
+						lastIndex = p.lastIndex;
+						continue;
+					}
+					replacement.push(result[1]);
+					var attrs = result[0].substring(result[1].length, result[0].length
+							- result[result.length - 1].length);
+					var matches = attrs.match(/[\s\/]+[A-Z][-:A-Z0-9]*(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?/gi);
+					if (!matches)
+						matches = [];
+					for (var i = 0; i < matches.length; i++) {
+						if (!/^[\s\/]+(onload|onerror|onloadstart)\s*=/i.test(matches[i]))
+							replacement.push(matches[i]);
+					}
+					replacement.push(result[result.length - 1]);
+					replacement.push(result.input.substring(result.index + result[0].length, p.lastIndex));
+					lastIndex = p.lastIndex;
+				}
+				replacement.push(html.substring(lastIndex));
+				return replacement.join('');
+			},
+
+			_replaceInlineImages : function(mailId, html, mailSender) {
+				var frag = document.createDocumentFragment();
+				var $container = $('<div></div>', frag).html(html);
+				var $images = $container.find('img');
+				var pattern = /^cid:(.+)/i;
+				var popup = isPopup();
+				$images.each(function(index, element) {
+					var $img = $(element);
+					var src = $img.attr('src');
+					var match = pattern.exec(src);
+					if (match && match.length == 2) {
+						var url = 'mails/';
+						if (popup)
+							url = '../mails/';
+						url += mailId + '/inline/' + match[1];
+						$img.attr('src', url);
+					}
+					if (mailSender == 'postmaster@seoultech.ac.kr' && src.indexOf('/mail/dsn/') > -1) {
+						$img.attr('src', '');
+					}
+				});
+				return $container.html();
+			},
+
+			prevMailHash : function(mboxModel, paginator) {
+				if (!mboxModel || !paginator)
+					return location.hash;
+				var prevMail = this.get('prevMail');
+				if (!prevMail)
+					return location.hash;
+				var mboxId = mboxModel.get("MBOX_IDX");
+				var mailModel = paginator.findModel('M_IDX', prevMail.M_IDX);
+				var parameters = '';
+				if (!mailModel) {
+					parameters = paginator.getParameters({
+						page : paginator.currentPage - 1
+					});
+				} else {
+					parameters = paginator.getParameters();
+				}
+				if (typeof mboxId == 'string')
+					parameters += '&specialUseMailbox=' + mboxId;
+				var url = '#mboxes/' + mboxId + '/mails/';
+				if (paginator.labelId) {
+					parameters += '&labelId=' + paginator.labelId;
+					url = '#labels/' + paginator.labelId + '/mails/';
+				}
+				url += prevMail.M_IDX + parameters;
+				return url;
+			},
+
+			nextMailHash : function(mboxModel, paginator) {
+				if (!mboxModel || !paginator)
+					return location.hash;
+				var nextMail = this.get('nextMail');
+				if (!nextMail)
+					return location.hash;
+				var mboxId = mboxModel.get("MBOX_IDX");
+				var mailModel = paginator.findModel('M_IDX', nextMail.M_IDX);
+				var parameters = '';
+				if (!mailModel && paginator.models.length === paginator.perPage) {
+					parameters = paginator.getParameters({
+						page : paginator.currentPage + 1
+					});
+				} else {
+					parameters = paginator.getParameters();
+				}
+				var url = '#mboxes/' + mboxId + '/mails/';
+				if (paginator.labelId) {
+					parameters += '&labelId=' + paginator.labelId;
+					url = '#labels/' + paginator.labelId + '/mails/';
+				}
+				url += nextMail.M_IDX + parameters;
+				return url;
+			},
+		}); // mail.MailModel
+
+		mail.MailCollection = app.BackboneCollection.extend({
+			url : '',
+
+			model : mail.MailModel,
+
+			constructor : function() {
+				app.debug('MailCollection.constructor() {');
+				app.BackboneCollection.apply(this, arguments);
+				app.debug('} // mail.MailCollection.constructor()');
+			},
+
+			initialize : function(models, options) {
+				app.debug('MailCollection.initialize(models, options) {');
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+				app.debug('} // MailCollection.initialize(models, options)');
+			},
+
+			parse : function(response, options) {
+				app.debug('MailCollection.parse(response, options) {...}');
+				return response;
+			},
+
+		}); // mail.MailCollection
+
+		mail.MailPaginator = app.RequestPaginator.extend({
+
+			model : mail.MailModel,
+
+			url : function() {
+				var url = 'mboxes/' + mail.mboxModel.get('MBOX_IDX') + '/mails';
+				if (/^#labels/.test(location.hash)) {
+					url = 'labels/' + mail.labelModel.get('id') + '/mails';
+				}
+				if (isPopup())
+					url = '../' + url;
+				return url;
+			},
+
+			paginator_core : {
+				type : 'POST',
+				dataType : 'json',
+			},
+
+			constructor : function() {
+				app.debug('mail.MailPaginator.constructor() {');
+				app.RequestPaginator.apply(this, arguments);
+				app.debug('} // mail.MailPaginator.constructor()');
+			},
+
+			initialize : function(models, options) {
+				app.debug('mail.MailPaginator.initialize(models, options) {');
+				app.RequestPaginator.prototype.initialize.apply(this, arguments);
+				app.debug('} // mail.MailPaginator.initialize(models, options)');
+			},
+
+			parse : function(response, options) {
+				app.debug('mail.MailPaginator.parse(response, options) {');
+				app.RequestPaginator.prototype.parse.apply(this, arguments);
+				app.debug('} // mail.MailPaginator.parse(response, options)');
+				return response.mails;
+			},
+
+			getParameters : function(args) {
+				var params = '';
+				if (args && args.page)
+					params += '?currentPage=' + args.page;
+				else if (this.currentPage)
+					params += '?currentPage=' + this.currentPage;
+				else if (this.server_api.currentPage)
+					params += '?currentPage=' + this.server_api.currentPage;
+
+				if (args && args.perPage)
+					params += '&perPage=' + args.perPage;
+				else if (this.perPage)
+					params += '&perPage=' + this.perPage;
+				else if (this.server_api.perPage)
+					params += '&perPage=' + this.server_api.perPage;
+
+				if (args && args.sortField)
+					params += '&sortField=' + args.sortField;
+				else if (this.sortField)
+					params += '&sortField=' + this.sortField;
+				else if (this.server_api.sortField)
+					params += '&sortField=' + this.server_api.sortField;
+
+				if (args && args.sortOrder)
+					params += '&sortOrder=' + args.sortOrder;
+				else if (this.sortOrder)
+					params += '&sortOrder=' + this.sortOrder;
+				else if (this.server_api.sortOrder)
+					params += '&sortOrder=' + this.server_api.sortOrder;
+
+				if (args && args.groupBy)
+					params += '&groupBy=' + args.groupBy;
+
+				if (args && args.flag)
+					params += '&flag=' + args.flag;
+				else if (args && args.flag === null)
+					params += '';
+				else if (this.params && this.params.flag)
+					params += '&flag=' + this.params.flag;
+				else if (this.server_api.flag)
+					params += '&flag=' + this.server_api.flag;
+
+				var search;
+				if (args && args.search) {
+					search = args.search;
+				} else if (this.params && this.params.search) {
+					search = this.params.search;
+				}
+				if (search) {
+					if (typeof search == 'string') {
+						params += '&search=' + encodeURIComponent(search);
+					} else if (typeof search == 'object') {
+						for ( var p in search) {
+							params += '&search.' + p + '=' + encodeURIComponent(search[p]);
+						}
+					}
+				}
+				return params;
+			},
+
+			getURL : function(args) {
+				var url = this.url();
+				url += this.getParameters(args);
+				return url;
+			},
+
+		}); // mail.MailPaginator
+
+		mail.SharedMboxModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../shared-mboxes';
+				else
+					return 'shared-mboxes';
+			},
+
+			idAttribute : 'id',
+
+			defaults : {
+				id : 0,
+				sharer : '',
+				sharee : '',
+				shared_time : '',
+			},
+
+			initialize : function(attributes, options) {
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+
+		}); // mail.SharedMboxModel
+
+		mail.FilterModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../filters';
+				else
+					return 'filters/';
+			},
+
+			idAttribute : 'FILTER_IDX',
+
+			defaults : {
+				FILTER_IDX : 0,
+				USERS_IDX : '',
+				FILTER_AUTH : 0,
+				FILTER_TYPE : 0,
+				FILTER_KEYWORD : '',
+			},
+
+			initialize : function() {
+				var filters = this.get("filters");
+				if (filters) {
+					this.filters = new mail.FilterCollection(filters);
+					this.unset('filters');
+				}
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+
+		}); // mail.FilterModel
+
+		mail.FilterCollection = app.BackboneCollection.extend({
+			url : function() {
+				if (isPopup())
+					return '../filters';
+				else
+					return 'filters';
+			},
+
+			model : mail.FilterModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				// app.debug('FilterCollection.parse(response, options) {...}');
+				return response;
+			},
+
+			getFilterModel : function(attribute, value) {
+				var model = _.find(this.models, function(model) {
+					return model.get(attribute) == value;
+				});
+				return model;
+			},
+		}); // mail.FilterCollection
+
+		mail.AutoDivisionModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../autodivisions';
+				else
+					return 'autodivisions';
+			},
+
+			idAttribute : 'AUTODIVISION_IDX',
+
+			defaults : {
+				AUTODIVISION_IDX : 0,
+				USERS_IDX : '',
+				MBOX_IDX : 0,
+				AUTODIVISION_TYPE : -1,
+				AUTODIVISION_KEYWORD : '',
+				NOTICE : 0,
+				TAG_TYPE : 0,
+				SENDER : '',
+				RCPT_TO : '',
+				RCPT_CC : '',
+				RCPT_TO_CC : '',
+				SUBJECT : '',
+				CONTENT : '',
+				ATTACHED : 0,
+				AS_READ : 0,
+				AS_IMPORTANT : 0,
+				ORDINAL : 0,
+				PREVIOUS : 0,
+				CORRESPONDED : 0,
+			},
+
+			initialize : function() {
+				var autodivisions = this.get("autodivisions");
+				if (autodivisions) {
+					this.autodivisions = new mail.AutoDivisionCollection(autodivisions);
+					this.unset('autodivisions');
+				}
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+
+		}); // mail.AutoDivisionModel
+
+		mail.AutoDivisionCollection = app.BackboneCollection.extend({
+			url : function() {
+				if (isPopup())
+					return '../autodivisions';
+				else
+					return 'autodivisions';
+			},
+
+			model : mail.AutoDivisionModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.debug('AutoDivisionCollection.parse(response, options) {...}');
+				return response;
+			},
+
+			getAutoDivisionModel : function(attribute, value) {
+				var model = _.find(this.models, function(model) {
+					return model.get(attribute) == value;
+				});
+				return model;
+			},
+		}); // mail.AutoDivisionCollection
+
+		mail.MimeModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				var viewUrl = this.get('viewMode') == 0 ? '/mime/' : '/mime-header/';
+				if (isPopup())
+					return '../mails' + viewUrl;
+				else
+					return 'mails' + viewUrl;
+			},
+
+			idAttribute : 'M_IDX',
+
+			defaults : {
+				M_IDX : 0,
+				viewMode : 0, // 0 : 원문보기 1 : 헤더보기
+				mailMessage : '',
+			},
+
+			initialize : function() {
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+
+		}); // mail.MimeModel
+
+		mail.DeliveryStatusModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../delivery-status';
+				else
+					return 'delivery-status';
+			},
+
+			idAttribute : 'MAIL_RECONF_IDX',
+
+			defaults : {
+				MAIL_RECONF_IDX : 0,
+				MAIL_RECONF_GROUP : 0,
+				USERS_IDX : '',
+				MAIL_RECONF_TO : '',
+				MAIL_RECONF_SUBJECT : '',
+				MAIL_RECONF_STATE : 0,
+				MAIL_RECONF_SDATE : '',
+				MAIL_RECONF_RDATE : '',
+				MAIL_RECONF_MESSAGE_ID : '',
+				M_IDX : 0,
+				MAIL_RECONF_CNT : 0,
+				MAIL_RECONF_SEND : '',
+				MAIL_RECONF_SEND_DATE : '',
+				MBOX_IDX : 0,
+				subDeliveryStatusList : [],
+			},
+
+			initialize : function(attributes, options) {
+				app.BackboneModel.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+
+		}); // mail.DeliveryStatusModel
+
+		mail.DeliveryStatusCollection = app.BackboneCollection.extend({
+			url : function() {
+				if (isPopup())
+					return '../delivery-status';
+				else
+					return 'delivery-status';
+			},
+
+			model : mail.DeliveryStatusModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			getDeliveryStatusModel : function(attribute, value) {
+				var model = _.find(this.models, function(model) {
+					return model.get(attribute) == value;
+				});
+				return model;
+			},
+		}); // mail.DeliveryStatusCollection
+
+		mail.DeliveryStatusPaginator = mail.MailPaginator.extend({
+			model : mail.DeliveryStatusModel,
+
+			url : function() {
+				return 'delivery-status';
+			},
+
+			parse : function(response, options) {
+				app.RequestPaginator.prototype.parse.apply(this, arguments);
+				var deliveryStatus = response.deliveryStatus;
+				return deliveryStatus;
+			},
+		}); // mail.DeliveryStatusPaginator
+
+		mail.MailReportModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../mail-reports';
+				else
+					return 'mail-reports';
+			},
+
+			idAttribute : 'MAIL_REPORT_IDX',
+
+			defaults : {
+				MAIL_REPORT_IDX : 0, // 불량메일신고 인덱스
+				DOMAIN : '', // 도메인 명
+				USERS_IDX : '', // 신고자 IDX
+				USERS_NAME : '', // 신고자 이름
+				M_IDX : 0, // 메일 IDX
+				M_TITLE : '', // 메일 TITLE
+				MAIL_REPORT_DATE : '', // 신고일자
+				MAIL_REPORT_FROM : '', // 불량메일 발송자 이메일
+				MAIL_REPORT_SENDDATE : '', // 메일발송일자
+				MAIL_REPORT_STMT : '', // 메일신고내용
+				MAIL_REPORT_STATE : '', // 처리상태 1:신규 2:처리중 3: 불량메일 4:불량도메인 5:중복
+				MAIL_REPORT_TYPE : '', // 메일신고유형 (sapm : 스팸, hacking : 해킹)
+			},
+
+			initialize : function(attributes, options) {
+				app.BackboneModel.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+
+		}); // mail.MailReportModel
+
+		mail.StationeryPaginator = app.ClientPaginator.extend({
+
+			model : app.BackboneModel,
+
+			paginator_core : {
+				type : 'GET',
+				dataType : 'json',
+				url : function() {
+					if (isPopup())
+						return '../stationery';
+					else
+						return 'stationery';
+				}
+			},
+
+			defaults_ui : {
+				firstPage : 1,
+				currentPage : 1,
+				perPage : 6,
+				totalPages : 5,
+				pagesInRange : 5
+			},
+			
+			server_api : {
+				'firstPage' : function() {
+					return this.firstPage;
+				},
+				'currentPage' : function() {
+					return this.currentPage;
+				},
+				'perPage' : function() {
+					return this.perPage;
+				},
+			},
+
+			constructor : function() {
+				app.ClientPaginator.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.ClientPaginator.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.ClientPaginator.prototype.parse.apply(this, arguments);
+				return response.stationery;
+			},
+
+		}); // mail.StationeryPaginator
+
+		mail.FormModel = app.BackboneModel.extend({
+
+			idAttribute : 'FORMLETTER_IDX',
+
+			defaults : {
+				FORMLETTER_IDX : 0,
+				DOMAIN : '',
+				FORMLETTER_TYPE : -1,
+				FORMLETTER_SUBJECT : '',
+				CONTENT : '',
+			},
+
+		}); // mail.FormModel
+
+		mail.FormPaginator = app.RequestPaginator.extend({
+
+			model : mail.FormModel,
+
+			paginator_core : {
+				type : 'POST',
+				dataType : 'json',
+				url : function() {
+					if (isPopup())
+						return '../forms';
+					else
+						return 'forms';
+				},
+			},
+
+			server_api : {
+				_method : 'GET',
+				'firstPage' : function() {
+					return this.firstPage;
+				},
+				'currentPage' : function() {
+					return this.currentPage;
+				},
+				'perPage' : function() {
+					return this.perPage;
+				},
+				'sortField' : function() {
+					return this.sortField || '';
+				},
+				'sortOrder' : function() { // custom property
+					return this.sortOrder || '';
+				}
+			},
+
+			parse : function(response, options) {
+				app.RequestPaginator.prototype.parse.apply(this, arguments);
+				var forms = response.forms;
+				return forms;
+			},
+
+			clearSearch : function() {
+				if (this.server_api['search'])
+					delete this.server_api['search'];
+				for ( var prop in this.server_api) {
+					if (/^search\./.test(prop))
+						delete this.server_api[prop];
+				}
+			},
+
+			getSearchField : function() {
+				var searchField = '';
+				for ( var prop in this.server_api) {
+					if (/^search\./.test(prop)) {
+						searchField = prop.substring(prop.indexOf('.') + 1);
+						break;
+					}
+				}
+				return searchField;
+			},
+
+			getSearchTerm : function() {
+				var searchTerm = '';
+				for ( var prop in this.server_api) {
+					if (/^search\./.test(prop)) {
+						searchTerm = this.server_api[prop];
+						break;
+					}
+				}
+				return searchTerm;
+			},
+
+		}); // mail.FormPaginator
+
+		mail.SignatureModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../signatures';
+				else
+					return 'signatures';
+			},
+			idAttribute : 'SIGN_IDX',
+			defaults : {
+				SIGN_IDX : 0,
+			},
+			initialize : function(attributes, options) {
+				app.BackboneModel.prototype.initialize.apply(this, arguments);
+			},
+			tagNames : {
+				"SVG" : 'svg',
+				// Head elements
+				"BASE" : 'base',
+				"META" : 'meta',
+				// Embedded and external document resource elements
+				"LINK" : 'link',
+				"SCRIPT" : 'script',
+				"STYLE" : 'style',
+				// Frame elements
+				"IFRAME" : 'iframe',
+				"FRAMESET" : 'frameset',
+				// Applet, media file and plug-in elements
+				"APPLET" : 'applet',
+				"EMBED" : 'embed',
+				"OBJECT" : 'object',
+				// Preformatted font elements
+				"RUBY" : 'ruby',
+				// Passive JavaScript execution via MathML on Firefox
+				"MATH" : 'math',
+				// Internet Explorer Data Islands executing JavaScript
+				"XML" : 'xml'
+			},
+			eventHandlers : {
+				"fsommand" : '[FSCommand]',
+				"onbegin" : '[onbegin]',
+				"onend" : '[onEnd]',
+				"onlayoutcomplete" : '[onLayoutComplete]',
+				"onmediacomplete" : '[onMediaComplete]',
+				"onmediaerror" : '[onMediaError]',
+				"onoutofsync" : '[onOutOfSync]',
+				"onpopstate" : '[onPopState]',
+				"onprogress" : '[onProgress]',
+				"onredo" : '[onRedo]',
+				"onrepeat" : '[onRepeat]',
+				"onresume" : '[onResume]',
+				"onreverse" : '[onReverse]',
+				"onstorage" : '[onStorage]',
+				"onsyncrestored" : '[onSyncRestored]',
+				"ontimeerror" : '[onTimeError]',
+				"ontrackchange" : '[onTrackChange]',
+				"onundo" : '[onUndo]',
+				"seeksegmenttime" : '[seekSegmentTime]',
+				// Character input and clipboard events
+				"onbeforecopy" : '[onbeforecopy]',
+				"onbeforecut" : '[onbeforecut]',
+				"onbeforepaste" : '[onbeforepaste]',
+				"oncopy" : '[oncopy]',
+				"oncut" : '[oncut]',
+				"oninput" : '[oninput]',
+				"onkeydown" : '[onkeydown]',
+				"onkeypress" : '[onkeypress]',
+				"onkeyup" : '[onkeyup]',
+				"onpaste" : '[onpaste]',
+				"textinput" : '[textInput]',
+				// Load, unload and state events
+				"onabort" : '[onabort]',
+				"onbeforeunload" : '[onbeforeunload]',
+				"onhashchange" : '[onhashchange]',
+				"onload" : '[onload]',
+				"onoffline" : '[onoffline]',
+				"ononline" : '[ononline]',
+				"onreadystatechange" : '[onreadystatechange]',
+				"onstop" : '[onstop]',
+				"onunload" : '[onunload]',
+				// Form events
+				"onreset" : '[onreset]',
+				"onsubmit" : '[onsubmit]',
+				// Mouse events and scrolling
+				"onclick" : '[onclick]',
+				"oncontextmenu" : '[oncontextmenu]',
+				"ondblclick" : '[ondblclick]',
+				"onlosecapture" : '[onlosecapture]',
+				"onmouseenter" : '[onmouseenter]',
+				"onmousedown" : '[onmousedown]',
+				"onmouseleave" : '[onmouseleave]',
+				"onmousemove" : '[onmousemove]',
+				"onmouseout" : '[onmouseout]',
+				"onmouseover" : '[onmouseover]',
+				"onmouseup" : '[onmouseup]',
+				"onmousewheel" : '[onmousewheel]',
+				"onscroll" : '[onscroll]',
+				// Move and drag events:
+				"onmove" : '[onmove]',
+				"onmoveend" : '[onmoveend]',
+				"onmovestart" : '[onmovestart]',
+				"ondrag" : '[ondrag]',
+				"ondragend" : '[ondragend]',
+				"ondragenter" : '[ondragenter]',
+				"ondragleave" : '[ondragleave]',
+				"ondragover" : '[ondragover]',
+				"ondragstart" : '[ondragstart]',
+				"ondrop" : '[ondrop]',
+				// Resize events
+				"onresize" : '[onresize]',
+				"onresizeend" : '[onresizeend]',
+				"onresizestart" : '[onresizestart]',
+				// Activation and focus events
+				"onactivate" : '[onactivate]',
+				"onbeforeactivate" : '[onbeforeactivate]',
+				"onbeforedeactivate" : '[onbeforedeactivate]',
+				"onbeforeeditfocus" : '[onbeforeeditfocus]',
+				"onblur" : '[onblur]',
+				"ondeactivate" : '[ondeactivate]',
+				"onfocus" : '[onfocus]',
+				"onfocusin" : '[onfocusin]',
+				"onfocusout" : '[onfocusout]',
+				// Selection events
+				"oncontrolselect" : '[oncontrolselect]',
+				"onselect" : '[onselect]',
+				"onselectionchange" : '[onselectionchange]',
+				"onselectstart" : '[onselectstart]',
+				// Print and help events
+				"onafterprint" : '[onafterprint]',
+				"onbeforeprint" : '[onbeforeprint]',
+				"onhelp" : '[onhelp]',
+				// Error events
+				"onerror" : '[onerror]',
+				"onerrorupdate" : '[onerrorupdate]',
+				// DataBound events
+				"onafterupdate" : '[onafterupdate]',
+				"onbeforeupdate" : '[onbeforeupdate]',
+				"oncellchange" : '[oncellchange]',
+				"ondataavailable" : '[ondataavailable]',
+				"ondatasetchanged" : '[ondatasetchanged]',
+				"ondatasetcomplete" : '[ondatasetcomplete]',
+				"onrowsenter" : '[onrowsenter]',
+				"onrowenter" : '[onrowenter]',
+				"onrowsexit" : '[onrowsexit]',
+				"onrowexit" : '[onrowexit]',
+				"onrowsdelete" : '[onrowsdelete]',
+				"onrowdelete" : '[onrowdelete]',
+				"onrowsinserted" : '[onrowsinserted]',
+				"onrowinserted" : '[onrowinserted]',
+				// Marquee events
+				"onbounce" : '[onbounce]',
+				"onfinish" : '[onfinish]',
+				"onstart" : '[onstart]',
+				// Change events
+				"onchange" : '[onchange]',
+				"onfilterchange" : '[onfilterchange]',
+				"onpropertychange" : '[onpropertychange]',
+				// Search event:
+				"onsearch" : '[onsearch]',
+				// Cross-document communication event
+				"onmessage" : '[onmessage]',
+				// XSS via formaction - requiring user interaction (1)
+				"formaction" : '[formaction]',
+				// JavaScript execution via <VIDEO> poster attribute
+				"poster" : '[poster]',
+				// Form surveillance with onformchange, onforminput
+				"onforminput" : '[onforminput]',
+				"onformchange" : '[onformchange]',
+				// Transparent overwriting of request-data
+				// using HTML5 "dirname" attributes
+				"dirname" : '[dirname]',
+				// Executing JavaScript via "srcdoc" attribute in Iframes
+				"srcdoc" : '[srcdoc]',
+				// JavaScript execution via <DETAILS> and ontoggle
+				"ontoggle" : '[ontoggle]',
+				// JavaScript execution via <VIDEO>
+				// with empty source and rate change events
+				"onratechange" : '[onratechange]',
+				// JavaScript execution via <FRAMESET> and onpageshow
+				"onpageshow" : '[onpageshow]',
+				// Video, Audio events
+				"onloadstart" : '[onloadstart]',
+				"onloadeddata" : '[onloadeddata]',
+				"onloadedmetadata" : '[onloadedmetadata]',
+				"oncanplay" : '[oncanplay]'
+			},
+			xssRegExp : new RegExp('x\\s*s\\s*s\\s*:' + '|' + 'j\\s*a\\s*v\\s*a\\s*s\\s*c\\s*r\\s*i\\s*p\\s*t' + '|'
+					+ 'e\\s*v\\s*a\\s*l' + '|' + 'e\\s*x\\s*p\\s*r\\s*e\\s*s\\s*s\\s*i\\s*o\\s*n' + '|'
+					+ 'b\\s*e\\s*h\\s*a\\s*v\\s*i\\s*o\\s*r' + '|' + 'm\\s*h\\s*t\\s*m\\s*l\\s*:', 'i'),
+			filterElements : function(index, element) {
+				var tagName = element.tagName || element.nodeName;
+				if (tagName.charAt(0) != tagName.charAt(0).toUpperCase())
+					tagName = tagName.toUpperCase();
+				if (this.tagNames[tagName]) {
+					element.parentNode.removeChild(element);
+					return false;
+				}
+				if (tagName == 'A') {
+					element.setAttribute('target', '_blank');
+					element.setAttribute('rel', 'noopener noreferrer');
+				} else if (tagName == 'FORM') {
+					element.setAttribute('target', '_blank');
+					element.setAttribute('rel', 'noopener noreferrer');
+					if (element.getAttribute('action')) {
+						var link = document.createElement("a");
+						link.href = element.getAttribute('action');
+						if (!link.hostname || location.hostname === link.hostname)
+							element.removeAttribute('action');
+					}
+				} else if (tagName == 'AREA') {
+					element.setAttribute('target', '_blank');
+					element.setAttribute('rel', 'noopener noreferrer');
+				}
+				try {
+					for (var i = element.attributes.length - 1; i >= 0; i--) {
+						var attr = element.attributes[i];
+						if (this.eventHandlers[attr.name]) {
+							element.removeAttribute(attr.name);
+							continue;
+						}
+						if (this.xssRegExp.test(attr.value)) {
+							element.removeAttribute(attr.name);
+							continue;
+						}
+					}
+				} catch (error) {
+					// ignore error
+				}
+				return true;
+			},
+			parse : function(response, options) {
+				var self = this;
+				if (response.SIGN_STMT) {
+					html = this._validateHTML(response.SIGN_STMT);
+					var frag = document.createDocumentFragment();
+					var $div = $('<div></div>', frag).html(html);
+					$div.find('*').filter(function(index, element) {
+						return self.filterElements(index, element);
+					});
+					var $images = $div.find('img');
+					var pattern = /^cid:(.+)/i;
+					$images.each(function(index, element) {
+						var $img = $(element);
+						var src = $img.attr('src');
+						var match = pattern.exec(src);
+						if (match && match.length == 2) {
+							var url = 'inline/' + match[1];
+							if (isPopup())
+								url = '../inline/' + match[1];
+							$img.attr('src', url);
+						}
+					});
+					response.SIGN_STMT = $div.html();
+				}
+				return response;
+			},
+			_validateHTML : function(html) {
+				var p = /(<[A-Z][-:A-Z0-9]*)([\s\/]+[^\s>]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^>]+))?)+(\s*\/?>)/gi;
+				var result, lastIndex = 0, replacement = [];
+				while ((result = p.exec(html)) != null) {
+					replacement.push(result.input.substring(lastIndex, result.index));
+					if (/^(?:<applet)/i.test(result[1])) {
+						lastIndex = p.lastIndex;
+						continue;
+					}
+					replacement.push(result[1]);
+					var attrs = result[0].substring(result[1].length, result[0].length
+							- result[result.length - 1].length);
+					var matches = attrs.match(/[\s\/]+[A-Z][-:A-Z0-9]*(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?/gi);
+					if (!matches)
+						matches = [];
+					for (var i = 0; i < matches.length; i++) {
+						if (!/^[\s\/]+(onload|onerror|onloadstart)\s*=/i.test(matches[i]))
+							replacement.push(matches[i]);
+					}
+					replacement.push(result[result.length - 1]);
+					replacement.push(result.input.substring(result.index + result[0].length, p.lastIndex));
+					lastIndex = p.lastIndex;
+				}
+				replacement.push(html.substring(lastIndex));
+				return replacement.join('');
+			},
+		}); // mail.SignatureModel
+
+		mail.SignatureCollection = app.BackboneCollection.extend({
+			url : function() {
+				if (isPopup())
+					return '../signatures';
+				else
+					return 'signatures';
+			},
+			model : mail.SignatureModel,
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+			parse : function(response, options) {
+				return response;
+			},
+		}); // mail.SignatureCollection
+		mail.SecureMailModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../secure-mails';
+				else
+					return 'secure-mails';
+			},
+
+			defaults : {
+				// id : 0,
+				mailId : 0,
+				checksum : '',
+				sender : '',
+				recipient : '',
+				subject : '',
+				password : '',
+				passwordHint : '',
+				contact : '',
+				startDate : '',
+				endDate : '',
+				readingTimes : 0,
+				readingLimit : 0,
+				recalled : 0,
+			},
+
+			initialize : function(attributes, options) {
+				app.BackboneModel.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+		}); // mail.SecureMailModel
+
+		mail.SecureMailCollection = app.BackboneCollection.extend({
+			url : function() {
+				if (isPopup())
+					return '../secure-mails';
+				else
+					return 'secure-mails';
+			},
+
+			model : mail.SecureMailModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+		}); // mail.SecureMailCollection
+
+		mail.SecureMailReadingModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../secure-mail-readings';
+				else
+					return 'secure-mail-readings';
+			},
+
+			defaults : {
+				// id : 0,
+				mailId : 0,
+				secureMailId : 0,
+				readTime : '',
+				recipient : '',
+				ip : '',
+				countryCode : '',
+				countryName : '',
+			},
+
+			initialize : function(attributes, options) {
+				app.BackboneModel.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+		}); // mail.SecureMailReadingModel
+
+		mail.SecureMailReadingCollection = app.BackboneCollection.extend({
+			url : function() {
+				if (isPopup())
+					return '../secure-mails-readings';
+				else
+					return 'secure-mail-readings';
+			},
+
+			model : mail.SecureMailReadingModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+		}); // mail.SecureMailReadingCollection
+
+		mail.ApprovalMboxModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../approval/mboxes';
+				else
+					return 'approval/mboxes';
+			},
+
+			idAttribute : 'mboxName',
+
+			defaults : {
+				mboxName : '',
+				requestCount : 0,
+			},
+
+			initialize : function(attributes, options) {
+				app.BackboneModel.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+		}); // mail.ApprovalMboxModel
+
+		mail.ApprovalMboxCollection = app.BackboneCollection.extend({
+			url : function() {
+				if (isPopup())
+					return '../approval/mboxes';
+				else
+					return 'approval/mboxes';
+			},
+
+			model : mail.ApprovalMboxModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+		}); // mail.ApprovalMboxCollection
+
+		mail.ApprovalPolicyModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../approval/policies';
+				else
+					return 'approval/policies';
+			},
+
+			defaults : {
+				id : 0,
+				domain : '',
+				name : '',
+				priority : 0,
+				deleted : 0,
+				approvalAction : '',
+				reason : '',
+				filters : [],
+				applicants : [],
+				approvers : [],
+			},
+
+			initialize : function(attributes, options) {
+				app.BackboneModel.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+		}); // mail.ApprovalPolicyModel
+
+		mail.ApprovalFilterModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../approval/filters';
+				else
+					return 'approval/filters';
+			},
+
+			defaults : {
+				policyId : 0,
+			},
+
+			initialize : function(attributes, options) {
+				app.BackboneModel.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+		}); // mail.ApprovalFilterModel
+
+		mail.ApprovalFilterCollection = app.BackboneCollection.extend({
+			url : function() {
+				if (isPopup())
+					return '../approval/filters';
+				else
+					return 'approval/filters';
+			},
+
+			model : mail.ApprovalFilterModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+		}); // mail.ApprovalFilterCollection
+
+		mail.ApproverModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../approval/approvers';
+				else
+					return 'approval/approvers';
+			},
+
+			defaults : {
+				policyId : 0,
+				approver : '',
+				levels : 0,
+				prime : 0,
+				status : 0,
+				startTime : '',
+				endTime : '',
+				name : '',
+				jobtitle : '',
+				department : ''
+			},
+
+			initialize : function(attributes, options) {
+				app.BackboneModel.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.log('mail.ApproverModel.parse(response, options) {...}');
+				return response;
+			},
+		}); // mail.ApproverModel
+
+		mail.ApproverCollection = app.BackboneCollection.extend({
+			url : function() {
+				if (isPopup())
+					return '../approval';
+				else
+					return 'approval';
+			},
+
+			model : mail.ApproverModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.log('mail.ApproverCollection.parse(response, options) {...}');
+				return response;
+			},
+
+			getPrimeApporver : function(levels) {
+				var model = _.find(this.models, function(model) {
+					return (model.get('levels') == levels && model.get('prime') == 1);
+				});
+				return model;
+			},
+
+			getApporversByLevels : function(levels) {
+				var models = this.models.filter(function(model) {
+					return (model.get('levels') == levels);
+				});
+				return models;
+			},
+
+			getFinalLevels : function() {
+				var model = _.max(this.models, function(model) {
+					return model.get('levels');
+				});
+				return model.get('levels');
+			},
+
+		}); // mail.ApproverCollection
+
+		mail.ApprovalModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../approval/mboxes/' + mail.approvalMboxModel.get('mboxName') + '/approvals';
+				else
+					return 'approval/mboxes/' + mail.approvalMboxModel.get('mboxName') + '/approvals';
+			},
+
+			idAttribute : 'id',
+
+			defaults : {
+				mailId : 0,
+				policyId : 0,
+				filterIds : '',
+				levels : 0,
+				status : '',
+				applicant : '',
+				approver : '',
+				requestTime : '',
+				subject : '',
+				attachments : 0,
+				reason : ''
+			},
+
+			initialize : function(attributes, options) {
+				app.BackboneModel.prototype.initialize.apply(this, arguments);
+			},
+
+			tagNames : {
+				"SVG" : 'svg',
+				// Head elements
+				"BASE" : 'base',
+				"META" : 'meta',
+				// Embedded and external document resource elements
+				"LINK" : 'link',
+				"SCRIPT" : 'script',
+				"STYLE" : 'style',
+				// Frame elements
+				"IFRAME" : 'iframe',
+				"FRAMESET" : 'frameset',
+				// Applet, media file and plug-in elements
+				"APPLET" : 'applet',
+				"EMBED" : 'embed',
+				"OBJECT" : 'object',
+				// Preformatted font elements
+				"RUBY" : 'ruby',
+				// Passive JavaScript execution via MathML on Firefox
+				"MATH" : 'math',
+				// Internet Explorer Data Islands executing JavaScript
+				"XML" : 'xml'
+			},
+
+			eventHandlers : {
+				"fsommand" : '[FSCommand]',
+				"onbegin" : '[onbegin]',
+				"onend" : '[onEnd]',
+				"onlayoutcomplete" : '[onLayoutComplete]',
+				"onmediacomplete" : '[onMediaComplete]',
+				"onmediaerror" : '[onMediaError]',
+				"onoutofsync" : '[onOutOfSync]',
+				"onpopstate" : '[onPopState]',
+				"onprogress" : '[onProgress]',
+				"onredo" : '[onRedo]',
+				"onrepeat" : '[onRepeat]',
+				"onresume" : '[onResume]',
+				"onreverse" : '[onReverse]',
+				"onstorage" : '[onStorage]',
+				"onsyncrestored" : '[onSyncRestored]',
+				"ontimeerror" : '[onTimeError]',
+				"ontrackchange" : '[onTrackChange]',
+				"onundo" : '[onUndo]',
+				"seeksegmenttime" : '[seekSegmentTime]',
+				// Character input and clipboard events
+				"onbeforecopy" : '[onbeforecopy]',
+				"onbeforecut" : '[onbeforecut]',
+				"onbeforepaste" : '[onbeforepaste]',
+				"oncopy" : '[oncopy]',
+				"oncut" : '[oncut]',
+				"oninput" : '[oninput]',
+				"onkeydown" : '[onkeydown]',
+				"onkeypress" : '[onkeypress]',
+				"onkeyup" : '[onkeyup]',
+				"onpaste" : '[onpaste]',
+				"textinput" : '[textInput]',
+				// Load, unload and state events
+				"onabort" : '[onabort]',
+				"onbeforeunload" : '[onbeforeunload]',
+				"onhashchange" : '[onhashchange]',
+				"onload" : '[onload]',
+				"onoffline" : '[onoffline]',
+				"ononline" : '[ononline]',
+				"onreadystatechange" : '[onreadystatechange]',
+				"onstop" : '[onstop]',
+				"onunload" : '[onunload]',
+				// Form events
+				"onreset" : '[onreset]',
+				"onsubmit" : '[onsubmit]',
+				// Mouse events and scrolling
+				"onclick" : '[onclick]',
+				"oncontextmenu" : '[oncontextmenu]',
+				"ondblclick" : '[ondblclick]',
+				"onlosecapture" : '[onlosecapture]',
+				"onmouseenter" : '[onmouseenter]',
+				"onmousedown" : '[onmousedown]',
+				"onmouseleave" : '[onmouseleave]',
+				"onmousemove" : '[onmousemove]',
+				"onmouseout" : '[onmouseout]',
+				"onmouseover" : '[onmouseover]',
+				"onmouseup" : '[onmouseup]',
+				"onmousewheel" : '[onmousewheel]',
+				"onscroll" : '[onscroll]',
+				// Move and drag events:
+				"onmove" : '[onmove]',
+				"onmoveend" : '[onmoveend]',
+				"onmovestart" : '[onmovestart]',
+				"ondrag" : '[ondrag]',
+				"ondragend" : '[ondragend]',
+				"ondragenter" : '[ondragenter]',
+				"ondragleave" : '[ondragleave]',
+				"ondragover" : '[ondragover]',
+				"ondragstart" : '[ondragstart]',
+				"ondrop" : '[ondrop]',
+				// Resize events
+				"onresize" : '[onresize]',
+				"onresizeend" : '[onresizeend]',
+				"onresizestart" : '[onresizestart]',
+				// Activation and focus events
+				"onactivate" : '[onactivate]',
+				"onbeforeactivate" : '[onbeforeactivate]',
+				"onbeforedeactivate" : '[onbeforedeactivate]',
+				"onbeforeeditfocus" : '[onbeforeeditfocus]',
+				"onblur" : '[onblur]',
+				"ondeactivate" : '[ondeactivate]',
+				"onfocus" : '[onfocus]',
+				"onfocusin" : '[onfocusin]',
+				"onfocusout" : '[onfocusout]',
+				// Selection events
+				"oncontrolselect" : '[oncontrolselect]',
+				"onselect" : '[onselect]',
+				"onselectionchange" : '[onselectionchange]',
+				"onselectstart" : '[onselectstart]',
+				// Print and help events
+				"onafterprint" : '[onafterprint]',
+				"onbeforeprint" : '[onbeforeprint]',
+				"onhelp" : '[onhelp]',
+				// Error events
+				"onerror" : '[onerror]',
+				"onerrorupdate" : '[onerrorupdate]',
+				// DataBound events
+				"onafterupdate" : '[onafterupdate]',
+				"onbeforeupdate" : '[onbeforeupdate]',
+				"oncellchange" : '[oncellchange]',
+				"ondataavailable" : '[ondataavailable]',
+				"ondatasetchanged" : '[ondatasetchanged]',
+				"ondatasetcomplete" : '[ondatasetcomplete]',
+				"onrowsenter" : '[onrowsenter]',
+				"onrowenter" : '[onrowenter]',
+				"onrowsexit" : '[onrowsexit]',
+				"onrowexit" : '[onrowexit]',
+				"onrowsdelete" : '[onrowsdelete]',
+				"onrowdelete" : '[onrowdelete]',
+				"onrowsinserted" : '[onrowsinserted]',
+				"onrowinserted" : '[onrowinserted]',
+				// Marquee events
+				"onbounce" : '[onbounce]',
+				"onfinish" : '[onfinish]',
+				"onstart" : '[onstart]',
+				// Change events
+				"onchange" : '[onchange]',
+				"onfilterchange" : '[onfilterchange]',
+				"onpropertychange" : '[onpropertychange]',
+				// Search event:
+				"onsearch" : '[onsearch]',
+				// Cross-document communication event
+				"onmessage" : '[onmessage]',
+				// XSS via formaction - requiring user interaction (1)
+				"formaction" : '[formaction]',
+				// JavaScript execution via <VIDEO> poster attribute
+				"poster" : '[poster]',
+				// Form surveillance with onformchange, onforminput
+				"onforminput" : '[onforminput]',
+				"onformchange" : '[onformchange]',
+				// Transparent overwriting of request-data
+				// using HTML5 "dirname" attributes
+				"dirname" : '[dirname]',
+				// Executing JavaScript via "srcdoc" attribute in Iframes
+				"srcdoc" : '[srcdoc]',
+				// JavaScript execution via <DETAILS> and ontoggle
+				"ontoggle" : '[ontoggle]',
+				// JavaScript execution via <VIDEO>
+				// with empty source and rate change events
+				"onratechange" : '[onratechange]',
+				// JavaScript execution via <FRAMESET> and onpageshow
+				"onpageshow" : '[onpageshow]',
+				// Video, Audio events
+				"onloadstart" : '[onloadstart]',
+				"onloadeddata" : '[onloadeddata]',
+				"onloadedmetadata" : '[onloadedmetadata]',
+				"oncanplay" : '[oncanplay]'
+			},
+
+			xssRegExp : new RegExp('x\\s*s\\s*s\\s*:' + '|' + 'j\\s*a\\s*v\\s*a\\s*s\\s*c\\s*r\\s*i\\s*p\\s*t' + '|'
+					+ 'e\\s*v\\s*a\\s*l' + '|' + 'e\\s*x\\s*p\\s*r\\s*e\\s*s\\s*s\\s*i\\s*o\\s*n' + '|'
+					+ 'b\\s*e\\s*h\\s*a\\s*v\\s*i\\s*o\\s*r' + '|' + 'm\\s*h\\s*t\\s*m\\s*l\\s*:', 'i'),
+
+			filterElements : function(index, element) {
+				var tagName = element.tagName || element.nodeName;
+				if (tagName.charAt(0) != tagName.charAt(0).toUpperCase())
+					tagName = tagName.toUpperCase();
+				if (this.tagNames[tagName]) {
+					element.parentNode.removeChild(element);
+					return false;
+				}
+				if (tagName == 'A') {
+					element.setAttribute('target', '_blank');
+					element.setAttribute('rel', 'noopener noreferrer');
+				} else if (tagName == 'FORM') {
+					element.setAttribute('target', '_blank');
+					element.setAttribute('rel', 'noopener noreferrer');
+					if (element.getAttribute('action')) {
+						var link = document.createElement("a");
+						link.href = element.getAttribute('action');
+						if (!link.hostname || location.hostname === link.hostname)
+							element.removeAttribute('action');
+					}
+				} else if (tagName == 'AREA') {
+					element.setAttribute('target', '_blank');
+					element.setAttribute('rel', 'noopener noreferrer');
+				}
+				try {
+					for (var i = element.attributes.length - 1; i >= 0; i--) {
+						var attr = element.attributes[i];
+						if (this.eventHandlers[attr.name]) {
+							element.removeAttribute(attr.name);
+							continue;
+						}
+						if (this.xssRegExp.test(attr.value)) {
+							element.removeAttribute(attr.name);
+							continue;
+						}
+					}
+				} catch (error) {
+					// ignore error
+				}
+				return true;
+			},
+
+			parse : function(response, options) {
+				if (this.collection) {
+					return response;
+				}
+				var self = this, html, attributes = [];
+				var approvalId = response.id;
+				var mboxName = response.mboxName;
+				if (response.mail && response.mail.M_CONTENT) {
+					html = this._validateHTML(response.mail.M_CONTENT);
+					html = this._replaceInlineImages(mboxName, approvalId, html);
+					var frag = document.createDocumentFragment();
+					var $div = $('<div></div>', frag).html(html);
+					$div.find('*').filter(function(index, element) {
+						return self.filterElements(index, element);
+					});
+					response.mail.M_CONTENT = $div.html();
+					response.mail.bodyText = $div.text();
+				}
+				if (response.mail && response.mail.mails && response.mail.mails.length) {
+					for (var i = 0; i < response.mail.mails.length; i++) {
+						var mail = response.mail.mails[i];
+						if (mail.M_CONTENT) {
+							html = this._validateHTML(mail.M_CONTENT);
+							html = this._replaceInlineImages(mboxName, approvalId, html);
+							var frag = document.createDocumentFragment();
+							var $div = $('<div></div>', frag).html(html);
+							$div.find('*').filter(function(index, element) {
+								return self.filterElements(index, element);
+							});
+							mail.M_CONTENT = $div.html();
+						}
+					}
+				}
+				return response;
+			},
+
+			getUrlData : function(params) {
+				var data = {
+					_method : 'GET',
+				};
+				for ( var prop in params) {
+					switch (typeof params[prop]) {
+					case 'string':
+						data[prop] = params[prop];
+						break;
+					case 'object':
+						var param = params[prop];
+						for ( var p in param)
+							data[prop + '.' + p] = param[p];
+						break;
+					}
+				}
+				return data;
+			},
+
+			_validateHTML : function(html) {
+				var p = /(<[A-Z][-:A-Z0-9]*)([\s\/]+[^\s>]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^>]+))?)+(\s*\/?>)/gi;
+				var result, lastIndex = 0, replacement = [];
+				while ((result = p.exec(html)) != null) {
+					replacement.push(result.input.substring(lastIndex, result.index));
+					if (/^(?:<applet)/i.test(result[1])) {
+						lastIndex = p.lastIndex;
+						continue;
+					}
+					replacement.push(result[1]);
+					var attrs = result[0].substring(result[1].length, result[0].length
+							- result[result.length - 1].length);
+					var matches = attrs.match(/[\s\/]+[A-Z][-:A-Z0-9]*(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+))?/gi);
+					if (!matches)
+						matches = [];
+					for (var i = 0; i < matches.length; i++) {
+						if (!/^[\s\/]+(onload|onerror|onloadstart)\s*=/i.test(matches[i]))
+							replacement.push(matches[i]);
+					}
+					replacement.push(result[result.length - 1]);
+					replacement.push(result.input.substring(result.index + result[0].length, p.lastIndex));
+					lastIndex = p.lastIndex;
+				}
+				replacement.push(html.substring(lastIndex));
+				return replacement.join('');
+			},
+
+			_replaceInlineImages : function(mboxName, approvalId, html) {
+				var frag = document.createDocumentFragment();
+				var $container = $('<div></div>', frag).html(html);
+				var $images = $container.find('img');
+				var pattern = /^cid:(.+)/i;
+				var popup = isPopup();
+				$images.each(function(index, element) {
+					var $img = $(element);
+					var src = $img.attr('src');
+					var match = pattern.exec(src);
+					if (match && match.length == 2) {
+						var url = 'approval/mboxes/' + mboxName + '/approvals/';
+						if (popup)
+							url = '../approval/mboxes/' + mboxName + '/approvals/';
+						url += approvalId + '/inline/' + match[1];
+						$img.attr('src', url);
+					}
+				});
+				return $container.html();
+			},
+
+			prevApprovalHash : function(mboxModel, paginator) {
+				if (!mboxModel || !paginator)
+					return location.hash;
+				var prevApproval = this.get('prevApproval');
+				if (!prevApproval)
+					return location.hash;
+				var mboxName = mboxModel.get("mboxName");
+				var approvalModel = paginator.findModel('id', prevApproval.id);
+				var parameters = '';
+				if (!approvalModel) {
+					parameters = paginator.getParameters({
+						page : paginator.currentPage - 1
+					});
+				} else {
+					parameters = paginator.getParameters();
+				}
+				parameters += '&mboxName=' + mboxName;
+				return '#approval/mboxes/' + mboxName + '/approvals/' + prevApproval.id + parameters;
+			},
+
+			nextApprovalHash : function(mboxModel, paginator) {
+				if (!mboxModel || !paginator)
+					return location.hash;
+				var nextApproval = this.get('nextApproval');
+				if (!nextApproval)
+					return location.hash;
+				var mboxName = mboxModel.get("mboxName");
+				var approvalModel = paginator.findModel('id', nextApproval.id);
+				var parameters = '';
+				if (!approvalModel && paginator.models.length === paginator.perPage) {
+					parameters = paginator.getParameters({
+						page : paginator.currentPage + 1
+					});
+				} else {
+					parameters = paginator.getParameters();
+				}
+				parameters += '&mboxName=' + mboxName;
+				return '#approval/mboxes/' + mboxName + '/approvals/' + nextApproval.id + parameters;
+			},
+
+		}); // mail.ApprovalModel
+
+		mail.ApprovalCollection = app.BackboneCollection.extend({
+
+			model : mail.ApprovalModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this.arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.log('mail.ApprovalCollection.parse(response, options) {...}');
+				return response;
+			},
+		}); // mail.ApprovalCollection
+
+		mail.ApprovalPaginator = app.RequestPaginator.extend({
+
+			model : mail.ApprovalModel,
+
+			url : function() {
+				var url = 'approval/mboxes/' + mail.approvalMboxModel.get("mboxName") + '/approvals';
+				return url;
+			},
+
+			paginator_core : {
+				type : 'POST',
+				dataType : 'json',
+			},
+
+			constructor : function() {
+				app.debug('mail.ApprovalPaginator.constructor() {');
+				app.RequestPaginator.apply(this, arguments);
+				app.debug('} // mail.ApprovalPaginator.constructor()');
+			},
+
+			initialize : function(models, options) {
+				app.debug('mail.ApprovalPaginator.initialize(models, options) {');
+				app.RequestPaginator.prototype.initialize.apply(this, arguments);
+				app.debug('} // mail.ApprovalPaginator.initialize(models, options)');
+			},
+
+			parse : function(response, options) {
+				app.log('mail.ApprovalPaginator.parse(response, options) {');
+				app.RequestPaginator.prototype.parse.apply(this, arguments);
+				var approvals = response.approvals;
+				app.log('} // mail.ApprovalPaginator.parse(response, options)');
+				return approvals;
+			},
+
+			getParameters : function(args) {
+				var params = '';
+				if (args && args.page)
+					params += '?currentPage=' + args.page;
+				else
+					params += '?currentPage=' + this.currentPage;
+
+				if (args && args.perPage)
+					params += '&perPage=' + args.perPage;
+				else
+					params += '&perPage=' + this.perPage;
+
+				if (args && args.sortField)
+					params += '&sortField=' + args.sortField;
+				else
+					params += '&sortField=' + this.sortField;
+
+				if (args && args.sortOrder)
+					params += '&sortOrder=' + args.sortOrder;
+				else
+					params += '&sortOrder=' + this.sortOrder;
+
+				if (args && args.groupBy)
+					params += '&groupBy=' + args.groupBy;
+
+				if (args && args.flag)
+					params += '&flag=' + args.flag;
+				else if (args && args.flag === null)
+					params += '';
+				else if (this.params && this.params.flag)
+					params += '&flag=' + this.params.flag;
+
+				var search;
+				if (args && args.search) {
+					search = args.search;
+				} else if (this.params && this.params.search) {
+					search = this.params.search;
+				}
+				if (search) {
+					if (typeof search == 'string') {
+						params += '&search=' + encodeURIComponent(search);
+					} else if (typeof search == 'object') {
+						for ( var p in search) {
+							params += '&search.' + p + '=' + encodeURIComponent(search[p]);
+						}
+					}
+				}
+				return params;
+			},
+
+			getURL : function(args) {
+				var url = this.url();
+				url += this.getParameters(args);
+				return url;
+			},
+
+		}); // mail.ApprovalPaginator
+
+		mail.SearchMboxModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../search-mboxes';
+				else
+					return 'search-mboxes';
+			},
+
+			idAttribute : 'id',
+
+			defaults : {
+				id : 0,
+				name : '',
+				mbox : '',
+				terms : '',
+				visible : 1,
+			},
+
+			initialize : function(attributes, options) {
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+
+		}); // mail.SearchMboxModel
+
+		mail.SearchMboxCollection = app.BackboneCollection.extend({
+			url : function() {
+				if (isPopup())
+					return '../search-mboxes';
+				else
+					return 'search-mboxes';
+			},
+
+			model : mail.SearchMboxModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.debug('mail.SearchMboxCollection.parse(response, options) {...}');
+				return response;
+			},
+
+		}); // mail.SearchMboxCollection
+
+		mail.LabelModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../labels';
+				else
+					return 'labels';
+			},
+
+			idAttribute : 'id',
+
+			defaults : {
+				id : 0,
+				name : '',
+				color : '',
+				visible : 1,
+			},
+
+			initialize : function(attributes, options) {
+				app.BackboneModel.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+
+		}); // mail.LabelModel
+
+		mail.LabelCollection = app.BackboneCollection.extend({
+			url : function() {
+				if (isPopup())
+					return '../labels';
+				else
+					return 'labels';
+			},
+
+			model : mail.LabelModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.debug('mail.LabelCollection.parse(response, options) {...}');
+				return response;
+			},
+
+		}); // mail.LabelCollection
+
+		mail.LoggingDeletedModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				var userId = app.userModel ? app.userModel.get('USERS_IDX') : '';
+				return 'logging/deleted/' + userId;
+			},
+
+			idAttribute : 'logId',
+
+			defaults : {
+				id : 0,
+				mail_id : 0,
+				ordinal : 0,
+				gid : 0,
+				mbox_id : 0,
+				mbox_name : '',
+				mbox_type : 0,
+				username : '',
+				sender : '',
+				sender_name : '',
+				mail_to : '',
+				cc : '',
+				bcc : '',
+				subject : '',
+				sent_time : '',
+				mail_size : 0,
+				mail_type : '',
+				attached : '',
+				attach_seq : '',
+				attach_name : '',
+				attach_size : '',
+				attach_type : '',
+				isread : '',
+				replied : '',
+				priority : '',
+				malicious : '',
+				deleted : '',
+				kind : '',
+				file_name : '',
+				file_path : '',
+				parsed : '',
+				message_id : '',
+				content : '',
+				deleted_time : '',
+				deleted_from : '',
+				log_id : '',
+			},
+
+			initialize : function() {
+
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+			},
+		}); // mail.LoggingDeletedModel
+
+		mail.LoggingDeletedCollection = app.BackboneCollection.extend({
+
+			url : function() {
+				var userId = app.userModel ? app.userModel.get('USERS_IDX') : '';
+				return 'logging/deleted/' + userId;
+			},
+
+			model : mail.LoggingDeletedModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+		}); // mail.LoggingDeletedCollection
+
+		mail.LoggingDeletedPaginator = app.RequestPaginator.extend({
+
+			model : mail.LoggingDeletedModel,
+
+			url : function() {
+				var userId = app.userModel ? app.userModel.get('USERS_IDX') : '';
+				return 'logging/deleted/' + userId;
+			},
+
+			paginator_core : {
+				type : 'POST',
+				dataType : 'json',
+			},
+
+			constructor : function() {
+				app.RequestPaginator.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.RequestPaginator.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.RequestPaginator.prototype.parse.apply(this, arguments);
+				var loggingList = response.deletedMailLoggingList;
+				return loggingList;
+			},
+
+			server_api : {
+				_method : 'GET',
+				'firstPage' : function() {
+					return this.firstPage;
+				},
+				'currentPage' : function() {
+					return this.currentPage;
+				},
+				'perPage' : function() {
+					return this.perPage;
+				},
+				'sortField' : function() {
+					return this.sortField || '';
+				},
+				'sortOrder' : function() {
+					return this.sortOrder || '';
+				},
+				'startDate' : function() {
+					return this.startDate || '';
+				},
+				'endDate' : function() {
+					return this.endDate || '';
+				},
+			},
+
+			clearSearch : function() {
+				if (this.server_api['search'])
+					delete this.server_api['search'];
+				for (prop in this.server_api) {
+					if (/^search\./.test(prop))
+						delete this.server_api[prop];
+				}
+			},
+
+			getSearchFieldName : function() {
+				var searchField = '';
+				for (prop in this.server_api) {
+					if (/^search\./.test(prop)) {
+						searchField = prop.substring(prop.indexOf('.') + 1);
+						/*
+						 * searchField = prop.sub(prop.indexOf('.') + 1);
+						 * searchField =
+						 * searchField.sub(searchField.indexOf('.') + 1);
+						 */
+						break;
+					}
+				}
+				return searchField;
+			},
+
+			getSearchField : function() {
+				var searchField = '';
+				for (prop in this.server_api) {
+					if (/^search\./.test(prop)) {
+						searchField = prop.sub(prop.indexOf('.') + 1);
+						searchField = searchField.sub(searchField.indexOf('.') + 1);
+						break;
+					}
+				}
+				return searchField;
+			},
+
+			getSearchTerm : function() {
+				var searchTerm = '';
+				for (prop in this.server_api) {
+					if (/^search\./.test(prop)) {
+						searchTerm = this.server_api[prop];
+						break;
+					}
+				}
+				return searchTerm;
+			},
+		}); // mail.LoggingDeletedPaginator
+
+		mail.PopupModel = app.BackboneModel.extend({
+			urlRoot : 'popups',
+
+			// idAttribute : 'POPUP_IDX',
+
+			defaults : {
+				POPUP_IDX : 0,
+				POPUP_URL : '',
+				POPUP_STATE : '',
+				POPUP_START : '',
+				POPUP_END : '',
+				POPUP_TOP : '',
+				POPUP_WIDTH : '',
+				POPUP_HEIGHT : '',
+				POPUP_TITLE : '',
+				POPUP_LEFT : '',
+				POPUP_CONTENT : '',
+				DOMAIN : '',
+				POPUP_BEFORE_LOGIN : 0,
+				POPUP_AFTER_LOGIN : 0,
+				POPUP_NOTICE_BAR : 0,
+			},
+
+			constructor : function() {
+				app.BackboneModel.apply(this, arguments);
+			},
+
+			initialize : function(attributes, options) {
+				app.BackboneModel.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+		}); // mail.PopupModel
+
+		mail.PopupCollection = app.BackboneCollection.extend({
+			url : 'popups',
+
+			model : mail.PopupModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+		}); // mail.PopupCollection
+
+	}); // app.module('mail', function(mail, ...) {...});
+
+}); // define([ 'app', 'app/app-models' ], function(app) {...});
+Z��Nwa      c�[c�[E6Mcc�t�   t    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app/mail/mail-models.js?v=202301181454 necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"74923-1669766796000"
+Last-Modified: Wed, 30 Nov 2022 00:06:36 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 74923
+Date: Wed, 01 Feb 2023 07:57:14 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"74923-1669766796000"
+Last-Modified: Wed, 30 Nov 2022 00:06:36 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 74923
+Date: Wed, 01 Feb 2023 07:57:14 GMT
+ ctid 2 uncompressed-len 0 net-response-time-onstart 51 net-response-time-onstop 55  $�

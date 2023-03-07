@@ -1,0 +1,11 @@
+<launch>
+    <node name="red_only_check_node"        pkg="check"      type="red_only_check.py">
+  
+    </node>
+    
+    <node name="e_stop_check_node"        pkg="check"      type="e_stop_check.py">
+  
+    </node>
+
+    
+</launch>

@@ -1,0 +1,2494 @@
+<script type="text/template" id="sidebar-template">
+	<!-- TOP WORKSET -->
+	<div class="mc-btn_workset">
+		<a href="#" class="mc-btn_quick">
+			<span><%- i18n.upload %></span><input title="<%- i18n.upload %>" class="up_file_all" type="file" multiple>
+		</a>
+	</div>
+	<!-- //TOP WORKSET -->
+	<div class="mc-svc_menu_area mcScrl">
+		<!-- BASIC MENU -->
+		<div class="mc-list_menu">
+			<ul>
+				<li><a href="#" class="mc-bu1"><%- i18n.folder.starred %></a></li>
+				<li><a href="#" class="mc-bu2"><%- i18n.folder.recent %></a></li>
+			</ul>
+		</div>
+		<!-- //BASIC MENU -->
+		<!-- MY DRIVE -->
+		<div class="mc-section_my">
+		</div>
+		<!-- //MY DRIVE -->
+		<!-- SHARE REGION -->
+		<div class="mc-section_my shr">
+		</div>
+		<!-- //SHARE REGION -->
+	</div>
+</script>
+<script type="text/template" id="my-drive-folders-template">
+	<h3 class="mc-lft_mTit">
+		<span><%= i18n.myDrive %></span>
+		<a href="#" class="mc-btn_setup" title="<%= i18n.driveSettings %>">
+			<span><%= i18n.driveSettings %></span>
+		</a>
+		<a href="#" class="mc-btn_add" title="<%= i18n.addFolder %>">
+			<span><%= i18n.addFolder %></span>
+		</a>
+		<a href="#" class="mc-btn_fd_up">
+			<span><%= i18n.collapse %>/<%= i18n.expand %></span>
+		</a>
+	</h3>
+	<div class="mc-list_menu">
+		<ul class="mc-user_folder">
+			<!-- li 클릭시 .click 새폴더 .new_folder 축소 .fold_folder 확장 .spread_folder -->
+		</ul>
+	</div>
+</script>
+<script type="text/template" id="my-drive-folder-item-template">
+<%
+	var folderName, className;
+	switch (folder.name) {
+	case '.pictures':
+		folderName = i18n.folder.pictures;
+		className = 'mpt';
+		break;
+	case '.documents':
+		folderName = i18n.folder.documents;
+		className = 'mdc';
+		break;
+	default:
+		folderName = folder.name;
+		className = '';
+	}
+	if (folder.linkCount == 'BigMail') {
+		folderName = i18n.folder.largeAttachments;
+		className = 'mbd';
+	}
+%>
+	<div class="reverse-area">
+	<% if (className !== 'mbd') { %>
+		<button type="button" class="btn_folder">
+			<span class="mc-blind"><%- folderName %> <%= i18n.collapse %>/<%= i18n.expand %></span>
+		</button>
+	<% } %>
+		<span class="item_wrap">
+			<p class="mc-folder_name <%= className %>"><%- folderName %></p>
+		</span>
+	</div>
+	<ul class="child_folder">
+	</ul>
+</script>
+<script type="text/template" id="my-drive-trash-item-template">
+	<div class="reverse-area">
+		<span class="item_wrap">
+			<p class="mc-folder_name mts"><%= i18n.folder.trash %></p>
+			<p class="mc-case_mb">
+				<em><%= numeral(trash.size).format('0[.]00b') %></em>
+			</p>
+			<p class="mc-btn_clean">
+				<span><%= i18n.empty %></span>
+			</p>
+		</span>
+	</div>
+</script>
+<script type="text/template" id="share-region-template">
+	<h3 class="mc-lft_mTit">
+		<span><%= i18n.share %></span>
+	</h3>
+	<div class="mc-list_menu">
+		<ul class="mc-user_folder">
+			<li class="shared-folders fold_folder">
+			</li>
+			<!--
+			<li>
+				<div class="reverse-area">
+					<span class="item_wrap">
+						<a class="mc-folder_name sharingroot"><%= i18n.folder.sharing %></a>
+					</span>
+				</div>
+			</li>
+			-->
+			<!-- 공용드라이브 #group-folders-region-template -->
+			<li class="group-folders teamShr spread_folder">
+			</li>
+			<!-- //공용드라이브 -->
+		</ul>
+	</div>
+</script>
+<script type="text/template" id="shared-folder-region-template">
+	<div class="reverse-area">
+		<span class="item_wrap">
+			<button type="button" class="btn_folder">
+				<span class="mc-blind"><%= i18n.folder.shared %> <%= i18n.collapse %>/<%= i18n.expand %></span>
+			</button>
+			<a href="#" class="mc-folder_name sharedroot"><%= i18n.folder.shared %></a>
+			<a href="#" class="mc-newShare_num"><%= i18n.folder._new %><em>0</em></a>
+		</span>
+	</div> 
+	<!-- 공유 폴더 트리 -->
+	<ul class="child_folder depth1">
+		<li class="spread_folder">
+			<div class="reverse-area">
+				<button type="button" class="btn_folder">
+					<span class="mc-blind">현재 공유받은 폴더 확장/축소</span>
+				</button>
+				<span class="item_wrap">
+					<p class="mc-folder_name">개인업무</p>
+				</span>
+			</div>
+			<ul class="child_folder depth2">
+				<li class="spread_folder">
+					<div class="reverse-area">
+						<button type="button" class="btn_folder">
+							<span class="mc-blind">현재 공유받은 폴더 확장/축소</span>
+						</button>
+						<span class="item_wrap">
+							<p class="mc-folder_name">디자인 작업</p>
+						</span>
+					</div>
+					<ul class="child_folder depth3">
+						<li class="spread_folder">
+							<div class="reverse-area">
+								<button type="button" class="btn_folder">
+									<span class="mc-blind">현재 공유받은 폴더 확장/축소</span>
+								</button>
+								<span class="item_wrap">
+									<p class="mc-folder_name">메일 프로잭트</p>
+								</span>
+							</div>
+						</li>
+					</ul>
+				</li>
+			</ul>
+		</li>
+	</ul>
+	<!-- //공유 폴더 트리 -->
+</script>
+<script type="text/template" id="group-folders-region-template">
+	<div class="reverse-area">
+		<button type="button" class="btn_folder">
+			<span class="mc-blind"><%- i18n.groupDrive %> <%= i18n.collapse %>/<%= i18n.expand %></span>
+		</button>
+		<span class="item_wrap">
+			<a class="mc-folder_name teamdisk"><%- i18n.groupDrive %></a>
+		</span>
+	</div>
+	<!-- 공용 폴더 트리 #group-folder-template -->
+	<ul class="child_folder depth1">
+	</ul>
+	<!-- //공용 폴더 트리 -->
+</script>
+<script type="text/template" id="group-folder-template">
+	<div class="reverse-area">
+		<button type="button" class="btn_folder">
+			<span class="mc-blind"><%- groupFolder.name %> <%= i18n.collapse %>/<%= i18n.expand %></span>
+		</button>
+		<span class="item_wrap">
+			<p class="mc-folder_name"><%- groupFolder.name %></p>
+		</span>
+	</div>
+	<!-- 공용 폴더 하위 트리 #group-folder-item-template -->
+	<ul class="child_folder depth2">
+	</ul>
+	<!-- //공용 폴더 하위 트리 -->
+</script>
+<script type="text/template" id="group-folder-item-template">
+	<div class="reverse-area">
+		<button type="button" class="btn_folder">
+			<span class="mc-blind"><%- folder.name %> <%= i18n.collapse %>/<%= i18n.expand %></span>
+		</button>
+		<span class="item_wrap">
+			<p class="mc-folder_name"><%- folder.name %></p>
+		</span>
+	</div>
+	<ul class="child_folder"></ul>
+</script>
+<script type="text/template" id="content-layout-template">
+	<!-- 상단 고정영역 -->
+	<div class="mc-cont_fix_area unselectable">
+		<!-- CONTENT HEAD & DEATAIL SEARCH -->
+		<div class="mc-content_header">
+		</div>
+		<!-- //CONTENT HEAD & DEATAIL SEARCH -->
+		<!-- DETAIL SEARCH -->
+		<div class="detail_search_view" style="display: none;">
+		</div>
+		<!-- //DETAIL SEARCH -->
+		<!-- BTN AREA 내 드라이브 버튼 -->
+		<div class="mc-actionArea">
+		</div>
+		<!-- //BTN AREA 내 드라이브 버튼 -->
+	</div>
+	<!-- //상단 고정영역 -->
+
+	<!-- 중앙 영역 -->
+	<div class="content_box">
+		<div class="mc-divList unselectable">
+			<!-- Detail View Area -->
+			<div class="type_list" style="display: block;">
+			</div>
+			<!-- //Detail View Area -->
+			<!-- Thumbnail View Area -->
+			<div class="type_thumb" style="display: none;">
+			</div>
+			<!-- //Thumbnail View Area -->
+		</div>
+	</div>
+	<!-- //중앙 영역 -->
+
+	<!-- 하단 영역 -->
+	<!-- PAGINATE -->
+	<div class="content_box_bottom">
+	</div>
+	<!-- //PAGINATE -->
+	<!-- //하단 영역 -->
+
+	<!-- 선택보기-필터링 -->
+	<div class="add_layertbl" style="display: none;">
+	</div>
+	<!-- //선택보기-필터링 -->
+</script>
+<script type="text/template" id="content-header-template">
+<%
+	var folderName = folder.name;
+	switch (folder.linkCount) {
+	case 'UserDisk':
+		folderName = i18n.myDrive;
+		break;
+	case 'BigMail':
+		folderName = i18n.folder.largeAttachments;
+		break;
+	case 'Trash':
+		folderName = i18n.folder.trash;
+		break;
+	case 'GroupRoot':
+		folderName = i18n.groupDrive;
+		break;
+	}
+%>
+	<!-- #content-header-template -->
+	<div class="mc-headFolder">
+		<strong class="mc-folderName"><%- folderName %></strong>
+	</div>
+	<!-- #simple-search-template -->
+	<fieldset class="mc-msearch">
+	</fieldset>
+</script>
+<script type="text/template" id="simple-search-template">
+	<legend><%= i18n.search.simple %></legend>
+	<input name="term" type="text" class="mc-search" placeholder="<%= i18n.search.placeholder %>">
+	<input name="search" type="button" class="mc-search_btn">
+	<a href="#" class="mc-search_detail"><span><%= i18n.search.advanced %></span></a>
+</script>
+<script type="text/template" id="advanced-search-template">
+	<!-- #advanced-search-template -->
+	<fieldset>
+		<legend><%= i18n.search.advancedOptions %></legend>
+		<div class="srch_item_row1">
+			<div class="srch_item">
+				<label><%= i18n.search.type %></label>
+				<select name="type">
+					<option value="any"><%= i18n.search.anyType %></option>
+					<option value="text"><%= i18n.search.documents %></option>
+					<option value="image"><%= i18n.search.images %></option>
+					<option value="video"><%= i18n.search.videos %></option>
+					<option value="audio"><%= i18n.search.audio %></option>
+					<option value="compressed"><%= i18n.search.compressed %></option>
+				</select>
+			</div>
+			<div class="srch_item2">
+				<label><%= i18n.search.locatedIn %></label>
+				<input class="rdo_srch" name="path" type="radio" id="anyWhere" checked>
+				<label for="anyWhere"><%= i18n.search.anyWhere %></label>
+				<input class="rdo_srch" name="path" type="radio" id="lookIn">
+				<label for="lookIn"><%= i18n.search.lookIn %></label>
+				<input name="folder" type="text" class="ipt_text">
+			</div>
+		</div>
+		<div class="srch_item_row2">
+			<div class="srch_item">
+				<label><%= i18n.search.size %></label>
+				<select name="size">
+					<option value="any"><%= i18n.search.anySize %></option>
+					<option value="small"><%= i18n.search.small %></option>
+					<option value="medium"><%= i18n.search.medium %></option>
+					<option value="large"><%= i18n.search.large %></option>
+					<option value="huge"><%= i18n.search.huge %></option>
+					<option value="gigantic"><%= i18n.search.gigantic %></option>
+				</select>
+			</div>
+			<div class="srch_item2">
+				<label><%= i18n.search.date %></label>
+				<select name="date">
+					<option value="any"><%= i18n.search.anyTime %></option>
+					<option value="1w"><%= i18n.search.lastWeek %></option>
+					<option value="1m"><%= i18n.search.lastMonth %></option>
+					<option value="3m"><%= i18n.search.last3Months %></option>
+					<option value="6m"><%= i18n.search.last6Months %></option>
+					<option value="custom"><%= i18n.search.custom %></option>
+				</select>
+				<input name="from" type="text" class="ipt_text">
+				<span class="hyphen">-</span>
+				<input name="to" type="text" class="ipt_text">
+			</div>
+		</div>
+		<button class="btn_srch_submit">
+			<span><%= i18n.search.find %></span>
+		</button>
+	</fieldset>
+</script>
+<script type="text/template" id="folder-toolbar-template">
+<%
+	var blankImg = popup ? '../../img/b.gif' : 'img/b.gif';
+%>
+	<!-- #folder-toolbar-template -->
+	<div class="mc-buttonSet">
+		<span class="task_check">
+			<input name="" type="checkbox" value="">
+			<label class="mc-blind"><%= i18n.toolbar.selectAll %></label>
+		</span>
+<% if (folder.linkCount === 'BigMail') { %>
+		<div class="btn_grp">
+			<button type="button" class="download-files"><%= i18n.toolbar.download %></button>
+			<button type="button" class="delete-files">
+				<img src="<%= blankImg %>" class="buDel"><%= i18n.toolbar.remove %>
+			</button>
+		</div>
+	<% if (!popup) %>
+		<button type="button" class="attach-files"><%= i18n.toolbar.attach %></button>
+<% } else if (folder.linkCount === 'Trash') { %>
+		<button type="button" class="b btnc delete-files">
+			<img src="<%= blankImg %>" class="buDel"><%= i18n.toolbar.remove %>
+		</button>
+		<button type="button" class="empty-trash"><%= i18n.toolbar.emptyTrash %></button>
+		<button type="button" class="restore-files"><%= i18n.toolbar.restore %></button>
+<% } else { %>
+		<div class="btn_grp">
+	<% if (folder.writable) { %>
+			<span class="up_file">
+				<button type="button"><%= i18n.toolbar.upload %></button>
+				<!-- <input title="파일 올리기" class="up_file_all" type="file" multiple> -->
+			</span>
+	<% } if (folder.readable) { %>
+			<button type="button" class="download-files"><%= i18n.toolbar.download %></button>
+	<% } if (folder.removable) { %>
+			<button type="button" class="delete-files">
+				<img src="<%= blankImg %>" class="buDel"><%= i18n.toolbar.remove %>
+			</button>
+	<% } %>
+		</div>
+	<% if (folder.writable && folder.linkCount !== 'SearchResults' && folder.linkCount !== 'Starred' && folder.linkCount !== 'Recent') { %>
+		<button type="button" class="new-folder"><%= i18n.toolbar.newFolder %></button>
+	<% } if (folder.readable && !popup) { %>
+		<button type="button" class="attach-files"><%= i18n.toolbar.attach %></button>
+	<% } %>
+<% } %>
+	</div>
+	<!-- 뷰타입 설정 버튼 -->
+	<div class="right_sort">
+	</div>
+	<!-- //뷰타입 설정 버튼 -->
+</script>
+<script type="text/template" id="folder-view-layout-template">
+	<!-- #folder-view-layout-template -->
+	<ul class="view_box">
+		<li class="c_filter">
+			<!-- .close 열렸을때 클래스명 추가[레이어 하단에 있음] --> 
+			<a title="<%= i18n.filter.types %>" href="#" class="">
+				<span><%= i18n.filter.types %></span>
+				<span class="bu bu_layer"></span>
+			</a>
+		</li>
+		<!-- 클릭 선택시 .on 클래스명 추가 -->
+		<li class="v_ty1 on">
+			<a title="<%= i18n.view.details %>" href="#">
+				<span class="blind"><%= i18n.view.details %></span>
+				<span class="so_bg"></span>
+			</a>
+		</li>
+		<li class="v_ty2">
+			<a title="<%= i18n.view.icons %>" href="#">
+				<span class="blind"><%= i18n.view.icons %></span>
+				<span class="so_bg"></span>
+			</a>
+		</li>
+	</ul>
+</script>
+<script type="text/template" id="folder-filter-template">
+	<ul class="mailBoxList filtering" tabindex="0">
+		<!-- checkbox checked 일때 li에 .checked 추가 -->
+		<li class="checked" tabindex="-1">
+			<em></em>
+			<input type="checkbox" id="filter-none" checked>
+			<label for="filter-none"><%= i18n.filter.none %></label>
+		</li>
+		<li class="" tabindex="-1">
+			<em></em>
+			<input type="checkbox" id="filter-files">
+			<label for="filter-files"><%= i18n.filter.files %></label>
+		</li>
+		<li class="" tabindex="-1">
+			<em></em>
+			<input type="checkbox" id="filter-folders">
+			<label for="filter-folders"><%= i18n.filter.folders %></label>
+		</li>
+<!--
+		<li class="" tabindex="-1">
+			<em></em>
+			<input type="checkbox" id="filter-shared">
+			<label for="filter-shared">공유폴더</label>
+		</li>
+-->
+		<li class="" tabindex="-1">
+			<em></em>
+			<input type="checkbox" id="filter-important">
+			<label for="filter-important"><%= i18n.filter.starred %></label>
+		</li>
+		<li class="" tabindex="-1">
+			<em></em>
+			<input type="checkbox" id="filter-extensions">
+			<label for="filter-extensions"><%= i18n.filter.extensions %></label>
+			<input name="file-extensions" type="text">
+		</li>
+    </ul>
+	<div class="add_layer_btn">
+		<button type="button" class="b"><%= i18n.filter.apply %></button>
+		<button type="button"><%= i18n.filter.cancel %></button>
+	</div>
+</script>
+<script type="text/template" id="folder-details-template">
+<%
+	var sortColumn = params.sortColumn ? params.sortColumn : 'lastModified';
+	var sortDirection = params.sortDirection ? params.sortDirection : 'desc';
+	function sortClassName(column) {
+		var className = "mc-down";
+		if (sortColumn === column && sortDirection !== 'desc')
+			className = "mc-up";
+		return className;
+	}
+	function url(column, params) {
+		var url = '#disk/files?_=' + (new Date()).getTime();
+		url += '&currentPage=' + params.currentPage;
+		url += '&perPage=' + params.perPage;
+		url += '&sortColumn=' + column;
+		if (sortColumn === column)
+			url += '&sortDirection=' + (sortDirection == 'desc' ? 'asc' : 'desc');
+		else
+			url += '&sortDirection=asc';
+		if (params.id)
+			url += '&id=' + params.id;
+		if (typeof params.search == 'string') {
+			url += '&search=' + encodeURIComponent(params.search);
+		} else if (typeof params.search == 'object') {
+			for ( var p in params.search)
+				url += '&search.' + p + '=' + encodeURIComponent(params.search[p]);
+		}
+		return url;
+	}
+%>
+	<!-- #folder-details-template -->
+	<!-- LIST ITEM -->
+	<h4 class="mc-blind"><%= i18n.sort.heading %></h4>
+	<ul class="mc-wdListItem">
+		<li class="mc-check"></li>
+<% if (folder.linkCount !== 'BigMail' && folder.linkCount !== 'Trash') { %>
+		<li class="mc-important <%= sortColumn == 'important' ? 'std' : '' %>">
+			<a href="<%= url('important', params) %>" class="icoImportantOn" title="<%= i18n.sort.starred %>"></a>
+		</li>
+<% } %>
+		<li class="mc-type <%= sortColumn == 'type' ? 'std' : '' %>">
+			<a href="<%= url('type', params) %>" class="<%= sortClassName('type') %>"><%= i18n.sort.type %></a>
+		</li>
+		<li class="mc-filename <%= sortColumn == 'name' ? 'std' : '' %>">
+			<a href="<%= url('name', params) %>" class="<%= sortClassName('name') %>"><%= i18n.sort.name %></a>
+		</li>
+<% if (folder.linkCount == 'SearchResults' || folder.linkCount == 'Starred' || folder.linkCount == 'Recent') { %>
+		<li class="mc-orgurl <%= sortColumn == 'path' ? 'std' : '' %>">
+			<a href="<%= url('path', params) %>" class="<%= sortClassName('path') %>"><%= i18n.sort.location %></a>
+		</li>
+<% } else if (folder.linkCount === 'Trash') { %>
+		<li class="mc-orgurl <%= sortColumn == 'path' ? 'std' : '' %>">
+			<a href="<%= url('path', params) %>" class="<%= sortClassName('path') %>"><%= i18n.sort.originalLocation %></a>
+		</li>
+<% } %>
+		<li class="mc-size <%= sortColumn == 'size' ? 'std' : '' %>">
+			<a href="<%= url('size', params) %>" class="<%= sortClassName('size') %>"><%= i18n.sort.size %></a>
+		</li>
+<% if (folder.linkCount === 'BigMail') { %>
+		<li class="mc-dwcount <%= sortColumn == 'downloads' ? 'std' : '' %>">
+			<a href="<%= url('downloads', params) %>" class="<%= sortClassName('downloads') %>"><%= i18n.sort.downloads %></a>
+		</li>
+		<li class="mc-expirydate <%= sortColumn == 'lastModified' ? 'std' : '' %>">
+			<a href="<%= url('lastModified', params) %>" class="<%= sortClassName('lastModified') %>"><%= i18n.sort.dateExpires %></a>
+		</li>
+		<li class="mc-dateUd <%= sortColumn == 'uploaded' ? 'std' : '' %>">
+			<a href="<%= url('uploaded', params) %>" class="<%= sortClassName('uploaded') %>"><%= i18n.sort.dateModified %></a>
+		</li>
+<% } else if (folder.linkCount === 'Trash') { %>
+		<li class="mc-dateUd <%= sortColumn == 'lastModified' ? 'std' : '' %>">
+			<a href="<%= url('lastModified', params) %>" class="<%= sortClassName('lastModified') %>"><%= i18n.sort.dateDeleted %></a>
+		</li>
+<% } else { %>
+		<li class="mc-dateUd <%= sortColumn == 'lastModified' ? 'std' : '' %>">
+			<a href="<%= url('lastModified', params) %>" class="<%= sortClassName('lastModified') %>"><%= i18n.sort.dateModified %></a>
+		</li>
+<% } %>
+	</ul>
+	<!-- //LIST ITEM -->
+	<!-- LIST DETA-->
+	<div class="mc-listWrap">
+		<h4 class="mc-blind"><%- folder.name %> List</h4>
+		<ol class="list_body_group">
+			<li class="folder_root">
+				<a href="#">
+					<span class="bu_root"><span class="blind"><%= i18n.alt.upOneLevel %></span></span> ..
+				</a>
+			</li>
+			<!-- #folder-details-item-template .list_body_li 클릭시 .focus 추가 -->
+		</ol>
+	</div>
+	<!-- //LIST DETA -->
+</script>
+<script type="text/template" id="folder-details-item-template">
+<%
+	var extensionToClassName = {
+		"bmp" : 'bu_img', "jpg" : 'bu_img', "jpeg" : 'bu_img', "gif" : 'bu_img',
+		"png" : 'bu_img', "tif" : 'bu_img', "tiff" : 'bu_img',
+		"psd" : 'bu_psd', "ai" : 'bu_ai', "eps" : 'bu_eps',
+		"doc" : 'bu_doc', "docx" : 'bu_docx',
+		"ppt" : 'bu_ppt', "pptx" : 'bu_pptx',
+		"xls" : 'bu_xls', "xlsx" : 'bu_xlsx',
+		"hwp" : 'bu_hwp', "hml" : 'bu_hml',
+		"txt" : 'bu_txt',
+		"pdf" : 'bu_pdf',
+		"htm" : 'bu_htm', "html" : 'bu_htm',
+		"exe" : 'bu_exe',
+		"gul" : 'bu_gul',
+		"mp3" : 'bu_mp3', "fla" : 'bu_fla',
+		"mov" : 'bu_mov', "avi" : 'bu_mov', "wmv" : 'bu_mov', "asf" : 'bu_mov',
+		"mp4" : 'bu_mov', "mkv" : 'bu_mov', "mpeg" : 'bu_mov', "flv" : 'bu_mov',
+		"zip" : 'bu_zip', "z" : 'bu_zip', "7z" : 'bu_zip', "alz" : 'bu_zip',
+		"tar" : 'bu_zip', "gz" : 'bu_zip', "tgz" : 'bu_zip', "bz2" : 'bu_zip',
+		"rar" : 'bu_zip', "jar" : 'bu_zip', "war" : 'bu_zip', "ear" : 'bu_zip',
+		"cab" : 'bu_zip'
+	};
+	function fileClassName(file) {
+		if (!file)
+			return "bu_etc";
+		if (file.directory === true)
+			return "bu_folder";
+		if (file.sharing === true)
+			return "bu_sharing";
+		if (!file.name || typeof file.name !== "string")
+			return "bu_etc";
+		var dotIndex = file.name.lastIndexOf('.');
+		if (dotIndex === -1)
+			return "bu_etc";
+		var ext = file.name.substring(dotIndex + 1).toLowerCase();
+		var className = extensionToClassName[ext];
+		if (!className)
+			return "bu_etc";
+		return className;
+	}
+	function url(file, popup) {
+		if (file.directory) {
+			return '#disk/files?id=' + file.id;
+		}
+		if (popup) {
+			return '../../disk/file?pathname=' + file.id;
+		}
+		return 'disk/file?pathname=' + file.id;
+	}
+	function isToday(date) {
+		if (!date) {
+			return false;
+		}
+		var now = new Date();
+		var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		if (today.getTime() == date.getTime()) {
+			return true;
+		}
+		return false;
+	}
+	function formatDate(time) {
+		var date = new Date(time);
+		if (isToday(date)) {
+			date = $.format.date(date, 'HH:mm:ss');
+		} else {
+			date = $.format.date(date, 'yy-MM-dd HH:mm:ss');
+		}
+		return date;
+	}
+	function formatSize(file) {
+		var formatted = numeral(file.size).format('0b');
+		return formatted === '0' ? '' : formatted; 
+	}
+	function formatUploadedDate(fileId) {
+		if (!fileId || !fileId.lastIndexOf || !fileId.lastIndexOf('.') === -1) {
+			return formatDate((new Date()).getTime());
+		}
+		var time = fileId.substring(fileId.lastIndexOf('.') + 1);
+		if (isNaN(time))
+			time = (new Date()).getTime();
+		else
+			time = parseInt(time);
+		return formatDate(time);
+	}
+	switch (file.linkCount) {
+	case 'BigMail': 
+		file.name = i18n.folder.largeAttachments;
+		break;
+	case 'Trash':
+		file.name = i18n.folder.trash;
+		break;
+	}
+	switch (folder.linkCount) {
+	case 'Trash':
+		file.path = file.name.substring(0, file.name.lastIndexOf('/'));
+		file.name = file.name.substring(file.name.lastIndexOf('/') + 1);
+		break;
+	}
+%>
+	<ul class="list_body">
+		<li class="mc-check">
+			<input name="" type="checkbox" class="mCheck" id="<%- file.id %>">
+			<label class="mc-blind" for="<%- file.id %>"><%= file.directory ? i18n.alt.selectFolder : i18n.alt.selectFile %></label>
+		</li>
+<% if (folder.linkCount !== 'BigMail' && folder.linkCount !== 'Trash') { %>
+		<li class="mc-important">
+			<a href="#" class="<%= file.starred ? 'icoImportantOn' : 'icoImportantOff' %>" title="<%= i18n.alt.starred %>"></a>
+		</li>
+<% } %>
+		<li class="mc-type">
+			<p class="bu <%= fileClassName(file) %>">
+				<span class="blind"><%= file.directory ? i18n.alt.folder : i18n.alt.file %></span>
+			</p>
+		</li>
+		<li class="mc-filename <%= folder.linkCount == 'BigMail' ? 'bigfile' : '' %>">
+			<div class="inpd_a">
+				<div class="inpd">
+<% if (file.id != null) { %>
+	<% if (file.sharing) { %>
+		<a title="멤버 관리 화면에서 멤버 추가 및 공유 취소가 가능합니다." class="bu i_fold_adm" href="#"></a>
+	<% } %>
+		<a href="<%= url(file, popup) %>"><%- file.name %></a>
+<% } else { %>
+		<input name="folderName" type="text">
+<% } %>
+				</div>
+			</div>
+		</li>
+<%
+	var filePath = file.path;
+	switch (folder.linkCount) {
+	case 'Trash':
+	case 'SearchResults':
+	case 'Starred':
+	case 'Recent':
+		if (file.path.match(/^\/마이디스크/))
+			filePath = file.path.replace(/^\/마이디스크/, '');
+		if (file.path.match(/^\/마이디스크\/대용량메일/))
+			filePath = file.path.replace(/^\/마이디스크\/대용량메일/, '/' + i18n.folder.largeAttachments);
+		if (file.path.match(/^\/공유디스크/))
+			filePath = file.path.replace(/^\/공유디스크/, '/' + i18n.groupDrive);
+		if (filePath.length == 0)
+			filePath = '/';
+%>
+		<li class="mc-orgurl" title="<%- filePath %>">
+			<div class="inpd_a"><div class="inpd"><%- filePath %></div></div>
+		</li>
+<% } %>
+		<li class="mc-size">
+			<div class="inpd_a">
+				<div class="inpd"><%= formatSize(file) %></div>
+			</div>
+		</li>
+<% if (folder.linkCount === 'BigMail') { %>
+		<li class="mc-dwcount">
+			<div class="inpd_a">
+				<div class="inpd"><%= file.user %>/<%= file.group %><%= i18n.downloadsSuffix %></div>
+			</div>
+		</li>
+		<li class="mc-expirydate">
+			<div class="inpd_a">
+				<div class="inpd"><%= $.format.date(new Date(file.lastModified), 'yyyy-MM-dd') %> <%= i18n.expiresSuffix %></div>
+			</div>
+		</li>
+		<li class="mc-dateUd">
+			<div class="inpd_a" x-ms-format-detection="none">
+				<div class="inpd"><%= formatUploadedDate(file.linkCount) %></div>
+			</div>
+		</li>
+<% } else if (folder.linkCount === 'SearchResults' && /^[0-9]+\.[0-9]+\.[0-9]+$/.test(file.linkCount)) { %>
+		<li class="mc-dateUd">
+			<div class="inpd_a" x-ms-format-detection="none">
+				<div class="inpd"><%= formatUploadedDate(file.linkCount) %></div>
+			</div>
+		</li>
+<% } else if (folder.linkCount === 'Recent' && /^[0-9]+\.[0-9]+\.[0-9]+$/.test(file.linkCount)) { %>
+		<li class="mc-dateUd">
+			<div class="inpd_a" x-ms-format-detection="none">
+				<div class="inpd"><%= formatUploadedDate(file.linkCount) %></div>
+			</div>
+		</li>
+<% } else { %>
+		<li class="mc-dateUd">
+			<div class="inpd_a" x-ms-format-detection="none">
+				<div class="inpd"><%= formatDate(file.lastModified) %></div>
+			</div>
+		</li>
+<% } %>
+	</ul>
+</script>
+<script type="text/template" id="folder-icons-template">
+<%
+	var sortColumn = i18n.sortBy.dateModified;
+	var sortDirection = i18n.sortBy.dateModifiedDescending;
+	switch (params.sortColumn) {
+	case 'important':
+		sortColumn = i18n.sortBy.starred;
+		sortDirection = i18n.sortBy.starredDirection;
+		break;
+	case 'type':
+		sortColumn = i18n.sortBy.type;
+		sortDirection = i18n.sortBy.typeDirection;
+		break;
+	case 'name':
+		sortColumn = i18n.sortBy.name;
+		sortDirection = i18n.sortBy.nameDescending;
+		if (params.sortDirection && params.sortDirection !== 'desc')
+			sortDirection = i18n.sortBy.nameAscending;
+		break;
+	case 'size':
+		sortColumn = i18n.sortBy.size;
+		sortDirection = i18n.sortBy.sizeDescending;
+		if (params.sortDirection && params.sortDirection !== 'desc')
+			sortDirection = i18n.sortBy.sizeAscending;
+		break;
+	case 'lastModified':
+		sortColumn = i18n.sortBy.dateModified;
+		sortDirection = i18n.sortBy.dateModifiedDescending;
+		if (params.sortDirection && params.sortDirection !== 'desc')
+			sortDirection = i18n.sortBy.dateModifiedAscending;
+		if (folder.linkCount == 'BigMail') {
+			sortColumn = i18n.sortBy.dateExpires;
+			sortDirection = i18n.sortBy.dateExpiresDirection;
+		}
+		break;
+	case 'downloads':
+		sortColumn = i18n.sortBy.downloads;
+		sortDirection = i18n.sortBy.downloadsDescending;
+		if (params.sortDirection && params.sortDirection !== 'desc')
+			sortDirection = i18n.sortBy.downloadsAscending;
+		break;
+	case 'uploaded':
+		sortColumn = i18n.sortBy.dateUploaded;
+		sortDirection = i18n.sortBy.dateUploadedDescending;
+		if (params.sortDirection && params.sortDirection !== 'desc')
+			sortDirection = i18n.sortBy.dateUploadedAscending;
+		break;
+	}
+	var sortDirectionClass = 'dn';
+	if (params.sortDirection && params.sortDirection !== 'desc') {
+		sortDirectionClass = 'up';
+	}
+	var sortColumnClass = function(column) {
+		var className = 'sort-column-' + column;
+		if (params.sortColumn === column)
+			className += ' on';
+		else if (!params.sortColumn && column === 'lastModified')
+			className += ' on';
+		return className;
+	};
+%>
+	<!--
+		# 중요표시순 - 중요 항목 우선
+		# 종류순 - 이름 우선
+		# 이름순 - ㅎ 우선 ↓ / ㄱ 우선 ↑
+		# 크기순 - 큰파일 우선↓ / 작은파일 우선 ↑
+		# 올린 날짜순 - 최신 항목 우선↓ / 오래된 항목 우선 ↑
+	-->
+	<div class="list_sort">
+		<%= i18n.sortBy.heading %> : <a href="#"><%= sortColumn %></a> -
+		<a href="#" class="<%= sortDirectionClass %>"><%= sortDirection %><span class="bu"></span></a>
+	</div>
+	<ul class="thumb_list">
+		<li title="<%= i18n.alt.upOneLevel %>">
+			<div class="check"></div>
+			<div class="thumb_box">
+				<table cellspacing="0" cellpadding="0">
+					<tbody>
+						<tr>
+							<td>
+								<p class="bu bu_root_b">
+									<span class="blind"><%= i18n.alt.upOneLevel %></span>
+								</p>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="title">
+					<a href="#">..</a>
+				</div>
+			</div>
+		</li>
+		<!-- div.thumb_box 클릭시 li에 클래스명 focus 추가 -->
+	</ul>
+	<div class="sort_layer" style="display:none;">
+		<ul>
+<% if (folder.linkCount !== 'BigMail' && folder.linkCount !== 'Trash') { %> 
+			<li data-column="important" class="<%= sortColumnClass('important') %>"><a href="#"><%= i18n.sort.starred %></a></li>
+<% } %>
+			<li data-column="type" class="<%= sortColumnClass('type') %>"><a href="#"><%= i18n.sort.type %></a></li>
+			<li data-column="name" class="<%= sortColumnClass('name') %>"><a href="#"><%= i18n.sort.name %></a></li>
+			<li data-column="size" class="<%= sortColumnClass('size') %>"><a href="#"><%= i18n.sort.size %></a></li>
+<% if (folder.linkCount === 'BigMail') { %>
+			<li data-column="downloads" class="<%= sortColumnClass('downloads') %>"><a href="#"><%= i18n.sort.download %></a></li>
+			<li data-column="lastModified" class="<%= sortColumnClass('lastModified') %>"><a href="#"><%= i18n.sort.dateExpires %></a></li>
+			<li data-column="uploaded" class="<%= sortColumnClass('uploaded') %>"><a href="#"><%= i18n.sort.dateUploaded %></a></li>
+<% } else { %>
+			<li data-column="lastModified" class="<%= sortColumnClass('lastModified') %>"><a href="#"><%= i18n.sort.dateModified %></a></li>
+<% } %>
+		</ul>
+	</div>
+</script>
+<script type="text/template" id="folder-icons-item-template">
+<%
+	var extensionToClassName = {
+		"bmp" : 'bu_img_b', "jpg" : 'bu_img_b', "jpeg" : 'bu_img_b', "gif" : 'bu_img_b',
+		"png" : 'bu_img_b', "tif" : 'bu_img_b', "tiff" : 'bu_img_b',
+		"psd" : 'bu_psd_b', "ai" : 'bu_ai_b', "eps" : 'bu_eps_b',
+		"doc" : 'bu_doc_b', "docx" : 'bu_docx_b',
+		"ppt" : 'bu_ppt_b', "pptx" : 'bu_pptx_b',
+		"xls" : 'bu_xls_b', "xlsx" : 'bu_xlsx_b',
+		"hwp" : 'bu_hwp_b', "hml" : 'bu_hml_b',
+		"txt" : 'bu_txt_b',
+		"pdf" : 'bu_pdf_b',
+		"htm" : 'bu_htm_b', "html" : 'bu_htm_b',
+		"exe" : 'bu_exe_b',
+		"gul" : 'bu_gul_b',
+		"mp3" : 'bu_mp3_b', "fla" : 'bu_fla_b',
+		"mov" : 'bu_movv_b', "avi" : 'bu_movv_b', "wmv" : 'bu_movv_b', "asf" : 'bu_movv_b',
+		"mp4" : 'bu_movv_b', "mkv" : 'bu_movv_b', "mpeg" : 'bu_movv_b', "flv" : 'bu_movv_b',
+		"zip" : 'bu_zip_b', "z" : 'bu_zip_b', "7z" : 'bu_zip_b', "alz" : 'bu_zip_b', 
+		"tar" : 'bu_zip_b', "gz" : 'bu_zip_b', "tgz" : 'bu_zip_b', "bz2" : 'bu_zip_b',
+		"rar" : 'bu_zip_b', "jar" : 'bu_zip_b', "war" : 'bu_zip_b', "ear" : 'bu_zip_b', 
+		"cab" : 'bu_zip_b'
+	};
+	function fileClassName(file) {
+		if (!file)
+			return "";
+		if (file.directory === true)
+			return "bu_folder_b";
+		if (file.sharing === true)
+			return "bu_sharing_b";
+		if (!file.name || typeof file.name !== "string")
+			return "bu_etc_b";
+		var dotIndex = file.name.lastIndexOf('.');
+		if (dotIndex === -1)
+			return "bu_etc_b";
+		var ext = file.name.substring(dotIndex + 1).toLowerCase();
+		var className = extensionToClassName[ext];
+		if (!className)
+			return "bu_etc_b";
+		return className;
+	}
+	function url(file, popup) {
+		if (file.directory) {
+			return '#disk/files?id=' + file.id; 
+		}
+		if (popup) {
+			return '../../disk/file?pathname=' + file.id;
+		}
+		return 'disk/file?pathname=' + file.id;
+	}
+	function isToday(date) {
+		if (!date) {
+			return false;
+		}
+		var now = new Date();
+		var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		if (today.getTime() == date.getTime()) {
+			return true;
+		}
+		return false;
+	}
+	function formatDate(time) {
+		var date = new Date(time);
+		if (isToday(date)) {
+			date = $.format.date(date, 'HH:mm:ss');
+		} else {
+			date = $.format.date(date, 'yy-MM-dd HH:mm:ss');
+		}
+		return date;
+	}
+	function formatSize(file) {
+		var formatted = numeral(file.size).format('0b');
+		return formatted === '0' ? '' : formatted; 
+	}
+	function isImage(file) {
+		if (!file || file.directory === true)
+			return false;
+		if (!file.name || typeof file.name !== "string")
+			return false;
+		var dotIndex = file.name.lastIndexOf('.');
+		if (dotIndex === -1)
+			return false;
+		var imageExt = ".bmp\n.jpg\n.jpeg\n.gif\n.png";
+		var ext = file.name.substring(dotIndex).toLowerCase();
+		if (imageExt.indexOf(ext) !== -1)
+			return true;
+		return false;
+	}
+	if (file.linkCount == 'BigMail') {
+		file.name = i18n.folder.largeAttachments;
+	}
+	var isLargeAttachment = /^[0-9]+\.[0-9]+\.[0-9]+$/.test(file.linkCount);
+	var isTrashFile = /^trash\.[0-9]+(?:\.[0-9]+)*$/.test(file.linkCount);
+%>
+	<div class="check">
+		<input type="checkbox" class="input_check" id="<%- file.id %>"/>
+		<label class="blind" for="<%- file.id %>"><%- file.name %></label>
+<% if (!isLargeAttachment && !isTrashFile) { %>
+		<a title="<%= i18n.alt.starred %>" href="#" class="bu bu_star <%= file.starred ? 'on' : '' %>">
+			<span class="blind"><%= i18n.alt.starred %></span>
+		</a>
+<% } %>
+<% if (file.sharing) { %>
+		<a title="멤버 관리 화면에서 멤버 추가 및 공유 취소가 가능합니다." class="bu i_fold_adm" href="#"></a>
+<% } %>
+	</div>
+	<div class="thumb_box">
+		<!-- 클릭 영역 -->
+		<table cellspacing="0" cellpadding="0">
+			<tbody>
+				<tr>
+					<td>
+<% if (isImage(file) && file.readable) { %>
+		<img width="156" height="156" alt="<%- file.name %>" src="<%- url(file, popup) %>&thumbnail=156x156">
+<% } else { %>
+		<p class="bu <%= fileClassName(file) %>"></p>
+<% } %>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<div class="title">
+			<div class="">
+<% if (file.id != null) { %>
+		<a href="<%= url(file, popup) %>"><%- file.name %></a>
+<% } else { %>
+		<input name="folderName" type="text">
+<% } %>
+			</div>
+			<p class="rate"><%= formatSize(file) %></p>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="pagination-template">
+<%
+	var info = paginator.info();
+	var url = function(page) {
+		return '#' + paginator.getURL({currentPage:page});
+	};
+%>
+
+<% if (info.firstPage != info.currentPage) { %>
+	<a title="<%= i18n.firstPage %>" class="pre_end" href="<%= url(info.firstPage) %>">
+<% } else { %>
+	<a title="<%= i18n.firstPage %>" class="pre_end_n" href="<%= url(info.firstPage) %>">
+<% } %>
+		<span class="mc-blind"><%= i18n.firstPage %></span>
+	</a>
+
+<% if (info.prevRangeOffset) { %>
+	<a title="<%= i18n.previousPage %>" class="pre" href="<%= url(info.prevRangeOffset) %>">
+<% } else { %>
+	<a title="<%= i18n.previousPage %>" class="pre_n" href="<%= url(info.currentPage) %>">
+<% } %>
+		<span class="mc-blind"><%= i18n.previousPage %></span>
+	</a>
+
+	<span class="mc-paging_num">
+<% _.each(info.pageSet, function(page) { %>
+	<% if (info.currentPage == page) { %>
+		<strong><%= page %></strong>
+	<% } else { %>
+		<a href="<%= url(page) %>"><%= page %></a>
+	<% } %>
+<% }); %>
+	</span>
+
+<% if (info.nextRangeOffset) { %>
+	<a title="<%= i18n.nextPage %>" class="next" href="<%= url(info.nextRangeOffset) %>">
+<% } else { %>
+	<a title="<%= i18n.nextPage %>" class="next_n" href="<%= url(info.currentPage) %>">
+<% } %>
+		<span class="mc-blind"><%= i18n.nextPage %></span>
+	</a>
+
+<% if (info.lastPage != info.currentPage) { %>
+	<a title="<%= i18n.lastPage %>" class="next_end" href="<%= url(info.lastPage) %>">
+<% } else { %>
+	<a title="<%= i18n.lastPage %>" class="next_end_n" href="<%= url(info.lastPage) %>">
+<% } %>
+		<span class="mc-blind"><%= i18n.lastPage %></span>
+	</a>
+</script>
+<script type="text/template" id="files-upload-template">
+<%
+	var extensionToClassName = {
+		"alz" : 'fic_alz', "zip" : 'fic_zip', "rar" : 'fic_rar', "7z" : 'fic_7z', "tar" : 'fic_tar',
+		"ico" : 'fic_ico', "icon" : 'fic_icon',
+		"doc" : 'fic_doc', "docx" : 'fic_docx', "ndoc" : 'fic_ndoc',
+		"exe" : 'fic_exe',
+		"fla" : 'fic_fla', "swf" : 'fic_swf',
+		"gul" : 'fic_gul', "rft" : 'fic_rtf', "one" : 'fic_one', "pub" : 'fic_pub',
+		"htm" : 'fic_htm', "html" : 'fic_html',
+		"hwp" : 'fic_hwp',
+		"bmp" : 'fic_bmp', "tif" : 'fic_tif', "tiff" : 'fic_tiff',
+		"png" : 'fic_png', "jpg" : 'fic_jpg', "jpeg" : 'fic_jpeg',
+		"gif" : 'fic_gif', "psd" : 'fic_psd',
+		"mid" : 'fic_mid', "wav" : 'fic_rafic_wav', "wma" : 'fic_wma',
+		"mp3" : 'fic_mp3',
+		"mp4" : 'fic_mp4', "mpeg" : 'fic_mpeg', "ftv" : 'fic_ftv', "k3g" : 'fic_k3g',
+		"wmv" : 'fic_wmv', "mov" : 'fic_mov',
+		"pdf" : 'fic_pdf',
+		"ppt" : 'fic_ppt', "pptx" : 'fic_pptx',
+		"xls" : 'fic_xls', "xlsx" : 'fic_xlsx', "xlsm" : 'fic_xlsm', "xlsb" : 'fic_xlsb',
+		"txt" : 'fic_txt',
+	};
+	function fileNameToClassName(fileName) {
+		if (!fileName || typeof fileName !== "string")
+			return "fic_bak";
+		var dotIndex = fileName.lastIndexOf('.');
+		if (dotIndex === -1)
+			return "fic_bak";
+		var ext = fileName.substring(dotIndex + 1).toLowerCase();
+		var className = extensionToClassName[ext];
+		if (!className)
+			return "fic_bak";
+		return className;
+	}
+
+	var total = 0, loaded = 0;
+	_.each(items, function(item) {
+		total += item.file.size;
+	});
+	var percent = Math.round(loaded / total * 100) + '%';
+	total = numeral(loaded).format('0[.]0b');
+	loaded = numeral(loaded).format('0[.]0b');
+%>
+	<div class="type_c">
+		<div class="layer_content upld">
+			<div class="hTitle ie6t">
+				<span><%= i18n.uploadFiles.upload %></span>
+				<img src="img/b.gif" title="<%= i18n.uploadFiles.close %>" class="lClose" alt="<%= i18n.uploadFiles.close %>" />
+			</div>
+			<div class="upld_box">
+				<div class="upload_status">
+					<p class="progress_bar">
+						<span class="tit"><%= i18n.uploadFiles.transferOverall %></span>
+						<span class="total"><%= percent %></span>
+						<span class="p_bar">
+							<span class="p_bar_value" style="width: <%= percent %>;"></span>
+						</span>
+					</p>
+					<div class="status">
+						<table width="100%" border="1">
+							<caption><span class="blind"><%= i18n.uploadFiles.transferStatus %></span></caption>
+							<colgroup>
+								<col width="*">
+								<col width="40%">
+								<col width="*">
+								<col width="40%">
+							</colgroup>
+							<tbody>
+								<tr>
+									<th scope="row"><%= i18n.uploadFiles.files %></th>
+									<td id="transfer-files"><%= '0/' + items.length %></td>
+									<th scope="row"><%= i18n.uploadFiles.speed %></th>
+									<td id="transfer-rate">0.0KB<%= i18n.uploadFiles.perSeconds %></td>
+								</tr>
+								<tr>
+									<th scope="row"><%= i18n.uploadFiles.bytes %></th>
+									<td id="transfer-bytes"><%= loaded + '/' + total %></td>
+									<th scope="row"><%= i18n.uploadFiles.elapsed %></th>
+									<td id="transfer-time">0<%= i18n.uploadFiles.elapsedMinutes %> 0<%= i18n.uploadFiles.elapsedSeconds %> / 0<%= i18n.uploadFiles.elapsedMinutes %> 0<%= i18n.uploadFiles.elapsedSeconds %></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="upld_file">
+					<div class="upld_file_head">
+						<span class="file_name"><%= i18n.uploadFiles.name %></span>
+						<span class="file_progress"><%= i18n.uploadFiles.progress %></span>
+						<span class="transfer_status"><%= i18n.uploadFiles.status %></span>
+					</div>
+					<div class="upld_file_list osx_scrl">
+						<ul>
+<%
+	for (var i = 0; i < items.length; i++) {
+		var item = items[i];
+		var file = item.file;
+		var size = numeral(file.size).format('0[.]0b');
+		var status = 'queued';
+		switch (status) {
+		case 'queued': // pending
+			status = i18n.uploadFiles.queued;
+			break;
+		case 'loading': // progress
+			status = i18n.uploadFiles.uploading;
+			break;
+		case 'abort': // pause, halt
+			status = i18n.uploadFiles.aborted;
+			break;
+		case 'done': // completed
+			status = i18n.uploadFiles.uploaded;
+			break;
+		default:
+			status = i18n.uploadFiles.queued;
+		}
+%>
+							<li>
+								<span class="file_name">
+									<span class="fic <%= fileNameToClassName(file.name) %>"></span>
+									<%- file.name %>
+								</span>
+								<span class="file_progress">
+									<span class="st">0 / <%= size %></span>
+									<span class="p_bar">
+										<span class="p_bar_value" style="width: <%= percent %>;"></span>
+									</span>
+									<span class="transfer_status"><%= status %></span>
+								</span>
+							</li>
+<%
+	} // end for
+%>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="addButton nb">
+				<button type="button"><span class="icon_pause"></span><%= i18n.uploadFiles.pause %></button>
+			</div>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="file-contextmenu-template">
+<%
+	var fileName = files[0].name;
+	if (files.length == 1 && files[0].directory) {
+		switch (files[0].name) {
+		case '.pictures':
+			fileName = i18n.folder.pictures;
+			break;
+		case '.documents':
+			fileName = i18n.folder.documents;
+			break;
+		default:
+			fileName = files[0].name;
+		}
+		switch (files[0].linkCount) {
+		case 'UserDisk':
+			fileName = i18n.myDrive;
+			break;
+		case 'BigMail':
+			fileName = i18n.folder.largeAttachments;
+			break;
+		}
+	}
+	var systemFolder = false;
+	if (files[0].folder || files.length == 1) {
+		switch (files[0].linkCount) {
+		case 'Guest':
+		case 'BigMail':
+		case 'Trash':
+		case 'GroupDisk':
+			systemFolder = true;
+		}
+	}
+	var readable = false, writable = false, removable = false;
+	var isLargeAttachments = true;
+	for (var i = 0; i < files.length; i++) {
+		if (files[i].readable && !readable)
+			readable = true;
+		if (files[i].writable && !writable)
+			writable = true;
+		if (files[i].removable && !removable)
+			removable = true;
+		if (!/^[0-9]+\.[0-9]+\.[0-9]+$/.test(files[i].linkCount))
+			isLargeAttachments = false;
+	}
+%>
+	<ul class="default min_right_ly">
+<% if (!files[0].folder) { %>
+		<li class="file">
+	<% if (files.length === 1) { %>
+			<%- fileName %>
+	<% } else { %>
+			<%= files.length %><%= i18n.contextMenu.items %>
+	<% } %>
+		</li>
+<% } %>
+		<li class="partition"></li>
+<% if (files.length === 1 && files[0].directory) { %>
+	<% if (!files[0].folder) { %> 
+		<li>
+			<a href="#" class="open-folder"><%= i18n.contextMenu.open %></a>
+		</li>
+	<% } if (writable) { %>
+		<li>
+			<a href="#" class="upload-to-folder"><%= i18n.contextMenu.upload %></a>
+		</li>
+	<% } %>
+<% } %>
+<% if (!readable) { %>
+		<li class="none"><%= i18n.contextMenu.download %></li>
+<% } else { %>
+		<li>
+			<a href="#" class="download-files"><%= i18n.contextMenu.download %></a>
+		</li>
+<% } %>
+		<li class="partition"></li>
+<% if (!readable || !removable || isLargeAttachments) { %>
+		<li class="none"><%= i18n.contextMenu.cut %></li>
+<% } else { %>
+		<li>
+			<a href="#" class="cut-files"><%= i18n.contextMenu.cut %></a>
+		</li>
+<% } %>
+<% if (!readable) { %>
+		<li class="none"><%= i18n.contextMenu.copy %></li>
+<% } else { %>
+		<li>
+			<a href="#" class="copy-files"><%= i18n.contextMenu.copy %></a>
+		</li>
+<% } %>
+<% if (files.length === 1 && files[0].directory && (cutFiles.length || copyFiles.length) && writable) { %>
+		<li>
+			<a href="#" class="paste-files"><%= i18n.contextMenu.paste %></a>
+		</li>
+<% } else { %>
+		<li class="none"><%= i18n.contextMenu.paste %></li>
+<% } %>
+<% if (!files[0].folder) { %>
+	<% if (!readable || !removable || isLargeAttachments) { %>
+		<li class="none"><%= i18n.contextMenu.move %></li>
+	<% } else { %>
+		<li>
+			<a href="#" class="move-files"><%= i18n.contextMenu.move %></a>
+		</li>
+	<% } %>
+<% } %>
+<% if (files.length === 1 && files[0].directory && files[0].sharing) { %>
+		<li class="partition"></li>
+		<li>
+			<a href="#" class="sharing-settings">
+				공유 멤버 관리<span class="bu bu_supmenu"></span>
+			</a>
+			<div class="rightmenu_layer rightmenu_first" style="display: none;">
+				<ul class="default min_right_ly">
+					<li><a href="#" class="specific-people">멤버 관리</a></li>
+					<li><a href="#" class="stop-sharing">공유 취소</a></li>
+					<li><a href="#" class="sharing-history">공유히스토리</a></li>
+				</ul>
+			</div>
+		</li>
+		<!--
+		<li>
+			<a href="#" class="get-shareable-link">공유 URL 만들기</span></a>
+		</li>
+		-->
+<% } else if (files.length === 1 && files[0].directory && !files[0].sharing) { %>
+		<!--
+		<li class="partition"></li>
+		<li>
+			<a href="#" class="share-with-others">공유 멤버 초대</a>
+		</li>
+		<li>
+			<a href="#" class="get-shareable-link">공유 URL 만들기</a>
+		</li>
+		-->
+<% } else if (files.length === 1 && files[0].file && files[0].sharing) { %>
+		<li class="partition"></li>
+		<li>
+			<a href="#" class="shared-link-settings">
+				공유 URL 관리<span class="bu bu_supmenu"></span>
+			</a>
+			<div class="rightmenu_layer rightmenu_first" style="display: none;">
+				<ul class="default min_right_ly">
+					<li><a href="#" class="manage-shared-link">링크 관리</a></li>
+					<li><a href="#" class="remove-shared-link">링크 삭제</a></li>
+				</ul>
+			</div>
+		</li>
+<% } else if (files.length === 1 && files[0].file && !files[0].sharing) { %>
+		<!--
+		<li class="partition"></li>
+		<li>
+			<a href="#" class="get-shareable-link">공유 URL 만들기</a>
+		</li>
+		-->
+<% } else { %>
+		<!--
+		<li class="partition"></li>
+		<li class="none">공유 URL 만들기</li>
+		-->
+<% } %>
+		<li class="partition"></li>
+<% if (systemFolder || !removable) { %>
+		<li class="none"><%= i18n.contextMenu.remove %></li>
+<% } else { %>
+		<li>
+			<a href="#" class="delete-files"><%= i18n.contextMenu.remove %></a>
+		</li>
+<% } %>
+<% if (files.length > 1 || systemFolder || !removable || isLargeAttachments) { %>
+		<li class="none"><%= i18n.contextMenu.rename %></li>
+<% } else { %>
+		<li>
+			<a href="#" class="rename-file"><%= i18n.contextMenu.rename %></a>
+		</li>
+<% } %>
+<% if (files[0].folder) { %>
+		<li class="partition"></li>
+		<li>
+	<% if (files[0].starred) { %>
+			<a href="#" class="remove-star"><%= i18n.contextMenu.removeStar %></a>
+	<% } else { %>
+			<a href="#" class="add-star"><%= i18n.contextMenu.addStar %></a>
+	<% } %>
+		</li>
+<% } %>
+		<li class="partition"></li>
+		<!-- if (files.length && files[0].file) -->
+		<!-- <li><a href="#">암호 설정</a></li> -->
+		<!-- if (files.length === 1 && files[0].file) -->
+		<!-- <li><a href="#">버전복구하기</a></li> -->
+		<li>
+			<a href="#" class="properties-of-files"><%= i18n.contextMenu.properties %></a>
+		</li>
+	</ul>
+</script>
+<script type="text/template" id="trash-contextmenu-template">
+<%
+	var fileName = files[0].name;
+	fileName = fileName.substring(fileName.lastIndexOf('/') + 1);
+%>
+	<ul class="default min_right_ly">
+		<li class="file">
+	<% if (files.length === 1) { %>
+			<%- fileName %>
+	<% } else { %>
+			<%= files.length %><%= i18n.contextMenu.items %>
+	<% } %>
+		</li>
+<% if (files[0].linkCount == 'Trash') { %>
+		<li class="partition"></li>
+		<li><a class="none"><%= i18n.contextMenu.restore %></a></li>
+		<li class="partition"></li>
+		<li><a class="none"><%= i18n.contextMenu.remove %></a></li>
+<% } else { %>
+		<li class="partition"></li>
+		<li>
+			<a href="#" class="restore-files"><%= i18n.contextMenu.restore %></a>
+		</li>
+		<li class="partition"></li>
+		<li>
+			<a href="#" class="delete-files"><%= i18n.contextMenu.remove %></a>
+		</li>
+<% } %>
+		<li class="partition"></li>
+		<li>
+			<a href="#" class="properties-of-files"><%= i18n.contextMenu.properties %></a>
+		</li>
+	</ul>
+</script>
+<script type="text/template" id="file-properties-template">
+<%
+	var isLargeAttachment = /^[0-9]+\.[0-9]+\.[0-9]+$/.test(files[0].linkCount);
+	var isTrashFile = /^trash\.[0-9]+(?:\.[0-9]+)*$/.test(files[0].linkCount);
+	var fileName = files[0].name;
+	if (isTrashFile)
+		fileName = fileName.substring(fileName.lastIndexOf('/') + 1);
+%>
+	<div class="wrap_pop">
+		<div class="wrap_pop_pd">
+			<div class="header">
+<% if (files.length > 1) { %>
+				<h1 title="<%= files.length %><%= i18n.properties.items %>">
+					<%= files.length %><%= i18n.properties.items %>
+				</h1>
+<% } else { %>
+				<h1 title="<%- fileName %>">
+					<%- fileName %>
+				</h1>
+<% } %>
+			</div>
+			<div class="content">
+				<dl class="cnt_type1">
+<%
+	if (!isLargeAttachment && !isTrashFile) {
+		var filePath = files[0].path;
+		if (files[0].path.match(/^\/마이디스크/))
+			filePath = files[0].path.replace(/^\/마이디스크/, '');
+		if (files[0].path.match(/^\/마이디스크\/대용량메일/))
+			filePath = files[0].path.replace(/^\/마이디스크\/대용량메일/, '/' + i18n.folder.largeAttachments);
+		if (files[0].path.match(/^\/공유디스크/))
+			filePath = files[0].path.replace(/^\/공유디스크/, '/' + i18n.groupDrive);
+		if (filePath.length == 0)
+			filePath = '/';
+
+		if (files.length > 1) {
+			var content = '', numOfFolders = 0, numOfFiles = 0, fileSize = 0;
+			for (var i = 0; i < files.length; i++) {
+				if (files[i].directory)
+					numOfFolders++;
+				else
+					numOfFiles++;
+				fileSize += files[i].size;
+			}
+			if (numOfFolders > 0)
+				content += i18n.properties.folders + ' ' + numOfFolders;
+			if (numOfFolders > 0 && numOfFiles > 0)
+				content += ', ';
+			if (numOfFiles > 0)
+				content += i18n.properties.files + ' ' + numOfFiles;
+%>
+					<!-- 일반 파일 항목 속성 -->
+					<dt>
+						<strong><%= i18n.properties.location %></strong>
+					</dt>
+					<dd>
+						<%- filePath %>
+					</dd>
+					<dt>
+						<strong><%= i18n.properties.size %></strong>
+					</dt>
+					<dd><%= numeral(fileSize).format('0[.]00b') %></dd>
+					<dd class="partition">&nbsp;</dd>
+					<dt>
+						<strong><%= i18n.properties.content %></strong>
+					</dt>
+					<dd><%- content %></dd>
+					<!-- //일반 파일 항목 속성 -->
+<%
+		} else {
+%>
+					<!-- 일반 파일 속성 -->
+					<dt>
+						<strong><%= i18n.properties.type %></strong>
+					</dt>
+					<dd><%= files[0].directory ? i18n.properties.folder : i18n.properties.file %></dd>
+					<dt>
+						<strong><%= i18n.properties.location %></strong>
+					</dt>
+					<dd><%- filePath %></dd>
+					<dt>
+						<strong><%= i18n.properties.size %></strong>
+					</dt>
+					<dd><%= numeral(files[0].size).format('0[.]00b') %></dd>
+					<dd class="partition">&nbsp;</dd>
+					<dt>
+						<strong><%= i18n.properties.date %></strong>
+					</dt>
+					<dd><%= $.format.date(new Date(files[0].lastModified), 'yyyy-MM-dd HH:mm') %></dd>
+					<!--
+					<dt><strong><%= i18n.properties.dateCreated %></strong></dt>
+					<dd><%= $.format.date(new Date(files[0].lastModified), 'yyyy-MM-dd HH:mm') %></dd>
+					<dt><strong><%= i18n.properties.dateModified %></strong></dt>
+					<dd><%= $.format.date(new Date(files[0].lastModified), 'yyyy-MM-dd HH:mm') %></dd>
+					-->
+					<dd class="partition">&nbsp;</dd>
+					<dt>
+						<strong><%= i18n.properties.starred %></strong>
+					</dt>
+					<dd>
+						<input type="checkbox" id="toggle-starred" class="input_check" <%= files[0].starred ? 'checked' : '' %>>
+						<label for="toggle-starred"><%= i18n.properties.star %></label>
+					</dd>
+					<!-- //일반 파일 속성 -->
+<%
+		}
+	} // end if (!isLargeAttachment && !isTrashFile)
+
+	if (isTrashFile) {
+		if (files.length > 1) {
+			var fileSize = 0;
+			for (var i = 0; i < files.length; i++) {
+				fileSize += files[i].size;
+			}
+%>
+					<!-- 휴지통 파일 항목 속성 -->
+					<dt>
+						<strong><%= i18n.properties.size %></strong>
+					</dt>
+					<dd><%= numeral(fileSize).format('0[.]00b') %></dd>
+					<dd class="partition">&nbsp;</dd>
+					<dt>
+						<strong><%= i18n.properties.restore %></strong>
+					</dt>
+					<dd>
+						<input type="checkbox" id="restore-from-trash" class="input_check">
+						<label for="restore-from-trash"><%= i18n.properties.doRestore %></label>
+					</dd>
+					<!-- //휴지통 파일 항목 속성 -->
+<%
+		} else {
+			var lastSlashIndex = files[0].name.lastIndexOf('/');
+			var originalLocation = files[0].name.substring(0, lastSlashIndex + 1);
+			var lastModified = files[0].linkCount;
+			lastModified = lastModified.substring(lastModified.lastIndexOf('.') + 1);
+			if (isNaN(lastModified))
+				lastModified = new Date();
+			else
+				lastModified = new Date(parseInt(lastModified));
+%>
+					<!-- 휴지통 파일 속성 -->
+					<dt>
+						<strong><%= i18n.properties.type %></strong>
+					</dt>
+					<dd><%= files[0].directory ? i18n.properties.folder : i18n.properties.file %></dd>
+					<dt>
+						<strong><%= i18n.properties.originalLocation %></strong>
+					</dt>
+					<dd><%- originalLocation %></dd>
+					<dt>
+						<strong><%= i18n.properties.size %></strong>
+					</dt>
+					<dd><%= numeral(files[0].size).format('0[.]00b') %></dd>
+					<dd class="partition">&nbsp;</dd>
+					<dt>
+						<strong><%= i18n.properties.dateCreated %></strong>
+					</dt>
+					<dd><%= $.format.date(lastModified, 'yyyy-MM-dd HH:mm') %></dd>
+					<dt>
+						<strong><%= i18n.properties.dateRemoved %></strong>
+					</dt>
+					<dd><%= $.format.date(new Date(files[0].lastModified), 'yyyy-MM-dd HH:mm') %></dd>
+					<dd class="partition">&nbsp;</dd>
+					<dt>
+						<strong><%= i18n.properties.restore %></strong>
+					</dt>
+					<dd>
+						<input type="checkbox" id="restore-from-trash" class="input_check">
+						<label for="restore-from-trash"><%= i18n.properties.doRestore %></label>
+					</dd>
+					<!-- //휴지통 파일 속성 -->
+<%
+		}
+	} // end if (isTrashFile)
+%>
+				</dl>
+				<div class="footer">
+					<button type="button"><%= i18n.properties.OK %></button>
+				</div>
+			</div>
+			<div class="pop_close">
+				<a class="bu_close_p" href="#"><span class="blind"><%= i18n.properties.close %></span></a>
+			</div>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="folder-path-template">
+	<div class="location_layer">
+		<div class="location">
+			<div class="header">
+				<h1>
+					<span class="bu bu_folder"></span><%= i18n.chooseLocation.heading %>
+				</h1>
+				<div class="new">
+					<!-- <a href="#"><%= i18n.chooseLocation.makeNewFolder %></a> -->
+				</div>
+			</div>
+			<div class="content">
+				<div class="tree">
+					<div class="tree_in">
+						<ul>
+							<!-- #my-drive-path-template -->
+							<li class="my-drive-path tree-node"></li>
+							<!-- #group-folder-path-template -->
+							<li class="group-folder-path tree-node"></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="footer">
+				<button>
+					<strong><%= i18n.chooseLocation.OK %></strong>
+				</button>
+				<button><%= i18n.chooseLocation.cancel %></button>
+			</div>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="my-drive-path-template">
+	<div class="root_hd">
+		<span class="root"></span>
+		<label><strong><%= i18n.myDrive %></strong></label>
+	</div>
+	<ul></ul>
+</script>
+<script type="text/template" id="group-folder-path-template">
+	<div class="root_hd">
+		<span class="root teamdisk"></span>
+		<label><strong><%= i18n.groupDrive %></strong></label>
+	</div>
+	<ul></ul>
+</script>
+<script type="text/template" id="folder-path-item-template">
+<%
+	var folderName = folder.name;
+	switch (folder.linkCount) {
+	case 'BigMail':
+		folderName = i18n.folder.largeAttachments;
+		break;
+	}
+%>
+	<div class="tree-has-child">
+		<button class="tree-button">+</button>
+		<button class="bu">
+			<em class="blind"><%- folderName %></em>
+		</button>
+		<label><%- folderName %></label>
+	</div>
+	<ul></ul>
+</script>
+<script type="text/template" id="disk-droppable-template">
+	<!-- #disk-droppable-template -->
+	<div class="drag_cont">
+		<div class="drag_img">
+			<img class="left-doodle" src="<%= popup ? '../../' : '' %>img/upload_img1.png">
+			<img class="right-doodle" src="<%= popup ? '../../' : '' %>img/upload_img2.png">
+		</div>
+		<p class="drag_txt">
+			<span><%= i18n.dropFilesToUpload %></span>
+			<br>
+			<%= i18n.descriptionDropFilesToUpload %>
+		</p>
+	</div>
+</script>
+<script type="text/template" id="settings-layout-template">
+	<!-- CONTENT HEAD -->
+	<div class="mc-content_header sub">
+		<div class="mc-headFolder">
+			<strong class="mc-folderName"><%= i18n.settings.heading %></strong><span class="back_in">
+			<em class="bar">│</em>
+			<a href="#disk"><%= i18n.settings.backToDrive %></a></span>
+		</div>
+	</div>
+	<!-- //CONTENT HEAD -->
+
+	<!-- 환경설정 - 메뉴리스트 -->
+	<div class="mc-actionArea top_tab">
+		<ul class="top_tab">
+			<li class="col1 select">
+				<span class="ico"></span>
+				<a href="#disk/settings/storage"><%= i18n.settings.storage %></a>
+			</li>
+			<!--
+			<li class="col2">
+				<span class="ico"></span>
+				<a href="#disk/settings/login">탐색기 로그인</a>
+			</li>
+			-->
+		</ul>
+	</div>
+	<!-- //환경설정 - 메뉴리스트 -->
+
+	<!-- 사용용량 #settings-storage-template | 탐색기 로그인 #settings-login-template -->
+	<div class="settings-content-region">
+	</div>
+	<!-- //사용용량 | 탐색기 로그인 -->
+</script>
+<script type="text/template" id="settings-storage-template">
+	<ul class="tab_list">
+		<li class="capacity-tab"><a href="#"><%= i18n.settings.capacity %></a></li>
+		<li class="file-types-tab"><a href="#"><%= i18n.settings.types %></a></li>
+		<li class="folders-tab"><a href="#"><%= i18n.settings.folders %></a></li>
+	</ul>
+	<div class="scroll_frame">
+		<div class="scroll_zoom">
+			<div class="cont_tip">
+				<!--
+				<h4 class="h4_tit2">
+					&#8226; 전체 용량에 휴지통 용량도 포함됩니다.<br />
+					&#8226; 사용중 용량에 공유중 용량도 포함됩니다.<br />
+					<span class="hlt">휴지통 자동 삭제 기간을 설정하고 삭제한 항목을 자동으로 관리해 보세요.</span>
+				</h4>
+				-->
+				<h4 class="h4_tit2">
+					&#8226; <%= i18n.settings.descriptionForTrash %><br />
+					&#8226; <%= i18n.settings.descriptionForEmptyTrash %><br />
+					<!--
+					<span class="hlt"><%= i18n.settings.descriptionForSharing %></span>
+					-->
+				</h4>
+			</div>
+			<!-- 내 용량 보기 #settings-capacity-panel-template -->
+			<div class="tab_contents capacity-panel" style="min-height: auto">
+			</div>
+			<!-- //내 용량 보기 -->
+			<!-- 파일 보기 #settings-file-types-panel-template -->
+			<div class="tab_contents file-types-panel" style="min-height: auto; display: none">
+			</div>
+			<!-- //파일 보기 -->
+			<!-- 폴더 보기 #settings-folders-panel-template -->
+			<div class="tab_contents folders-panel" style="min-height: auto; display: none">
+			</div>
+			<!-- //폴더 보기 -->
+			<div class="basket">
+				<label for="emptyTrashAutomatically"><%= i18n.settings.emptyTrashAutomatically %></label>
+<%
+	var selected = [];
+	selected[user.EMPTY_TRASH_DAYS] = 'selected';
+%>
+				<select size="1" id="emptyTrashAutomatically">
+					<option value="0" <%= selected[0] %>><%= i18n.settings.emptyTrash.never %></option>
+					<option value="5" <%= selected[5] %>><%= i18n.settings.emptyTrash.after5days %></option>
+					<option value="15" <%= selected[15] %>><%= i18n.settings.emptyTrash.after15days %></option>
+					<option value="30" <%= selected[30] %>><%= i18n.settings.emptyTrash.after30days %></option>
+					<option value="50" <%= selected[50] %>><%= i18n.settings.emptyTrash.after50days %></option>
+				</select>
+				<button class="button_s"><%= i18n.settings.emptyTrash.apply %></button>
+			</div>
+			<!--
+			<div class="btn_c max">
+				<button type="button" class="b">확인</button>
+				<button type="button">취소</button>
+			</div>
+			-->
+		</div>
+	</div>
+</script>
+<script type="text/template" id="settings-capacity-panel-template">
+<%
+	function formatSize(number, pattern) {
+		pattern = pattern ? pattern : '0[.]00b';
+		return number ? numeral(number).format(pattern) : '0 Bytes';
+	}
+%>
+	<section class="piechart">
+		<div style="position: absolute;">
+			<canvas width="200" height="200"/>
+		</div>
+		<div class="pie"></div>
+		<div class="chart_info">
+			<div class="cpc_total">
+				<em><%= i18n.settings.total %></em>
+				<span><%= numeral(data.quota).format('0[.]00 b') %></span>
+			</div>
+			<ul class="inchart">
+				<li style="border-color: cornflowerblue;">
+					<em><%= i18n.settings.used %></em>
+					<span><%= formatSize((data.usage - data.trash), '0.0 b') %></span>
+				</li>
+				<li style="border-color: olivedrab;">
+					<em><%= i18n.settings.free %></em>
+					<span><%= formatSize(data.free, '0.0 b') %></span>
+				</li>
+				<li style="border-color: orange;">
+					<em><%= i18n.settings.trash %></em>
+					<span><%= formatSize(data.trash, '0.0 b') %></span>
+				</li>
+			</ul>
+			<div class="myvolumn">
+				<%= i18n.settings.usage %>
+				<strong><%= formatSize(data.usage) %></strong>
+				/ <%= formatSize(data.quota) %>
+			</div>
+		</div>
+	</section>
+</script>
+<script type="text/template" id="settings-file-types-panel-template">
+<%
+	function formatSize(number, pattern) {
+		pattern = pattern ? pattern : '0[.]00b';
+		return number ? numeral(number).format(pattern) : '0 Bytes';
+	}
+%>
+	<section class="piechart">
+		<div style="position: absolute;">
+			<canvas width="200" height="200"/>
+		</div>
+		<div class="pie"></div>
+		<div class="chart_info">
+			<ul class="inchart">
+				<li style="border-color: #F4909D;">
+					<em><%= i18n.settings.documents %></em>
+					<p><strong><%= formatSize(data.texts.size, '0.0 b') %></strong></p>
+					<strong class="fcount"><%= i18n.settings.countPrefix %><%- data.texts.count %><%= i18n.settings.countSuffix %></strong>
+				</li>
+				<li style="border-color: #FDDD00;">
+					<em><%= i18n.settings.images %></em>
+					<p><strong><%= formatSize(data.images.size, '0.0 b') %></strong></p>
+					<strong class="fcount"><%= i18n.settings.countPrefix %><%- data.images.count %><%= i18n.settings.countSuffix %></strong>
+				</li>
+				<li style="border-color: #53C127;">
+					<em><%= i18n.settings.videos %></em>
+					<p><strong><%= formatSize(data.videos.size, '0.0 b') %></strong></p>
+					<strong class="fcount"><%= i18n.settings.countPrefix %><%- data.videos.count %><%= i18n.settings.countSuffix %></strong>
+				</li>
+				<li style="border-color: #56A6F5;">
+					<em><%= i18n.settings.audio %></em>
+					<p><strong><%= formatSize(data.audio.size, '0.0 b') %></strong></p>
+					<strong class="fcount"><%= i18n.settings.countPrefix %><%- data.audio.count %><%= i18n.settings.countSuffix %></strong>
+				</li>
+				<li style="border-color: #675FFF;">
+					<em><%= i18n.settings.compressed %></em>
+					<p><strong><%= formatSize(data.compressed.size, '0.0 b') %></strong></p>
+					<strong class="fcount"><%= i18n.settings.countPrefix %><%- data.compressed.count %><%= i18n.settings.countSuffix %></strong>
+				</li>
+				<li style="border-color: #C9CBD0;">
+					<em><%= i18n.settings.other %></em>
+					<p><strong><%= formatSize(data.other.size, '0.0 b') %></strong></p>
+					<strong class="fcount"><%= i18n.settings.countPrefix %><%- data.other.count %><%= i18n.settings.countSuffix %></strong>
+				</li>
+			</ul>
+			<div class="myvolumn">
+				<%= i18n.settings.usage %>
+				<strong><%= formatSize(data.usage) %></strong>
+				/ <%= formatSize(data.quota) %>
+			</div>
+		</div>
+	</section>
+</script>
+<script type="text/template" id="settings-folders-panel-template">
+	<table class="list_h">
+		<colgroup>
+			<col width="*">
+			<col width="110">
+		</colgroup>
+		<tbody>
+			<tr>
+				<th class="title"><%= i18n.settings.folderName %></th>
+				<th class="size"><%= i18n.settings.folderSize %></th>
+			</tr>
+		</tbody>
+	</table>
+	<div class="list_b">
+		<table summary="folder information">
+			<colgroup>
+				<col width="10">
+				<col width="*">
+				<col width="74">
+				<col width="10">
+			</colgroup>
+			<tbody>
+<%
+	for (var i = 0; i < folders.length; i++) {
+		var folder = folders[i];
+		var folderName = '/' + folder.name + '/';
+		switch (folder.linkCount) {
+		case 'BigMail':
+			folderName = i18n.folder.largeAttachments;
+			break;
+		case 'Trash':
+			folderName = i18n.folder.trash;
+			break;
+		}
+		var folderSize = folder.size ? numeral(folder.size).format('0[.]00b') : '0KB';
+%>
+				<tr>
+					<td></td>
+					<td class="title">
+						<span title="<%- folderName %>"><%- folderName %></span>
+					</td>
+					<td class="size"><%= folderSize %></td>
+					<td></td>
+				</tr>
+<%
+	} // for (var i = 0; i < folders.length; i++)
+%>
+			</tbody>
+		</table>
+	</div>
+</script>
+<script type="text/template" id="settings-login-template">
+	<div class="scroll_frame not_tab">
+		<div class="scroll_zoom">
+			<!-- 탐색기 로그인 정보 -->
+			<div class="tab_contents">
+				<div class="box_tbl">
+					<table class="set_tbl" summary="서명 저장 테이블 입니다">
+						<caption>
+							<span class="mc-blind">서명 테이블</span>
+						</caption>
+						<colgroup>
+							<col class="sw3">
+							<col class="sw2">
+						</colgroup>
+						<tbody>
+							<tr class="f">
+								<th>탐색기 로그인</th>
+								<td>
+									<input title="허용" class="input_radio" id="login_use" type="radio" checked="checked">
+									<label for="login_use">허용</label>&nbsp;&nbsp;&nbsp;
+									<input title="허용안함" class="input_radio" id="login_unuse" type="radio">
+									<label for="login_unuse">허용안함</label>
+									<div class="login_list">
+										<p class="h5_tit">아래 컴퓨터에서 현재 에어즈락 드라이브 탐색기에 로그인되어 있습니다.</p>
+										<ul>
+											<li>
+												<strong>IP:211.238.156.222</strong>
+												<button type="button">
+													<span class="tx">이 컴퓨터에서 탐색기 로그아웃</span>
+												</button>
+												로그인한 시각 <em>2016.11.08 09:26</em>
+											</li>
+										</ul>
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<!-- // 탐색기 로그인 정보 -->
+		</div>
+	</div>
+</script>
+<script type="text/template" id="modal-view-template">
+	<div class="wrap_pop">
+		<form onsubmit="return false;" action="">
+			<fieldset>
+				<legend>Inquiry message</legend>
+				<div class="content">
+					<span class="bu_q"></span>
+					<h1><%= data.message %></h1>
+					<div class="desc3"><%= data.description %></div>
+				</div>
+				<div class="footer">
+					<button type="button"><%= i18n.confirm.OK %></button>
+				</div>
+				<div class="pop_close">
+					<a class="bu_close_p" href="#">
+						<span class="blind"><%= i18n.confirm.close %></span>
+					</a>
+				</div>
+			</fieldset>
+		</form>
+	</div>
+</script>
+<script type="text/template" id="modal-confirm-delete-template">
+<%
+	var files = data.items;
+	var isLargeAttachment = /^[0-9]+\.[0-9]+\.[0-9]+$/.test(files[0].linkCount);
+	var isTrashFile = /^trash\.[0-9]+(?:\.[0-9]+)*$/.test(files[0].linkCount);
+	var isGroupFile = files[0].path.indexOf('/' + groupRoot.name) === 0;
+	var message = '';
+	if (files.length == 1) {
+		if (files[0].directory) {
+			message += i18n.confirm.leadingDeleteFolder;
+		} else {
+			message += i18n.confirm.leadingDeleteFile;
+		}
+		var filename = files[0].name;
+		switch (files[0].linkCount) {
+		case 'BigMail':
+			filename = i18n.folder.largeAttachments;
+			break;
+		}
+		if (isTrashFile) {
+			filename = filename.substring(filename.lastIndexOf('/') + 1);
+		}
+		if (filename.length > 16) {
+			message += "'" + filename.substring(0, 13) + "...'";
+		} else {
+			message += "'" + filename + "'";
+		}
+		if (files[0].directory) {
+			message += i18n.confirm.trailingDeleteFolder;
+		} else {
+			message += i18n.confirm.trailingDeleteFile;
+		}
+	} else {
+		message += i18n.confirm.leadingDeleteFiles;
+		message += files.length + i18n.confirm.trailingDeleteFiles;
+	}
+	var description = '';
+	if (isTrashFile) {
+		description += i18n.confirm.cannotBeRestored;
+	} else if (isLargeAttachment) {
+		description += i18n.confirm.cannotRestoreLargeAttachment;
+	} else if (isGroupFile) {
+		description += i18n.confirm.cannotRestoreInGroupDrive;
+	} else {
+		description += i18n.confirm.moveToTrash;
+	}
+%>
+	<div class="wrap_pop">
+		<form onsubmit="return false;" action="">
+			<fieldset>
+				<legend>Inquiry message</legend>
+				<div class="content">
+					<span class="bu_q"></span>
+					<h1><%= message %></h1>
+					<!-- 
+					## 하위 폴더가 있을때 ##
+					'test4dddddddd...' 과(와)<br>
+					모든 하위폴더를 삭제하시겠습니까?
+					-->
+					<div class="desc3"><%= description %></div>
+					<!--
+					## 휴지통에서 삭제시 메시지 ##
+					<div class="desc3">휴지통에서 삭제하신 항목은 복구할 수 없습니다.</div>
+					## 공유폴더 삭제시 메시지 ##
+					<div class="desc3">삭제하고자 하는 폴더에 공유폴더가 포함되어 있습니다.<br>
+					공유중인 항목을 삭제하면 공유가 해제되고, 공유자는 더 이상 해당 포더에 접근 할 수 없습니다.</div>
+					-->
+				</div>
+				<div class="footer">
+					<button type="button"><%= i18n.confirm.OK %></button>
+					<button type="button"><%= i18n.confirm.cancel %></button>
+				</div>
+				<div class="pop_close">
+					<a class="bu_close_p" href="#"><span class="blind"><%= i18n.confirm.close %></span></a>
+				</div>
+			</fieldset>
+		</form>
+	</div>
+</script>
+<script type="text/template" id="modal-confirm-overwrite-template">
+<%
+	var newFile = data.items[0];
+	var existingFile = data.items[1] ? data.items[1] : data.items[0];
+	function formatDate(time) {
+		var date = new Date(time);
+		return $.format.date(date, 'yyyy-MM-dd HH:mm');
+	}
+	var message = '';
+	if (existingFile.directory) {
+		message += i18n.confirm.replaceFolder;
+	} else {
+		message += i18n.confirm.replaceFile;
+	}
+%>
+	<div class="wrap_pop">
+		<form onsubmit="return false;" action="">
+			<fieldset>
+				<legend>Inquiry message</legend>
+				<div class="content">
+					<span class="bu_q"></span>
+					<h1><%= message %></h1>
+					<div class="desc3" style="color:#333; margin-top: 10px;">
+						<table cellspacing="0" cellpadding="0" summary="파일정보" style="width:100%">
+							<tbody>
+							<tr>
+								<th style="padding-bottom:5px; text-align:left;">
+									<span style="display:inline-block;overflow:hidden;">
+										<%= i18n.confirm.Name %>
+									</span>
+								</th>
+								<td style="padding-bottom:5px; text-align:left;">
+									<span title="<%- existingFile.name %>" style="width:270px;display:inline-block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;-o-text-overflow:ellipsis;-ms-text-overflow:ellipsis;">
+										&nbsp;<%- existingFile.name %>
+									</span>
+								</td>
+								<td style="padding:0 5px 5px 0; text-align:right;">
+									&nbsp;
+								</td>
+							</tr>
+							<tr>
+								<th style="padding-bottom:5px; text-align:left;">
+									<%= i18n.confirm.New %>
+								</th>
+								<td style="padding:0 0 5px 5px; text-align:left;">
+									<%= formatDate(newFile.lastModified) %>
+								</td>
+								<td style="padding:0 5px 5px 0; text-align:right;">
+									<%= numeral(newFile.size).format('0.0b') %>
+								</td>
+							</tr>
+							<tr>
+								<th style="padding-bottom:5px; text-align:left;">
+									<%= i18n.confirm.Current %>
+								</th>
+								<td style="padding:0 0 5px 5px; text-align:left;">
+									<%= formatDate(existingFile.lastModified) %>
+								</td>
+								<td style="padding:0 5px 5px 0; text-align:right;">
+									<%= numeral(existingFile.size).format('0.0b') %>
+								</td>
+							</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="footer">
+					<button type="button"><%= i18n.confirm.overwrite %></button>
+					<button type="button"><%= i18n.confirm.cancel %></button>
+				</div>
+				<div class="pop_close">
+					<a class="bu_close_p" href="#">
+						<span class="blind"><%= i18n.confirm.close %></span>
+					</a>
+				</div>
+			</fieldset>
+		</form>
+	</div>
+</script>
+<script type="text/template" id="my-drive-layout-template">
+
+	<a class="bu_close_p" href="#">
+		<span class="blind"><%= i18n.confirm.close %></span>
+	</a>
+	<!-- 선택한 위치 #attachments-header-template -->
+	<div class="file_add_title">
+	</div>
+
+	<!-- 상단 고정영역 -->
+	<div class="mc-cont_fix_area unselectable">
+		<!-- BTN AREA 내 드라이브 버튼 -->
+		<div class="mc-actionArea">
+		</div>
+		<!-- //BTN AREA 내 드라이브 버튼 -->
+	</div>
+	<!-- //상단 고정영역 -->
+
+	<!-- 중앙 영역 -->
+	<div class="content_box" style="top: 83px;">
+		<div class="mc-divList unselectable">
+			<!-- Detail View Area -->
+			<div class="type_list" style="display: block;">
+			</div>
+			<!-- //Detail View Area -->
+			<!-- Thumbnail View Area -->
+			<div class="type_thumb" style="display: none;">
+			</div>
+			<!-- //Thumbnail View Area -->
+		</div>
+	</div>
+	<!-- //중앙 영역 -->
+
+	<!-- 하단 영역 -->
+	<!-- PAGINATE -->
+	<div class="content_box_bottom">
+	</div>
+	<!-- //PAGINATE -->
+	<!-- //하단 영역 -->
+
+	<!-- 선택보기-필터링 -->
+	<div class="add_layertbl" style="display: none;">
+	</div>
+	<!-- //선택보기-필터링 -->
+
+</script>
+<script type="text/template" id="attachments-layout-template">
+	<a class="bu_close_p" href="#">
+		<span class="blind"><%= i18n.confirm.close %></span>
+	</a>
+	<!-- 선택한 위치 #attachments-header-template -->
+	<div class="file_add_title">
+	</div>
+
+	<!-- 컨텐츠 영역 -->
+	<div class="file_add_content">
+		<!-- 탭영역 #attachments-toolbar-template -->
+		<div class="mc-actionArea">
+			<!-- 웹드라이브 | 공유받은 폴더          ▤ ▦ -->
+		</div>
+		<!-- // 탭영역 -->
+
+		<!-- 리스트 영역 -->
+		<div class="file_add_list_box">
+			<div class="mc-divList unselectable">
+				<!-- Details View Area #attachments-details-template -->
+				<div class="type_list" style="display:">
+				</div>
+				<!-- // Details View Area -->
+				<!-- Thumbnail View Area #attachments-icons-template -->
+				<div class="type_thumb" style="display: none;">
+				</div>
+				<!-- // Thumbnail View Area -->
+			</div>
+		</div>
+		<!-- // 리스트 영역 -->
+
+		<!-- PAGINATE -->
+		<div class="paginate_expand">
+		</div>
+		<!-- //PAGINATE -->
+	</div>
+	<!-- // 컨텐츠 영역 -->
+
+	<!-- FOOTER -->
+	<div class="file_add_footer">
+		<button class="bt_bg _btn-submit" type="button">
+			<strong><%= i18n.confirm.attach %></strong>
+		</button>
+		<button class="_btn-cancel" type="button">
+			<%= i18n.confirm.cancel %>
+		</button>
+	</div>
+	<!-- //FOOTER -->
+</script>
+<script type="text/template" id="attachments-header-template">
+<%
+	var path = folder.path;
+	if (folder.path.match(/^\/마이디스크/))
+		path = folder.path.replace(/^\/마이디스크/, '');
+	if (folder.path.match(/^\/공유디스크/))
+		path = folder.path.replace(/^\/공유디스크/, '');
+
+	var name = folder.name;
+	switch (folder.linkCount) {
+	case 'UserDisk':
+		name = '';
+		break;
+	case 'BigMail':
+		name = i18n.folder.largeAttachments;
+		break;
+	case 'Trash':
+		name = i18n.folder.trash;
+		break;
+	case 'GroupRoot':
+		name = '';
+		break;
+	}
+
+	var pathname = path + '/' + name;
+	if (pathname != '/')
+		pathname += '/';
+%>
+	<strong class="_label">선택한 위치</strong>
+	<span title="<%- pathname %>"><%- pathname %></span>
+</script>
+<script type="text/template" id="attachments-toolbar-template">
+	<ul>
+		<li class="to-my-drive">
+			<a href="#"><%= i18n.webDrive %></a>
+		</li>
+		<li class="to-group-drive">
+			<a href="#"><%= i18n.groupDrive %></a>
+		</li>
+	</ul>
+	<div class="right_sort">
+		<ul class="view_box">
+			<li class="v_ty1 on">
+				<a title="<%= i18n.view.details %>" href="#">
+					<span class="blind"><%= i18n.view.details %></span>
+					<span class="so_bg"></span>
+				</a>
+			</li>
+			<li class="v_ty2">
+				<a title="<%= i18n.view.icons %>" href="#">
+					<span class="blind"><%= i18n.view.icons %></span>
+					<span class="so_bg"></span>
+				</a>
+			</li>
+		</ul>
+	</div>
+</script>
+<script type="text/template" id="attachments-details-template">
+<%
+	var sortColumn = params.sortColumn ? params.sortColumn : 'lastModified';
+	var sortDirection = params.sortDirection ? params.sortDirection : 'desc';
+	function sortClassName(column) {
+		var className = "mc-down";
+		if (sortColumn === column && sortDirection !== 'desc')
+			className = "mc-up";
+		return className;
+	}
+	function url(column, params) {
+		var url = '#attachments/files?_=' + (new Date()).getTime();
+		url += '&currentPage=' + params.currentPage;
+		url += '&perPage=' + params.perPage;
+		url += '&sortColumn=' + column;
+		if (sortColumn === column)
+			url += '&sortDirection=' + (sortDirection == 'desc' ? 'asc' : 'desc');
+		else
+			url += '&sortDirection=asc';
+		if (params.id)
+			url += '&id=' + params.id;
+		if (typeof params.search == 'string') {
+			url += '&search=' + encodeURIComponent(params.search);
+		} else if (typeof params.search == 'object') {
+			for ( var p in params.search)
+				url += '&search.' + p + '=' + encodeURIComponent(params.search[p]);
+		}
+		return url;
+	}
+%>
+	<!-- LIST ITEM -->
+	<h4 class="mc-blind"><%= i18n.sort.heading %></h4>
+	<ul class="mc-wdListItem">
+		<li class="mc-check">
+			<input name="" type="checkbox" class="allCheck">
+			<label class="mc-blind"><%= i18n.toolbar.selectAll %></label>
+		</li>
+		<li class="mc-type  <%= sortColumn == 'type' ? 'std' : '' %>">
+			<a href="<%= url('type', params) %>" class="<%= sortClassName('type') %>"><%= i18n.sort.type %></a>
+		</li>
+		<li class="mc-filename <%= sortColumn == 'name' ? 'std' : '' %>">
+			<a href="<%= url('name', params) %>" class="<%= sortClassName('name') %>"><%= i18n.sort.name %></a>
+		</li>
+		<li class="mc-size <%= sortColumn == 'size' ? 'std' : '' %>">
+			<a href="<%= url('size', params) %>" class="<%= sortClassName('size') %>"><%= i18n.sort.size %></a>
+		</li>
+		<li class="mc-dateUd <%= sortColumn == 'lastModified' ? 'std' : '' %>">
+			<a href="<%= url('lastModified', params) %>" class="<%= sortClassName('lastModified') %>"><%= i18n.sort.lastModified %></a>
+		</li>
+	</ul>
+	<!-- //LIST ITEM -->
+	<!-- LIST DATA -->
+	<div class="mc-listWrap">
+		<ol class="list_body_group">
+			<li class="folder_root">
+				<a href="#">
+					<span class="bu_root"><span class="blind"><%= i18n.alt.upOneLevel %></span></span> ..
+				</a>
+			</li>
+			<!-- 
+				# .list_body_li 클릭시 .focus추가 class="list_body_li focus"
+				# .list_body_li 더블클릭시 링크이동
+			 -->
+		</ol>
+	</div>
+	<!-- //LIST DATA -->
+</script>
+<script type="text/template" id="attachments-icons-template">
+<%
+	var sortColumn = i18n.sortBy.dateModified;
+	var sortDirection = i18n.sortBy.dateModifiedDescending;
+	switch (params.sortColumn) {
+	case 'type':
+		sortColumn = i18n.sortBy.type;
+		sortDirection = i18n.sortBy.typeDirection;
+		break;
+	case 'name':
+		sortColumn = i18n.sortBy.name;
+		sortDirection = i18n.sortBy.nameDescending;
+		if (params.sortDirection && params.sortDirection !== 'desc')
+			sortDirection = i18n.sortBy.nameAscending;
+		break;
+	case 'size':
+		sortColumn = i18n.sortBy.size;
+		sortDirection = i18n.sortBy.sizeDescending;
+		if (params.sortDirection && params.sortDirection !== 'desc')
+			sortDirection = i18n.sortBy.sizeAscending;
+		break;
+	case 'lastModified':
+		sortColumn = i18n.sortBy.lastModified;
+		sortDirection = i18n.sortBy.dateModifiedDescending;
+		if (params.sortDirection && params.sortDirection !== 'desc')
+			sortDirection = i18n.sortBy.dateModifiedAscending;
+		break;
+	}
+	var sortDirectionClass = 'dn';
+	if (params.sortDirection && params.sortDirection !== 'desc') {
+		sortDirectionClass = 'up';
+	}
+	var sortColumnClass = function(column) {
+		var className = 'sort-column-' + column;
+		if (params.sortColumn === column)
+			className += ' on';
+		else if (!params.sortColumn && column === 'lastModified')
+			className += ' on';
+		return className;
+	};
+%>
+	<!-- 
+		# 종류순 - 이름 우선
+		# 이름순 - ㅎ 우선 ↓ / ㄱ 우선 ↑
+		# 크기순 - 큰파일 우선↓ / 작은파일 우선 ↑
+		# 수정한 날짜순 - 최신 항목 우선↓ / 오래된 항목 우선 ↑
+	-->
+	<div class="list_sort">
+		<span class="check_bar">
+			<input class="input_check _checkAll" id="check_all" style="display: inline-block;" type="checkbox">
+			<label class="blind" for="check_all"><%= i18n.toolbar.selectAll %></label>
+		</span>
+		<%= i18n.sortBy.heading %> : <a href="#"><%= sortColumn %></a> -
+		<a href="#" class="<%= sortDirectionClass %>"><%= sortDirection %><span class="bu"></span></a>
+	</div>
+	<ul class="thumb_list">
+		<li title="<%= i18n.alt.upOneLevel %>">
+			<div class="check"></div>
+			<div class="thumb_box">
+				<table cellspacing="0" cellpadding="0">
+					<tbody>
+						<tr>
+							<td>
+								<p class="bu bu_root_b">
+									<span class="blind"><%= i18n.alt.upOneLevel %></span>
+								</p>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="title">
+					<a href="#">..</a>
+				</div>
+			</div>
+		</li>
+	</ul>
+	<div class="sort_layer" style="display:none;">
+		<ul>
+			<li data-column="type" class="<%= sortColumnClass('type') %>"><a href="#"><%= i18n.sort.type %></a></li>
+			<li data-column="name" class="<%= sortColumnClass('name') %>"><a href="#"><%= i18n.sort.name %></a></li>
+			<li data-column="size" class="<%= sortColumnClass('size') %>"><a href="#"><%= i18n.sort.size %></a></li>
+			<li data-column="lastModified" class="<%= sortColumnClass('lastModified') %>"><a href="#"><%= i18n.sort.lastModified %></a></li>
+		</ul>
+	</div>
+</script>
+<script type="text/template" id="disk-overlay-template">
+<%
+	var bgImg = popup ? '../../img/loading_span_bg.png' : 'img/loading_span_bg.png';
+	var loadingImg = popup ? '../../img/ico_ld_cm.gif' : 'img/ico_ld_cm.gif';
+%>
+	<div id="disk-overlay" style="background: tranparent; left: 0px; top: 0px; width: 100%; height: 100%; position: absolute; z-index: 2015; opacity: 0.5;">
+		<div class="disk-loading-layer" style="text-align: center; position: absolute; z-index: 2016;">
+			<span style='background: url("<%= bgImg %>") no-repeat left top; padding-left: 2px; display: inline-block;'>
+				<span style='background: url("<%= bgImg %>") no-repeat right -49px; padding-right: 2px; display: inline-block;'>
+					<span style='background: url("<%= bgImg %>") repeat-x left -98px; padding: 0px 18px 0px 9px; color: white; line-height: 39px; display: inline-block;'>
+						<img style="margin-right: 10px; vertical-align: middle;" src="<%= loadingImg %>">
+						<%= i18n.overlay.leadingLoading %>
+						<strong><%= i18n.overlay.drive %></strong>
+						<%= i18n.overlay.trailingLoading %>
+					</span>
+				</span>
+			</span>
+		</div>
+		<div class="disk-processing-layer" style="text-align: center; position: absolute; z-index: 2016;">
+			<span style='background: url("<%= bgImg %>") no-repeat left top; padding-left: 2px; display: inline-block;'>
+				<span style='background: url("<%= bgImg %>") no-repeat right -49px; padding-right: 2px; display: inline-block;'>
+					<span style='background: url("<%= bgImg %>") repeat-x left -98px; padding: 0px 18px 0px 9px; color: white; line-height: 39px; display: inline-block;'>
+						<img style="margin-right: 10px; vertical-align: middle;" src="<%= loadingImg %>">
+						<%= i18n.overlay.leadingProcessing %>
+						<strong><%= i18n.overlay.drive %></strong>
+						<%= i18n.overlay.trailingProcessing %>
+					</span>
+				</span>
+			</span>
+		</div>
+		<div class="disk-uploading-layer" style="text-align: center; position: absolute; z-index: 2016;">
+			<span style='background: url("<%= bgImg %>") no-repeat left top; padding-left: 2px; display: inline-block;'>
+				<span style='background: url("<%= bgImg %>") no-repeat right -49px; padding-right: 2px; display: inline-block;'>
+					<span style='background: url("<%= bgImg %>") repeat-x left -98px; padding: 0px 18px 0px 9px; color: white; line-height: 39px; display: inline-block;'>
+						<img style="margin-right: 10px; vertical-align: middle;" src="<%= loadingImg %>">
+						<%= i18n.overlay.leadingUploadingFile %>
+						<strong><%= i18n.overlay.drive %></strong>
+						<%= i18n.overlay.trailingUploadingFile %>
+					</span>
+				</span>
+			</span>
+		</div>
+	</div>
+</script>�)a 9%      d߸d߸EUUd7   i    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app/disk/disk-template.html necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"85490-1659949286000"
+Last-Modified: Mon, 08 Aug 2022 09:01:26 GMT
+Content-Type: text/html;charset=UTF-8
+Content-Length: 85490
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"85490-1659949286000"
+Last-Modified: Mon, 08 Aug 2022 09:01:26 GMT
+Content-Type: text/html;charset=UTF-8
+Content-Length: 85490
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ ctid 1 uncompressed-len 0 net-response-time-onstart 24 net-response-time-onstop 30  M�

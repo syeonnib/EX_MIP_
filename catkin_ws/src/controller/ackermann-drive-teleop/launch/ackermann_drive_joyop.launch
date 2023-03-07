@@ -1,0 +1,10 @@
+<launch>
+  
+  <!-- Launch joy_node that publishes Joy messages -->
+  <node name="joy" type="joy_node" pkg="joy">
+   <param name="dev" type="string" value="/dev/input/js4"/>
+  </node>
+  <!-- Launch ackermann_drive_joyop to teleoperate robots with ackermann steering -->
+  <node name="ackermann_drive_joyop" type="joyop.py" pkg="ackermann_drive_teleop" output='screen'/>
+</launch>
+

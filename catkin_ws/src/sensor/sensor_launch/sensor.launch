@@ -1,0 +1,10 @@
+<launch>
+  <include file="$(find pcl_ros)/launch/pc.launch" >         
+   </include>
+  <include file="$(find ntrip_ros)/launch/imuntrip.launch" >         
+   </include>
+  <include file="$(find usb_cam)/launch/usb_cam.launch" >         
+   </include>
+  
+  
+</launch>

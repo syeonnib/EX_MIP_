@@ -1,0 +1,1834 @@
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="ko">
+	<head>
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=0.8, maximum-scale=1.0, user-scalable=no" />
+		<meta name="description" content="서울과학기술대학교, 과기대">
+		<meta property="og:title" content="서울과학기술대학교">
+		<meta property="og:description" content="서울과학기술대학교, 과기대">
+		<meta property="og:url" content="https://www.seoultech.ac.kr">
+		<meta property="og:image" content="https://www.seoultech.ac.kr/common/images/meta_img.png">
+		<title>서울과학기술대학교</title>
+		<link rel="icon" href="/common/images/favicon.ico" type="image/x-icon" />	
+		<link rel="shortcut icon" href="/common/images/favicon.ico" type="image/x-icon" />
+		<link rel="apple-touch-icon-precomposed" href="/common/images/mobileicon.png" />	
+		<link rel="stylesheet" type="text/css" href="/site/ko/2021/res/css/main.css" />
+		
+
+<link rel="stylesheet" type="text/css" href="/common/js/jquery/jquery.smartPop.css" />
+<link rel="stylesheet" type="text/css" href="/common/js/jquery/themes/base/ui.all.css" />
+<link rel="stylesheet" type="text/css" href="/common/lib/fancybox-2.1.5/jquery.fancybox.css" media="screen" />
+
+<script type="text/javascript" src="/common/js/jquery/jquery-1.8.3.js"></script>
+<script type="text/javascript" src="/common/js/jquery/jquery.smartPop.js"></script>
+<script type="text/javascript" src="/common/js/jquery/ui/ui.datepicker.js"></script>
+<script type="text/javascript" src="/common/js/jquery/ui/ui.datepicker-ko.js"></script>
+<script type="text/javascript" src="/common/js/jquery/slides.min.jquery.js"></script>
+<script type="text/javascript" src="/common/lib/fancybox-2.1.5/jquery.fancybox.pack.js"></script>
+<script type="text/javascript" src="/common/js/common.js"></script>
+
+   		<script type="text/javascript" src="/common/js/slick/1.8.1/slick.js"></script>
+   		<script type="text/javascript" src="https://static.nid.naver.com/js/naverLogin_implicit-1.0.3.js" charset="utf-8"></script>
+		<link rel="stylesheet" type="text/css" href="/common/js/slick/1.8.1/slick.css"/>
+	  </head>
+	 <body class="os" tabindex="0">
+		
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+
+		
+			
+		
+
+
+
+
+
+
+
+
+
+
+
+		
+			
+		
+
+
+
+
+
+
+
+
+
+
+				<style>
+					#popup_top {}
+					#popup_top .popup_top {max-width:1400px; margin:0 auto;}
+					#popup_top .close_popup_bg {background:#313131;}
+					#popup_top .close_popup {position:relative; max-width:1400px; margin:0 auto; text-align:center; font-size:16px; color:#fff; line-height:30px;}
+					#popup_top .close_popup .popup_top_close {display:inline-block; height:30px; line-height:30px; font-size:16px; color:#fff; padding:0 10px; text-align:center; background:none; border:none; cursor:pointer;}
+					#popup_top .close_popup .closeeven {position:absolute; top:0; right:0; line-height:30px; cursor:pointer;}
+					#popup_top .close_popup .closeeven input {margin-top:-3px;}
+
+					#popup_top .text {background:url("/hcm/popup_top/img/popup_top_box_bg2.png") no-repeat 100% center;}
+					#popup_top .text {min-height:110px; padding:15px 20px; font-size:16px; color:#777777; line-height:25px; vertical-align:top; overflow:hidden;}
+					#popup_top .text a {display:inline-block; padding:0 10px; min-width:80px; font-size:16px; font-weight:500; color:#fff; text-align:center; line-height:30px; background:#4488dd; border-radius:5px;}
+					#popup_top .text strong {font-size:18px; color:#4488dd;}
+
+					.popup_top_list {position:relative;}
+					.popup_top_list .slick-track {margin-left:0;}
+					.popup_top_list .slick-slide img {width:100% !important; }
+				 	
+				 	.popup_top_list .slick-prev {display:none !important;}
+					.popup_top_list .slick-next {position:absolute; top:48%; right:-52px; transform:translate(0, -48%); z-index:10;}
+					.popup_top_list .slick-next {width:12px; height:22px; font-size:0; border:0; background:url("/hcm/popup_top/img/popup_top_next2.png") no-repeat 0 0; cursor:pointer;}
+				 	
+					@media only screen and (max-width:1000px) {
+						#popup_top .popup_top .title {width:70px;}
+						#popup_top .popup_top .box {width:calc(100% - 140px); padding-right:70px;}
+						.popup_top_list .slick-next {right:-48px;}
+						#popup_top .popup_top .text {font-size:15px; letter-spacing:-0.05em; padding:5px 20px;}
+					}
+
+					@media only screen and (max-width:700px) {
+						#popup_top .popup_top .box {width:calc(100% - 70px); padding-right:0px;}
+						.popup_top_list .slick-next {display:none !important;}
+						#popup_top .text a {padding:0 5px; min-width:70px; line-height:26px; font-weight:normal;}
+					}
+					
+				</style>
+				
+				<div id="popup_top">
+					<div class="popup_top">
+						<div class="popup_top_list">
+							
+							<div>
+								<div class="text">
+								<div><strong>2023학년도 1학기 학부 및 대학원 재복학생 등록금 납부 </strong><br />
+납부기간:2023. 2. 20.(월)9시30분 ~ 2. 22.(수)15시30분(가상계좌는 22:30까지 납부 가능)
+<div class="mt10"><a href="https://www.seoultech.ac.kr/service/info/matters/?do=commonview&amp;searchtext=&amp;searchtype=-1&amp;nowpage=1&amp;bnum=6112&amp;bidx=530079&amp;qidx=6112&amp;cate=0&amp;allboard=true&amp;nowpage=1" target="_blank" title="새창">학부 공지사항 </a> <a href="https://www.seoultech.ac.kr/service/info/graduate/?do=commonview&amp;searchtext=&amp;searchtype=-1&amp;nowpage=1&amp;bnum=56589&amp;bidx=530081&amp;qidx=56589&amp;cate=10&amp;allboard=false&amp;nowpage=1" target="_blank" title="새창">대학원 공지사항 </a></div>
+</div>
+
+								</div>
+							</div>
+							
+							<div>
+								<div class="text">
+								<div>
+<p><strong>2023학년도 신입학 정시 합격자 조회 및 등록금 납부 안내</strong></p>
+
+<div class="mt10"><a href="http://admission.seoultech.ac.kr" target="_blank" title="새창">입학홈페이지 바로가기</a></div>
+</div>
+
+								</div>
+							</div>
+							
+						</div>
+					</div>
+					<div class="close_popup_bg">
+						<div class="close_popup">
+							<input class="popup_top_close" type="button" value="닫기 X" onclick="closeEvent2('popup_top233');">
+							<span class="closeeven">
+								<input id="top_close_text" type="checkbox"><label for="top_close_text">오늘은 이창을 다시 열지않음 </label>
+							</span>
+						</div>
+					</div>
+				</div>
+				
+				<script type="text/javascript">
+					function getCookie2( name ) {
+						var nameOfCookie = name + "=";
+						var x = 0;
+						while ( x <= document.cookie.length ) {
+							var y = (x+nameOfCookie.length);
+							if ( document.cookie.substring( x, y ) == nameOfCookie ) {
+								if ( (endOfCookie=document.cookie.indexOf( ";", y )) == -1 )
+								endOfCookie = document.cookie.length;
+								return unescape( document.cookie.substring( y, endOfCookie ) );
+							}
+							x = document.cookie.indexOf( " ", x ) + 1;
+							if ( x == 0 )
+							break;
+						}
+						return "";
+					}
+						 
+					function setCookie2(name, value, expiredays) {
+						var todayDate = new Date();
+						todayDate.setDate(todayDate.getDate() + expiredays);
+						document.cookie = name + "=" + escape(value) + "; path=/; expires=" + todayDate.toGMTString() + ";"
+					}
+					 
+					function closeEvent2(enentId) {
+						if($("#top_close_text").is(':checked')){
+							setCookie2(enentId, "Y" , 1);
+						}
+						$("#popup_top").css("display", "none");
+					}
+					
+					if(getCookie2("popup_top233") == "Y") {
+						$("#popup_top").css("display", "none");
+					}
+					
+					$('.popup_top_list').slick({
+					  	slidesToShow: 2,
+					  	swipeToSlide : true,
+// 					  	autoplay: true,
+					  	autoplaySpeed: 10000,
+					    arrows : true,
+					    infinite: true,
+						cssEase: 'linear',
+						responsive : [
+							{
+								breakpoint : 800,
+								settings : {
+									slidesToShow : 1
+								}
+							} 
+						]
+					});
+				
+				</script>
+			
+
+
+	 	<div id="skip_nav">
+			<a href="#splash">본문내용 바로가기</a>
+			<a href="#skip_gnb">메인메뉴 바로가기</a>
+		</div>
+
+		
+
+
+
+
+
+
+
+
+
+ 		
+ 		<h1 style="font-size:0;">서울과학기술대학교 seoul national university of science and education. seoultech.</h1>
+ 		
+ 		<div style="position:relative;">
+			<div id="m_head">
+				
+					
+				
+
+
+
+
+
+
+
+
+
+<div class="m_head">
+	<div class="btn_menu"><img alt="메뉴" src="/site/ko/2021/res/img/menu.svg"/></div>
+	<h2 class="logo"><a href="/"><img alt="서울과학기술대학교 바로가기" src="/site/ko/2021/res/img/logo_on.svg"/></a></h2>
+	<div class="btn_menu2"><img alt="메뉴" src="/site/ko/2021/res/img/menu2.svg"/></div>
+</div>
+
+<div class="menu">
+	
+		
+			<div class="a1 on">대학소개</div>
+			<div class="dep2">
+			
+				
+					<a class="a2 " href="/intro/univ">서울과기대 소개</a>
+				
+			
+				
+					<a class="a2 " href="/intro/chief">열린총장실</a>
+				
+			
+				
+					<a class="a2 " href="/intro/uvstat">대학현황</a>
+				
+			
+				
+					<a class="a2 " href="/intro/organization">대학조직</a>
+				
+			
+				
+					<a class="a2 " href="/intro/symbol">대학상징</a>
+				
+			
+				
+					<a class="a2 " href="/intro/infobox">홍보관</a>
+				
+			
+				
+					<a class="a2 " href="/intro/campinfo">캠퍼스 안내</a>
+				
+			
+				
+					<a class="a2 " href="http://www.seoultech.ac.kr/intro/uvstat/rules/">학칙 및 규정</a>
+				
+			
+			</div>
+		
+	
+		
+			<div class="a1 ">입학·국제교류</div>
+			<div class="dep2">
+			
+				
+					<a class="a2 link1" href="http://admission.seoultech.ac.kr">대학입학</a>
+				
+			
+				
+					<a class="a2 link1" href="http://admission.seoultech.ac.kr/cms/FR_CON/index.do?MENU_ID=850">대학원입학</a>
+				
+			
+				
+					<a class="a2 link1" href="http://global.seoultech.ac.kr/admissions/undergraduate/admission/">International 입학</a>
+				
+			
+				
+			
+				
+					<a class="a2 link1" href="http://global.seoultech.ac.kr">국제교류</a>
+				
+			
+			</div>
+		
+	
+		
+			<div class="a1 ">대학·대학원</div>
+			<div class="dep2">
+			
+				
+					<a class="a2 " href="/univ/univ">대학</a>
+				
+			
+				
+					<a class="a2 " href="/univ/com">일반대학원</a>
+				
+			
+				
+					<a class="a2 " href="/univ/special">특수대학원</a>
+				
+			
+				
+					<a class="a2 " href="/univ/expert">전문대학원</a>
+				
+			
+			</div>
+		
+	
+		
+			<div class="a1 ">대학생활</div>
+			<div class="dep2">
+			
+				
+					<a class="a2 " href="/life/sch">학사일정</a>
+				
+			
+				
+					<a class="a2 " href="/life/info">학사안내</a>
+				
+			
+				
+					<a class="a2 link1" href="http://serve.seoultech.ac.kr/">ST나눔공헌단</a>
+				
+			
+				
+					<a class="a2 " href="/life/military">병무·예비군</a>
+				
+			
+				
+					<a class="a2 " href="/life/scholarship">장학제도</a>
+				
+			
+				
+					<a class="a2 " href="/life/tution">등록제도</a>
+				
+			
+				
+					<a class="a2 " href="/life/student">학생지원</a>
+				
+			
+				
+			
+				
+					<a class="a2 " href="/life/facility">시설이용</a>
+				
+			
+				
+			
+				
+			
+				
+			
+			</div>
+		
+	
+		
+			<div class="a1 ">산학·연구</div>
+			<div class="dep2">
+			
+				
+					<a class="a2 link1" href="http://iac.seoultech.ac.kr/intro/greet/">단장 인사말</a>
+				
+			
+				
+					<a class="a2 link1" href="http://iac.seoultech.ac.kr/intro/iacplan/vision2/">중장기발전계획</a>
+				
+			
+				
+					<a class="a2 link1" href="http://iac.seoultech.ac.kr/intro/job/">업무분장</a>
+				
+			
+				
+			
+				
+					<a class="a2 link1" href="http://iac.seoultech.ac.kr/news/notice/">공지사항</a>
+				
+			
+				
+					<a class="a2 link1" href="http://iac.seoultech.ac.kr/support/manage/">연구비중앙관리절차</a>
+				
+			
+				
+					<a class="a2 link1" href="http://ra.seoultech.ac.kr">교내연구업적</a>
+				
+			
+				
+					<a class="a2 link1" href="http://iac.seoultech.ac.kr/news/appeal/">과제공모</a>
+				
+			
+				
+					<a class="a2 link1" href="http://iac.seoultech.ac.kr/tech/property/">지식재산권</a>
+				
+			
+				
+			
+				
+			
+				
+			
+				
+			
+				
+			
+				
+			
+				
+			
+			</div>
+		
+	
+		
+			<div class="a1 ">취업·창업</div>
+			<div class="dep2">
+			
+				
+			
+				
+					<a class="a2 link1" href="http://job.seoultech.ac.kr/">취업진로본부</a>
+				
+			
+				
+					<a class="a2 link1" href="http://internship.seoultech.ac.kr/">현장실습지원센터</a>
+				
+			
+				
+			
+				
+			
+				
+					<a class="a2 link1" href="http://sssf.seoultech.ac.kr/">창업지원단</a>
+				
+			
+				
+					<a class="a2 link1" href="http://sssf.seoultech.ac.kr/care/introcare/">창업보육센터</a>
+				
+			
+			</div>
+		
+	
+		
+			<div class="a1 ">정보·민원서비스</div>
+			<div class="dep2">
+			
+				
+					<a class="a2 " href="/service/info">대학정보알림</a>
+				
+			
+				
+					<a class="a2 " href="/service/pubinfo">정보공개</a>
+				
+			
+				
+			
+				
+					<a class="a2 " href="/service/is">정보서비스안내</a>
+				
+			
+				
+					<a class="a2 " href="/service/sccenter">온라인민원센터</a>
+				
+			
+				
+					<a class="a2 " href="/service/report">갑질신고센터</a>
+				
+			
+				
+					<a class="a2 " href="/service/lostproperty">유실물 센터</a>
+				
+			
+				
+					<a class="a2 " href="/service/board">SEOULTECH광장</a>
+				
+			
+				
+			
+			</div>
+		
+	
+		
+	
+</div>
+
+<div class="menu2">
+	<div class="a1 on">학생</div>
+	<div class="dep2 n1">
+		<a target="_blank" title="새창" href="https://stportal.seoultech.ac.kr/"><span>학생포탈</span></a>
+		<a target="_blank" title="새창" href="https://eclass.seoultech.ac.kr/"><span>eClass</span></a>
+		<a target="_blank" title="새창" href="https://epic.seoultech.ac.kr/"><span>EPiC folio</span></a>
+		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/life/sch/common/"><span>학사일정</span></a>
+		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/life/info/college/schedule/"><span>학사행정</span></a>
+		<a target="_blank" title="새창" href="https://docu.seoultech.ac.kr/"><span>증명서발급</span></a>
+		<a target="_blank" title="새창" href="https://for-s.seoultech.ac.kr/"><span>학부수강신청</span></a>
+		<a target="_blank" title="새창" href="https://for-a.seoultech.ac.kr/generate/STECH/index.html"><span>대학원수강신청</span></a>
+		<a target="_blank" title="새창" href="https://library.seoultech.ac.kr/"><span>도서관</span></a>
+		<a target="_blank" title="새창" href="https://domi.seoultech.ac.kr/"><span>생활관</span></a>
+		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/uvstat/orga/"><span>조직도</span></a>
+		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/map/"><span>캠퍼스지도</span></a>
+		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/life/student/food2/"><span>식단</span></a>
+	</div>
+	<div class="a1">교직원</div>
+	<div class="dep2">
+		<a target="_blank" title="새창" href="https://seoultech.korus.ac.kr/"><span>KORUS</span></a>
+		<a target="_blank" title="새창" href="https://portal.seoultech.ac.kr/"><span>교직원포탈</span></a>
+		<a target="_blank" title="새창" href="https://mail.seoultech.ac.kr/"><span>웹메일</span></a>
+		<a target="_blank" title="새창" href="https://for-a.seoultech.ac.kr/index-s.html"><span>통합정보(SUIS)</span></a>
+		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/life/sch/common/"><span>학사일정</span></a>
+		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/uvstat/rules/"><span>학칙 및 규정</span></a>
+		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/uvstat/orga/"><span>조직도</span></a>
+		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/life/student/food2/"><span>식단</span></a>
+	</div>
+	<div class="a1">미래가족</div>
+	<div class="dep2">
+		<a target="_blank" title="새창" href="https://admission.seoultech.ac.kr/index.do"><span>학부입시</span></a>
+		<a target="_blank" title="새창" href="https://admission.seoultech.ac.kr/cms/FR_CON/index.do?MENU_ID=550"><span>대학원입시</span></a>
+		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/campinfo/camper/information/"><span>캠퍼스투어</span></a>
+		<a target="_blank" title="새창" href="https://recruit.seoultech.ac.kr/prof/"><span>교수초빙</span></a>
+		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/service/info/recruit/"><span>채용정보</span></a>
+		<a target="_blank" title="새창" href="https://lifelong.seoultech.ac.kr/main/"><span>사회교육개발원</span></a>
+		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/map/"><span>캠퍼스지도</span></a>
+	</div>
+	<div class="a1">학부모</div>
+	<div class="dep2">
+		<a target="_blank" title="새창" href="https://parent.seoultech.ac.kr/"><span>학부모포탈</span></a>
+		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/uvstat/orga/"><span>조직도</span></a>
+		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/map/"><span>캠퍼스지도</span></a>
+		<a target="_blank" title="새창" href="https://fund.seoultech.ac.kr/"><span>발전기금</span></a>
+	</div>
+	
+	<div class="login">
+		<div><a href="https://www.seoultech.ac.kr/site/www/search/index.jsp" target="_blank" title="새창">search</a></div>
+		<ul>
+			
+
+
+
+
+
+
+	
+
+	<li><a href="javascript:popup_Login(24);" title="새창">login</a></li>
+	
+
+
+
+		</ul>
+		<div><a href="https://en.seoultech.ac.kr/" target="_blank" title="새창">ENG</a></div>
+		<div><a href="https://cn.seoultech.ac.kr/" target="_blank" title="새창">CHN</a></div>
+	</div>
+</div>
+
+<div class="menu_bg"></div>
+
+
+<script type="text/javascript">
+	$(document).ready(function() {
+		$(".menu .link1").each(function(index) {
+			$(this).attr("target" , "_blank");
+			$(this).attr("title" , "새창으로 이동");
+// 			$(this).append("<img class='bg1' alt='' src='/site/ko/res/img/link_on.png'>");
+		});
+	});
+
+	$(".m_head .ko").click(function () {
+		if ("none" == $(this).children(".on").css("display")) {
+			$(this).children(".on").slideDown();
+		} else {
+	 		$(this).children(".on").slideUp();
+		}
+	});
+
+	$(".btn_menu").click(function () {
+		if ("none" == $("#m_head .menu").css("display")) {
+			$("#m_head .menu").slideDown();
+			$("#m_head .menu_bg").css("display", "block");
+			$("#m_head .menu_bg").css("opacity", "1");
+			$("#m_head .btn_menu img").attr("src", "/site/ko/2021/res/img/close.svg");
+
+			$("#m_head .menu2").slideUp();
+			$("#m_head .btn_menu2 img").attr("src", "/site/ko/2021/res/img/menu2.svg");
+		
+		} else {
+			$("#m_head .menu").slideUp();
+			$("#m_head .menu_bg").css("display", "none");
+			$("#m_head .menu_bg").css("opacity", "0");
+			$("#m_head .btn_menu img").attr("src", "/site/ko/2021/res/img/menu.svg");
+		}
+	});
+
+	$(".menu .a1").click(function () {
+		$(".menu .a1").removeClass("on");
+		$(this).addClass("on");
+	});
+	/* 
+	$(".menu .dep2 .d2").click(function () {
+		if ("none" == $(this).next().css("display")) {
+			$(this).next().slideDown();
+		} else {
+			$(this).next().slideUp();
+		}
+	});
+	 */
+
+	 $(".btn_menu2").click(function () {
+		if ("none" == $("#m_head .menu2").css("display")) {
+			$("#m_head .menu2").slideDown();
+			$("#m_head .menu_bg").css("display", "block");
+			$("#m_head .menu_bg").css("opacity", "1");
+			$("#m_head .btn_menu2 img").attr("src", "/site/ko/2021/res/img/close.svg");
+
+			$("#m_head .menu").slideUp();
+			$("#m_head .btn_menu img").attr("src", "/site/ko/2021/res/img/menu.svg");
+		
+		} else {
+			$("#m_head .menu2").slideUp();
+			$("#m_head .menu_bg").css("display", "none");
+			$("#m_head .menu_bg").css("opacity", "0");
+			$("#m_head .btn_menu2 img").attr("src", "/site/ko/2021/res/img/menu2.svg");
+		}
+	});
+	 
+	$(".menu2 .a1").click(function () {
+		$(".menu2 .a1").removeClass("on");
+		$(this).addClass("on");
+	});
+	
+</script>
+
+
+
+			</div>
+			<div id="head">
+				
+					
+				
+
+
+
+
+
+
+
+<div class="head">
+	<h1 class="logo"><a href="/">서울과학기술대학교 바로가기</a></h1>
+	<div class="link">
+		<ul>
+<!-- 			<li><a target="_blank" title="새창" href="https://portal.seoultech.ac.kr/">과기대포탈</a></li> -->
+<!-- 			<li><a target="_blank" title="새창" href="https://seoultech.korus.ac.kr/">KORUS</a></li> -->
+<!-- 			<li><a target="_blank" title="새창" href="https://stportal.seoultech.ac.kr/">학생포탈</a></li> -->
+<!-- 			<li><a target="_blank" title="새창" href="https://parent.seoultech.ac.kr/">학부모포탈</a></li> -->
+			<li><a href="/sinfo/sitemap">sitemap</a></li>
+			
+
+
+
+
+
+
+	
+
+	<li><a href="javascript:popup_Login(24);" title="새창">login</a></li>
+	
+
+
+
+			<li>
+				<span class="language">
+					<input type="button" value="language"/>
+					<span class="box">
+						<a href="https://en.seoultech.ac.kr/" target="_blank" title="새창">ENG</a>
+						<a href="https://cn.seoultech.ac.kr/" target="_blank" title="새창">CHN</a>
+					</span>
+				</span>
+			</li>
+			<li><a class="search" href="https://www.seoultech.ac.kr/site/www/search/index.jsp" target="_blank" title="새창">search</a></li>
+		</ul>
+	</div>
+	
+	<nav class="gnb">
+		
+			
+			
+				<div class="dep1">
+					<h1><a id='skip_gnb' class="a1 " href="/intro"><span>대학소개</span></a></h1>
+					<ul class="dep2">
+						
+							
+								<li><a class="a2 " href="/intro/univ">서울과기대 소개</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/intro/chief">열린총장실</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/intro/uvstat">대학현황</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/intro/organization">대학조직</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/intro/symbol">대학상징</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/intro/infobox">홍보관</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/intro/campinfo">캠퍼스 안내</a></li>
+							
+						
+							
+								<li><a class="a2 " href="http://www.seoultech.ac.kr/intro/uvstat/rules/">학칙 및 규정</a></li>
+							
+						
+					</ul>
+				</div>
+			
+			
+		
+			
+			
+				<div class="dep1">
+					<h1><a  class="a1 " href="#"><span>입학·국제교류</span></a></h1>
+					<ul class="dep2">
+						
+							
+								<li><a class="a2 link2" href="http://admission.seoultech.ac.kr">대학입학</a></li>
+							
+						
+							
+								<li><a class="a2 link2" href="http://admission.seoultech.ac.kr/cms/FR_CON/index.do?MENU_ID=850">대학원입학</a></li>
+							
+						
+							
+								<li><a class="a2 link2" href="http://global.seoultech.ac.kr/admissions/undergraduate/admission/">International 입학</a></li>
+							
+						
+							
+						
+							
+								<li><a class="a2 link2" href="http://global.seoultech.ac.kr">국제교류</a></li>
+							
+						
+					</ul>
+				</div>
+			
+			
+		
+			
+			
+				<div class="dep1">
+					<h1><a  class="a1 " href="/univ"><span>대학·대학원</span></a></h1>
+					<ul class="dep2">
+						
+							
+								<li><a class="a2 " href="/univ/univ">대학</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/univ/com">일반대학원</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/univ/special">특수대학원</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/univ/expert">전문대학원</a></li>
+							
+						
+					</ul>
+				</div>
+			
+			
+		
+			
+			
+				<div class="dep1">
+					<h1><a  class="a1 " href="/life"><span>대학생활</span></a></h1>
+					<ul class="dep2">
+						
+							
+								<li><a class="a2 " href="/life/sch">학사일정</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/life/info">학사안내</a></li>
+							
+						
+							
+								<li><a class="a2 link2" href="http://serve.seoultech.ac.kr/">ST나눔공헌단</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/life/military">병무·예비군</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/life/scholarship">장학제도</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/life/tution">등록제도</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/life/student">학생지원</a></li>
+							
+						
+							
+						
+							
+								<li><a class="a2 " href="/life/facility">시설이용</a></li>
+							
+						
+							
+						
+							
+						
+							
+						
+					</ul>
+				</div>
+			
+			
+		
+			
+			
+				<div class="dep1">
+					<h1><a  class="a1 " href="#/"><span>산학·연구</span></a></h1>
+					<ul class="dep2">
+						
+							
+								<li><a class="a2 link2" href="http://iac.seoultech.ac.kr/intro/greet/">단장 인사말</a></li>
+							
+						
+							
+								<li><a class="a2 link2" href="http://iac.seoultech.ac.kr/intro/iacplan/vision2/">중장기발전계획</a></li>
+							
+						
+							
+								<li><a class="a2 link2" href="http://iac.seoultech.ac.kr/intro/job/">업무분장</a></li>
+							
+						
+							
+						
+							
+								<li><a class="a2 link2" href="http://iac.seoultech.ac.kr/news/notice/">공지사항</a></li>
+							
+						
+							
+								<li><a class="a2 link2" href="http://iac.seoultech.ac.kr/support/manage/">연구비중앙관리절차</a></li>
+							
+						
+							
+								<li><a class="a2 link2" href="http://ra.seoultech.ac.kr">교내연구업적</a></li>
+							
+						
+							
+								<li><a class="a2 link2" href="http://iac.seoultech.ac.kr/news/appeal/">과제공모</a></li>
+							
+						
+							
+								<li><a class="a2 link2" href="http://iac.seoultech.ac.kr/tech/property/">지식재산권</a></li>
+							
+						
+							
+						
+							
+						
+							
+						
+							
+						
+							
+						
+							
+						
+							
+						
+					</ul>
+				</div>
+			
+			
+		
+			
+			
+				<div class="dep1">
+					<h1><a  class="a1 " href="#/"><span>취업·창업</span></a></h1>
+					<ul class="dep2">
+						
+							
+						
+							
+								<li><a class="a2 link2" href="http://job.seoultech.ac.kr/">취업진로본부</a></li>
+							
+						
+							
+								<li><a class="a2 link2" href="http://internship.seoultech.ac.kr/">현장실습지원센터</a></li>
+							
+						
+							
+						
+							
+						
+							
+								<li><a class="a2 link2" href="http://sssf.seoultech.ac.kr/">창업지원단</a></li>
+							
+						
+							
+								<li><a class="a2 link2" href="http://sssf.seoultech.ac.kr/care/introcare/">창업보육센터</a></li>
+							
+						
+					</ul>
+				</div>
+			
+			
+		
+			
+			
+				<div class="dep1">
+					<h1><a  class="a1 " href="/service"><span>정보·민원서비스</span></a></h1>
+					<ul class="dep2">
+						
+							
+								<li><a class="a2 " href="/service/info">대학정보알림</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/service/pubinfo">정보공개</a></li>
+							
+						
+							
+						
+							
+								<li><a class="a2 " href="/service/is">정보서비스안내</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/service/sccenter">온라인민원센터</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/service/report">갑질신고센터</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/service/lostproperty">유실물 센터</a></li>
+							
+						
+							
+								<li><a class="a2 " href="/service/board">SEOULTECH광장</a></li>
+							
+						
+							
+						
+					</ul>
+				</div>
+			
+			
+		
+			
+			
+		
+	</nav>
+	
+</div>
+<div class="gnb_bg">&nbsp;</div>
+
+
+				
+<script type="text/javascript">
+	$("#head .gnb").hover(function() {
+		$("#head").addClass("on");
+		$(".gnb_bg").addClass("on");
+	}, function() {
+	});
+
+	$("#head").hover(function() {
+	}, function() {
+		$("#head").removeClass("on");
+		$(".gnb_bg").removeClass("on");
+	});
+
+	$(".dep1").hover(function() {
+		$(".dep1").removeClass("on");
+		$(this).addClass("on");
+	}, function() {
+	});
+	
+	$(".dep1 .a1").focus(function () {
+		$("#head").addClass("on");
+		$(".gnb_bg").addClass("on");
+	});
+
+	$(".head .link .language input").focus(function () {
+		$(".head .link .language").addClass("on");
+	});
+	$(".head .link .search").focus(function () {
+		$(".head .link .language").removeClass("on");
+	});
+	
+	$(document).ready(function() {
+		
+		$("#qmenu .v1").focus(function () {
+			$("#head").removeClass("on");
+			$(".gnb_bg").removeClass("on");
+		});
+
+		$("#splash .splash_btn_prev").focus(function () {
+			$(".qmenu_list .list").removeClass("on");
+		});
+
+		$("#head .head a").focus(function () {
+			$("#popup_layer").css("display", "none");
+		});
+	
+	});
+	
+	
+	$(document).ready(function() {
+		/* 
+		$(".gnb .link1").each(function(index) {
+			$(this).attr("target" , "_blank");
+			$(this).attr("title" , "새창으로 이동");
+			$(this).append("<img class='bg1' alt='' src='/site/ko/res/img/link_on.png'>");
+		});
+		 */
+		$(".gnb .link2").each(function(index) {
+			$(this).attr("target" , "_blank");
+			$(this).attr("title" , "새창으로 이동");
+// 			$(this).append("<img class='bg2' alt='' src='/site/ko/res/img/link_on.png'>");
+		});
+		
+	});
+
+	
+</script>
+
+
+			</div>
+			
+			<div id="qmenu">
+		 		
+<div class="qmenu">
+	<h2 class="item v1" tabindex="0">학생</h2>
+	<div class="qmenu_list">
+		<div class="list v1">
+			<img class="bg" alt="" src="/site/ko/2021/res/img/qmenu_bg.png">
+			<div>
+				<a target="_blank" title="새창" href="https://stportal.seoultech.ac.kr/"><span>학생포탈</span></a>
+				<a target="_blank" title="새창" href="https://eclass.seoultech.ac.kr/"><span>eClass</span></a>
+				<a target="_blank" title="새창" href="https://epic.seoultech.ac.kr/"><span>EPiC folio</span></a>
+				<a target="_blank" title="새창" href="https://suis.seoultech.ac.kr/"><span>통합정보(SUIS)</span></a>
+				<div style="margin:20px 10px; border-bottom:1px solid #ddd;"></div>
+			</div>
+	
+			<div>
+				<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/life/sch/common/"><span>학사일정</span></a>
+				<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/life/info/college/schedule/"><span>학사행정</span></a>
+				<a target="_blank" title="새창" href="https://for-s.seoultech.ac.kr/"><span>학부수강신청</span></a>
+			</div>
+	
+			<div>
+				<a target="_blank" title="새창" href="https://docu.seoultech.ac.kr/"><span>증명서발급</span></a>
+				<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/map/"><span>캠퍼스 지도</span></a>
+				<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/uvstat/orga/"><span>조직도</span></a>
+				<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/life/student/food2/"><span>식단</span></a>
+				<div style="margin:20px 10px; border-bottom:1px solid #ddd;"></div>
+			</div>
+				
+			<div>
+				<a target="_blank" title="새창" href="https://library.seoultech.ac.kr/"><span>도서관</span></a>
+				<a target="_blank" title="새창" href="https://domi.seoultech.ac.kr/"><span>생활관</span></a>
+			</div>
+			
+		</div>
+	</div>
+
+	<h2 class="item v2" tabindex="0">교직원</h2>
+	<div class="qmenu_list">
+		<div class="list v2">
+			<img class="bg" alt="" src="/site/ko/2021/res/img/qmenu_bg.png">
+			<a target="_blank" title="새창" href="https://seoultech.korus.ac.kr/"><span>KORUS</span></a>
+			<a target="_blank" title="새창" href="https://portal.seoultech.ac.kr/"><span>교직원포탈</span></a>
+			<a target="_blank" title="새창" href="https://mail.seoultech.ac.kr/"><span>웹메일</span></a>
+			<a target="_blank" title="새창" href="https://for-a.seoultech.ac.kr/index-s.html"><span>통합정보(SUIS)</span></a>
+			<a target="_blank" title="새창" href="https://seoultech.korus.kr"><span>증명발급(외래교수)</span></a>
+			<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/life/sch/common/"><span>학사일정</span></a>
+			<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/uvstat/rules/"><span>학칙 및 규정</span></a>
+			<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/uvstat/orga/"><span>조직도</span></a>
+			<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/map/"><span>캠퍼스 지도</span></a>
+			<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/life/student/food2/"><span>식단</span></a>
+		</div>
+	</div>
+
+	<h2 class="item v3" tabindex="0">미래가족</h2>
+	<div class="qmenu_list">
+		<div class="list v3">
+			<img class="bg" alt="" src="/site/ko/2021/res/img/qmenu_bg.png">
+			<a target="_blank" title="새창" href="https://admission.seoultech.ac.kr/index.do"><span>학부입시</span></a>
+			<a target="_blank" title="새창" href="https://admission.seoultech.ac.kr/cms/FR_CON/index.do?MENU_ID=550"><span>대학원입시</span></a>
+			<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/campinfo/camper/information/"><span>캠퍼스투어</span></a>
+			<a target="_blank" title="새창" href="https://recruit.seoultech.ac.kr/"><span>교원채용</span></a>
+			<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/service/info/recruit/"><span>채용정보</span></a>
+			<a target="_blank" title="새창" href="https://lifelong.seoultech.ac.kr/"><span>사회교육개발원</span></a>
+			<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/map/"><span>캠퍼스지도</span></a>
+		</div>
+	</div>
+
+	<h2 class="item v4" tabindex="0">학부모</h2>
+	<div class="qmenu_list">
+		<div class="list v4">
+			<img class="bg" alt="" src="/site/ko/2021/res/img/qmenu_bg.png">
+			<a target="_blank" title="새창" href="https://parent.seoultech.ac.kr/"><span>학부모포탈</span></a>
+			<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/uvstat/orga/"><span>조직도</span></a>
+			<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/map/"><span>캠퍼스지도</span></a>
+			<a target="_blank" title="새창" href="https://fund.seoultech.ac.kr/"><span>발전기금</span></a>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	
+	$("#qmenu").hover(function() {
+// 		$(".qmenu_list").addClass("on");
+	}, function() {
+// 		$(".qmenu_list").removeClass("on");
+		$(".qmenu_list .list").removeClass("on");
+	});
+
+	$("#qmenu .qmenu .item").hover(function() {
+		$(".qmenu_list .list").removeClass("on");
+		$(this).next().children(".list").addClass("on");
+	}, function() {
+	});
+	
+	$(".qmenu .v1").focus(function () {
+		$(".qmenu_list .list").removeClass("on");
+		$(".qmenu_list .v1").addClass("on");
+	});
+	$(".qmenu .v2").focus(function () {
+		$(".qmenu_list .list").removeClass("on");
+		$(".qmenu_list .v2").addClass("on");
+	});
+	$(".qmenu .v3").focus(function () {
+		$(".qmenu_list .list").removeClass("on");
+		$(".qmenu_list .v3").addClass("on");
+	});
+	$(".qmenu .v4").focus(function () {
+		$(".qmenu_list .list").removeClass("on");
+		$(".qmenu_list .v4").addClass("on");
+	});
+
+
+</script>
+
+
+
+
+			</div>
+	
+		 	<header id="splash">
+		 		
+					
+				
+
+
+
+
+
+
+
+<style>
+  	#splash {position:relative;}
+  	.splash {max-height:800px; overflow:hidden;}
+  	.splash .item {position:relative; vertical-align:top;}
+  	.splash .item .bg {height:800px; background-repeat:no-repeat; background-position:center center; background-size:100% 100%;}
+  	.splash .item .pa {position:absolute; bottom:0; left:0; width:100%;}
+  	.splash .item .pa .wm {max-width:1400px; margin:0 auto;}
+  	.splash .item .box {position:relative; width:590px; padding:40px 30px 120px 40px; background:rgba(0,0,0,0.5); backdrop-filter:blur(10px); }
+  	.splash .item .box {font-size:17px; font-weight:300; color:#fff; word-break:normal;}
+  	.splash .item .box a {color:#fff;}
+  	.splash .item .box strong {font-size:28px; font-weight:500; letter-spacing:-0.08em;}
+  	.splash .item .box .corona {position:absolute; top:-55px; left:0; display:inline-block; width:180px; line-height:35px; font-size:18px; font-weight:500; letter-spacing:-0.05em; color:#fff; text-align:center; background:#cf404a; border-radius:30px;}
+  	.splash .video {position:relative; height:800px;}
+  	.splash .video video {position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);}
+  	.splash .video .video-btn {position:absolute; bottom:90px; left:50%; transform:translate(-50%, 0); width:100%; padding:0 40px; max-width:1400px; box-sizing:border-box; z-index:2;}
+  	.splash .video button {background:none; border:none; cursor:pointer; margin:0;}
+
+  	.splash .slick-prev {display:none !important;}
+	.splash .slick-next {display:none !important;}
+
+ 	.splash_btn {position:absolute; bottom:40px; left:50%; transform:translate(-50%,0); width:100%; max-width:1400px; z-index:1;}
+  	.splash_btn .btn {display:flex; padding-left:40px;}
+  	.splash_btn .btn .stop {margin:0 -1px;}
+  	.splash_btn .btn .stop .on {display:none;}
+ 
+  	.splash_btn .btn input {border-radius:0px;}
+
+ 	@media only screen and (max-width:1920px) {
+		.splash .item .bg {background-size:auto 100%;}
+	}
+ 	@media only screen and (max-width:1600px) {
+ 	  	.splash {height:680px;}
+		.splash .item .bg {height:680px;}
+	  	.splash .video {height:680px;}
+	}
+	@media only screen and (max-width:1216px) {
+	  	.splash .video video {height:100%;}
+	}
+	
+ 	@media only screen and (max-width:1000px) {
+ 	  	.splash {height:480px;}
+		.splash .item .bg {height:480px;}
+	  	.splash .video {height:480px;}
+	  	
+	  	.splash .item .box {width:auto; padding:15px 20px 70px 20px;}
+  	  	.splash .item .box {font-size:0; line-height:0;}
+  	  	.splash .item .box strong {font-size:18px; line-height:1.2;}
+  	  	.splash_btn .btn input {width:30px;}
+	  	
+	  	.splash_btn {bottom:20px;}
+	}
+
+ 	@media only screen and (max-width:640px) {
+	  	.splash .item .box {width:auto; padding:15px 20px 70px 20px;}
+  	  	.splash .item .box {font-size:0; line-height:0;}
+  	  	.splash .item .box strong {font-size:18px; line-height:1.2;}
+  	  	.splash_btn .btn input {width:30px;}
+	  	
+	  	.splash_btn {bottom:20px;}
+ 	  	.splash {height:350px;}
+		.splash .item .bg {height:350px;}
+	  	.splash .video {height:350px;}
+	  	
+	  	.splash .item .box .corona {font-size:16px; line-height:28px; top:-40px;}
+	  	
+	}
+	
+</style>
+
+
+
+<div class="splash_btn">
+	<div class="btn">
+		<input class="splash_btn_prev" type="image" src="/site/ko/2021/res/img/btn_prev.png" alt="이전" onclick="javascript:$('.splash .slick-prev').click();">
+		<span class="stop">
+			<input type="image" src="/site/ko/2021/res/img/btn_stop.png" alt="멈춤" onclick="playSplash(false)">
+			<input class="on" type="image" src="/site/ko/2021/res/img/btn_next.png"  alt="재생" onclick="playSplash(true)">
+		</span>
+		<input type="image" src="/site/ko/2021/res/img/btn_next.png" alt="다음" onclick="javascript:$('.splash .slick-next').click();">
+	</div>
+</div>
+
+<div class="splash">
+
+	<div class="item video">
+		<video id="videoplay" src="/site/ko/2021/res/video/220727.mp4" autoplay muted playsinline></video>
+		<div class="video-btn">
+			<button type="button" title="영상 재생" onclick="VideoPlay()">
+				<img alt="" src="/site/ko/2021/res/img/btn_next4.png">
+			</button>
+			<button type="button" title="영상 정지" onclick="VideoPause()" style="margin-left:3px;">
+				<img alt="" src="/site/ko/2021/res/img/btn_stop4.png">
+			</button>
+		</div>
+	</div>
+	
+	
+
+
+</div>
+
+
+<script type="text/javascript">
+	$(document).ready(function(){
+		$('.splash').slick({
+			slidesToShow : 1,
+			swipeToSlide : true,
+// 		  	autoplay: true,
+		  	autoplaySpeed: 5000,
+			fade: true,
+			cssEase: 'linear'
+		});
+	});
+	
+	var videocontrol = document.getElementById("videoplay");
+	
+	function VideoPlay() {
+		videocontrol.play();
+	}
+	function VideoPause() {
+		videocontrol.pause();
+	}
+	
+	function playSplash(isPlay) {
+		if (isPlay) {
+			$('.splash').data('instance').play();
+			$('.splash_btn .btn .stop input').css("display" , "block");
+			$('.splash_btn .btn .stop .on').css("display" , "none");
+		} else {
+			$('.splash').data('instance').pause();
+			$('.splash_btn .btn .stop input').css("display" , "none");
+			$('.splash_btn .btn .stop .on').css("display" , "block");
+		}
+	}
+	
+	$('.splash').on("afterChange", function(event, slick, currentSlide){
+		if ("item video" == $(".splash .slick-active .item").attr("class")) {
+			$('.splash').data('instance').pause();
+			videocontrol.play();
+		} else {
+			videocontrol.pause();
+		}
+		
+	});
+	
+	$('video').on('ended', function() {
+		$('.splash').data('instance').play();
+      });
+	
+</script>
+
+
+
+
+		 	</header>
+ 		</div>
+
+		<!-- 
+	 	<div id="popup_line">
+	 		<div class="popup_line">
+	 			<div class="item"><a href="#">SEOULTECH Chatme 1.3</a></div>
+	 			<div class="item"><a href="#">코로나바이러스-19 대응</a></div>
+	 		</div>
+	 	</div>
+	 	 -->
+		
+	 	<section id="news">
+ 			<h2 class="h2 tac">NEWS <span>&nbsp;</span></h2>
+			<div class="btn">
+				<input type="image" src="/site/ko/2021/res/img/btn_prev3.png" alt="이전" onclick="javascript:$('.news .slick-prev').click();">
+				<input type="image" src="/site/ko/2021/res/img/btn_next3.png" alt="다음" onclick="javascript:$('.news .slick-next').click();">
+			</div>
+			
+	 		<div class="news">
+		 		
+					
+					
+				
+
+
+
+
+
+
+
+	
+					<div class="item">
+						<a href="/service/info/news?do=commonview&bnum=3596&bidx=530179">
+							<span class="title">경영학과 서지혜 교수, 제32회 WITS 2022에서 Prabuddha De Best Paper Award 수상</span> 
+							<span class="content">경영학과 서지혜 교수가 2022년 12월 덴마크 코펜하겐에서 열린 제32회 Workshop on Information Te...</span> 
+							<img class="img" alt="" src="/storage/www/bbs/3596/1674793853896dddddWITS_Prabud.ha De Best Paper Award copy.jpg" onerror="src='/site/ko/2021/res/img/no_img.png';">
+						</a>
+					</div>
+		
+					<div class="item">
+						<a href="/service/info/news?do=commonview&bnum=3596&bidx=530029">
+							<span class="title">[인터뷰] ‘제6회 대학생 금속학습그룹 최종보고회’  최우수상 - 신소재공학과 신희창(17)</span> 
+							<span class="content">지난 2022년 12월 1일 대전 KT인재개발원에서 열린 &#39;제6회 대학생 금속학습그룹&#39; 성과발표회에서 서울과...</span> 
+							<img class="img" alt="" src="/storage/www/bbs/3596/1674190790551thumbSNUST1670895492853 copy.jpg" onerror="src='/site/ko/2021/res/img/no_img.png';">
+						</a>
+					</div>
+		
+					<div class="item">
+						<a href="/service/info/news?do=commonview&bnum=3596&bidx=530010">
+							<span class="title">서울과기대, 금오공대-부산대-아주대-충북대와 함께  「반도체 Multiversity」 출범</span> 
+							<span class="content">▲ &lsquo;반도체 Multiversity&rsquo; 업무협약 및 출범식 기념사진서울과기대가 금오공과대학교, 부산대학...</span> 
+							<img class="img" alt="" src="/storage/www/bbs/3596/1674174767903image00006.jpg" onerror="src='/site/ko/2021/res/img/no_img.png';">
+						</a>
+					</div>
+		
+					<div class="item">
+						<a href="/service/info/news?do=commonview&bnum=3596&bidx=529945">
+							<span class="title">기계시스템디자인공학과 이승제 교수, '대전광역시 미래대응 토크콘서트' 강연 진행</span> 
+							<span class="content">기계시스템디자인공학과 이승제 교수가 2022년 10월 22일 대전광역시 대전컨벤션센터에서 열린 &#39;대전광역시 미래대응...</span> 
+							<img class="img" alt="" src="/storage/www/bbs/3596/1674028914898612273_510453_2054.jpg" onerror="src='/site/ko/2021/res/img/no_img.png';">
+						</a>
+					</div>
+		
+					<div class="item">
+						<a href="/service/info/news?do=commonview&bnum=3596&bidx=529916">
+							<span class="title">서울과기대 디자인학과 노준구 교수, 개인전 ‘재현된 풍경’ 개최</span> 
+							<span class="content">조형대학 디자인학과 노준구 교수의 개인전 &lsquo;재현된 풍경&rsquo;이 서울과기대 미술관에서 1월 16일(월)부터...</span> 
+							<img class="img" alt="" src="/storage/www/bbs/3596/1673955945760노준구 개인전_01.jpg" onerror="src='/site/ko/2021/res/img/no_img.png';">
+						</a>
+					</div>
+		
+					<div class="item">
+						<a href="/service/info/news?do=commonview&bnum=3596&bidx=529898">
+							<span class="title">MSDE학과 안지환 교수팀/기계·자동차공학과 옥종걸 교수팀, 응용 소재 분야 최우수 저널 'Advanced Materials Technologies'에 표지 논문 게재</span> 
+							<span class="content">MSDE학과 안지환 교수팀과 기계자동차학과 옥종걸 교수팀(제1저자 이재형,고도현 연구원/공동저자 이우승,이승현,김근회,신정...</span> 
+							<img class="img" alt="" src="/storage/www/bbs/3596/1673939540781202301087image00001.jpg" onerror="src='/site/ko/2021/res/img/no_img.png';">
+						</a>
+					</div>
+		
+					<div class="item">
+						<a href="/service/info/news?do=commonview&bnum=3596&bidx=529835">
+							<span class="title">전기정보공학과 박민석, SCI급 논문 게재</span> 
+							<span class="content">전기정보공학과 김세움 교수팀 연성전자소재 및 소자 연구실의 학부연구생 박민석은 SCI논문지 Materials에 &lsquo...</span> 
+							<img class="img" alt="" src="/storage/www/bbs/3596/1673857802691materials-16-20230116_00035-v2-6.jpg" onerror="src='/site/ko/2021/res/img/no_img.png';">
+						</a>
+					</div>
+		
+					<div class="item">
+						<a href="/service/info/news?do=commonview&bnum=3596&bidx=529633">
+							<span class="title">안전공학과 전기소자 신뢰성 연구실, 고전압에 의한 박막 반도체 소자 안전성 강황 방안 제안</span> 
+							<span class="content">안전공학과 전기소자 신뢰성 연구실(지도교수 송형준)은 미국 Los Alamos National Lab과 서울대학교와 공동연...</span> 
+							<img class="img" alt="" src="/storage/www/bbs/3596/167333913851720230110+안전공학과image01.jpg" onerror="src='/site/ko/2021/res/img/no_img.png';">
+						</a>
+					</div>
+	
+
+	 		</div>
+	 		
+	 		<a class="more tac" href="/service/info/news/">MORE NEWS +</a>
+	  	</section>
+	  	
+	  	<div style="background:#f4f7fd;"><section id="event"></section></div>
+	  	
+	 	<section id="notice">
+ 			<h2 class="h2 tac">NOTICE <span>&nbsp;</span></h2>
+	 		<div class="notice">
+				<div class="bbs">
+					<div class="item on">
+						<div class="t22"><button class=" f-n">공지사항</button></div>
+						<a class="more" href="/service/info/notice/"><img alt="공지사항 더보기" src="/site/ko/2021/res/img/notice_more.png"></a>
+						<div class="list">
+							
+								
+								
+							
+
+
+
+
+
+
+
+
+					<a href="/service/info/notice?do=commonview&bnum=4691&bidx=530316">
+						<span class="text">동양서 자료실 임시휴실 안내(23.2.3(금))<span class='new'>N</span></span>
+						<span class="day">2023-02-01</span>
+					</a>
+				
+					<a href="/service/info/notice?do=commonview&bnum=4691&bidx=530314">
+						<span class="text">[노원구청] 노원 청년가게 3호점 운영자 모집 공고(~2. 14.)<span class='new'>N</span></span>
+						<span class="day">2023-02-01</span>
+					</a>
+				
+					<a href="/service/info/notice?do=commonview&bnum=4691&bidx=530272">
+						<span class="text">[도서관] SCOAP³ 저널 11종 논문게재료(APC) 무료 지원 안내<span class='new'>N</span></span>
+						<span class="day">2023-01-31</span>
+					</a>
+				
+					<a href="/service/info/notice?do=commonview&bnum=4691&bidx=530232">
+						<span class="text">「반도체 Multiversity」 공정실습 Boot Camp 교육 수강 대상자 발표<span class='new'>N</span></span>
+						<span class="day">2023-01-30</span>
+					</a>
+				
+					<a href="/service/info/notice?do=commonview&bnum=4691&bidx=530215">
+						<span class="text">2023학년도 1학기 물리 튜터 장학생 모집<span class='new'>N</span></span>
+						<span class="day">2023-01-30</span>
+					</a>
+				
+					<a href="/service/info/notice?do=commonview&bnum=4691&bidx=530213">
+						<span class="text">「2023 청주시 규제개혁 아이디어 공모전」 참여 안내<span class='new'>N</span></span>
+						<span class="day">2023-01-30</span>
+					</a>
+				
+					<a href="/service/info/notice?do=commonview&bnum=4691&bidx=530177">
+						<span class="text">[도서관] 학교 이메일 인증하면 유료 영자신문이 무료! (뉴욕타임즈, 월스트리트저널...)<span class='new'>N</span></span>
+						<span class="day">2023-01-27</span>
+					</a>
+				
+
+						</div>
+					</div>
+					<div class="item">
+						<div class="t22" data-type="notice" data-menu="6112"><button>학사</button></div>
+						<a class="more" href="/service/info/matters/"><img alt="학사 더보기" src="/site/ko/2021/res/img/notice_more.png"></a>
+						<div class="list"></div>
+					</div>
+					<div class="item">
+						<div class="t22" data-type="notice" data-menu="5233,57138"><button>장학</button></div>
+						<a class="more" href="/service/info/janghak/"><img alt="장학 더보기" src="/site/ko/2021/res/img/notice_more.png"></a>
+						<div class="list"></div>
+					</div>
+					<div class="item">
+						<div class="t22" data-type="notice" data-menu="56589"><button>대학원</button></div>
+						<a class="more" href="/service/info/graduate/"><img alt="대학원 더보기" src="/site/ko/2021/res/img/notice_more.png"></a>
+						<div class="list"></div>
+					</div>
+					<div class="item">
+						<div class="t22" data-type="notice" data-menu="57925,57926"><button>취업</button></div>
+						<a class="more" href="/service/info/job/"><img alt="취업 더보기" src="/site/ko/2021/res/img/notice_more.png"></a>
+						<div class="list"></div>
+					</div>
+				</div>
+				<div class="banner"></div>
+			</div>
+	  	</section>
+
+	 	<section id="youtube"></section>
+		
+	 	<footer id="tail">
+	 		
+				
+			
+
+
+
+<div class="tail">
+	<div class="logo">
+		<a href="http://www.wa.or.kr/board/list.asp?BoardID=0006" target="_blank">
+			<img class="wa" alt="(사)한국장애인단체총연합회 한국웹접근성인증평가원 웹 접근성 우수사이트 인증마크(WA인증마크) 새창" src="/site/ko/res/img/wa_logo.png"/>
+		</a>
+	</div>
+	
+	<div class="t14" style="margin-left:-5px;">
+		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/sinfo/persnal/" style="color:#fff;"><b>개인정보처리방침</b></a> |
+<!-- 		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/sinfo/denyemail/">이메일무단수집거부</a> | -->
+<!-- 		<a target="_blank" title="새창" href="https://docu.seoultech.ac.kr">인터넷증명발급(학생)</a> | -->
+<!-- 		<a target="_blank" title="새창" href="https://seoultech.korus.kr">인터넷증명발급(외래교수)</a> | -->
+		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/sinfo/pinfo/">정보공시</a> | 
+<!-- 		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/service/pubinfo/pubinfo1/">정보공개</a> | -->
+<!-- 		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/uvstat/rules/">학칙/규정</a> | -->
+<!-- 		<a target="_blank" title="새창" href="https://mail.seoultech.ac.kr/">웹메일</a> |  -->
+		<a target="_blank" title="새창" href="https://ra.seoultech.ac.kr/index.do">교내연구업적조회</a> | 
+		<a href="/sinfo/sitemap">사이트맵</a>
+<!-- 		<a target="_blank" title="새창" href="https://www.seoultech.ac.kr/intro/infobox/picture/?do=list&bidx=3464&bnum=3462" style="color:#e5004f;">교내행사사진</a> |  -->
+<!-- 		<a target="_blank" title="새창" href="https://blog.naver.com/seoultech486"><img alt="SEOULTECH Blog" src="/site/ko/res/img/blog.png" style="margin-top:-7px;"></a> -->
+	</div>
+		
+	<div class="t14 mt20">
+		01811 서울시 노원구 공릉로 232 서울과학기술대학교  |  TEL. (02) 970.6114 <br>
+		Copyright 2021 SEOUL NATIONAL UNIVERSITY OF SCIENCE AND TECHNOLOGY. All Rights Reserved.
+<!-- 		01811 서울시 노원구 공릉로 232 서울과학기술대학교 (대표번호 : 02-970-6114) <br>  -->
+<!-- 		Copyright (c) 2017 SEOUL NATIONAL UNIVERSITY OF SCIENCE AND TECHNOLOGY. All RIGHTS RESERVED.		 -->
+	</div>
+	
+</div>
+
+
+
+
+<!--
+<script>
+	$(function() {
+		$.post("/hcm/access/log_ajax.jsp?menu=233")
+		.done(function(ret) {
+			console.log("menu = 233, accesslog ret = "+ ret);
+		});
+	})
+</script>
+-->
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-40981306-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'UA-40981306-1');
+</script>
+
+
+
+
+	 	</footer>
+ 		
+ 		<script type="text/javascript">
+ 			var isEvent = false;
+ 			var isBanner = false;
+ 			var isSns = false;
+ 			
+ 			function getSection() {
+ 				var scrollTop = $(document).scrollTop(); 
+ 				
+ 				if (scrollTop > 350 && !isEvent) {
+ 					isEvent = true;
+ 					getEventList();
+ 				}
+ 				if (scrollTop > 800 && !isBanner) {
+ 					isBanner = true;
+ 					getBannerList();
+ 				}
+ 				if (scrollTop > 1400 && !isSns) {
+ 					isSns = true;
+ 					getSnsList();
+ 				}
+ 			}
+ 			
+	      	$(".notice .item .t22").click(function () {				
+	      		$(".notice .item").removeClass("on");
+	      		$(this).parent().addClass("on");
+	      		
+	      		
+	      		if ($(this).closest(".item").find(".list").text() === "") {
+	      			getBoardList(this);
+	      		}
+	      	});
+	      	
+	      	function getSnsList() {
+	      		$.ajax({
+	    			url: '/site/ko/2021/youtube.jsp',
+	    			data : { menu : "233" },
+	    			success: function(res) {
+	    				if(res) {
+	    					$("#youtube").html(res);
+	    					$('.youtube_list').slick();
+	    					$('.fancybox-media').fancybox({
+	    						fitToView : true,
+	    						openEffect: 'elastic',
+	    						closeEffect: 'elastic',
+	    						helpers : {media : true}
+	    					});				
+	    					$(window).resize();
+	    				}
+	    			}
+	    		});	
+	      		
+	      		
+	      	}
+	      	
+	      	function getBannerList() {
+	      		$.ajax({
+	    			url: '/site/ko/2021/banner.jsp',
+	    			success: function(res) {
+	    				if(res) {
+	    					$(".banner").html(res);
+	    					$('.banner_list').slick({
+	    					  	autoplay: true,
+	    					  	autoplaySpeed: 3000
+	    					});
+	    					$('.banner_list2').slick({
+	    					  	autoplay: true,
+	    					  	adaptiveHeight: true,
+	    					  	autoplaySpeed: 3000
+	    					});
+	    				}
+	    			}
+	    		});	
+	      	}
+	      	
+	      	function getEventList() {
+	      		$.ajax({
+	    			url: '/site/ko/2021/event.jsp',
+	    			success: function(res) {
+	    				if(res) {
+	    					$("#event").html(res);
+
+	    					$('.event .text .list').slick({
+	    						fade: true,
+	    						asNavFor: '.event .img .list'
+	    					});
+	    					
+	    					$('.event .img .list').slick({
+	    						slidesToShow : 2,
+	    						arrows : false,
+	    						responsive : [
+	    							{
+	    								breakpoint : 1430,
+	    								settings : {
+	    									slidesToShow : 1
+	    								}
+	    							} 
+	    						],
+	    						asNavFor: '.event .text .list'
+	    					});
+	    				}
+	    			}
+	    		});	
+	      	}
+	      	
+	      	function getBoardList(that) {
+	      		var type = $(that).data("type");
+	      		var menu = $(that).data("menu");
+	      		
+	      		$.ajax({
+	    			url: '/site/ko/2021/bbs.jsp',
+	    			data: {
+	    				type : type,
+	    				menu : menu
+	    			},
+	    			success: function(res) {
+	    				if(res) {
+	    					$(that).closest(".item").find(".list").html(res);
+	    				}
+	    			}
+	    		});		
+	      	}
+	      	
+	      	function playBanner(isPlay) {
+	    		if (isPlay) {
+	    			$('.banner_list').data('instance').play();
+	    			$('.banner_list2').data('instance').play();
+	    			$('.slick-control .stop input').css("display" , "block");
+	    			$('.slick-control .stop .on').css("display" , "none");
+	    		} else {
+	    			$('.banner_list').data('instance').pause();
+	    			$('.banner_list2').data('instance').pause();
+	    			$('.slick-control .stop input').css("display" , "none");
+	    			$('.slick-control .stop .on').css("display" , "block");
+	    		}
+	    	}
+	      	
+	    	$(".f-n").focus(function () {
+	    		$(".selection").css("display", "none");
+	    	});
+ 		
+			$(document).ready(function(){
+				$('.news').slick({
+					slidesToShow : 4,
+					swipeToSlide : true,
+					responsive : [
+						{
+							breakpoint : 1000,
+							settings : {
+								slidesToShow : 3
+							}
+						}, 
+						{
+							breakpoint : 800,
+							settings : {
+								slidesToShow : 2
+							}
+						}, 
+						{
+							breakpoint : 600,
+							settings : {
+								slidesToShow : 1
+							}
+						} 
+					]
+				});
+				
+				var NemsWidth = 0;
+				$(window).resize(function() {
+					NemsWidth = $("#news .news .img").innerWidth();
+		 			$('#news .news .img').css('height', NemsWidth+"px");
+		 			var imgWidth = $(".youtube_list").innerWidth();
+		 			
+		 			if (imgWidth < 580) {
+		 				$(".youtube_list .item .img img").css("height", ($(".youtube_list .item .img.insta img").innerWidth()) + "px");
+		 			}
+		      	});
+		      	$(window).resize();  
+		      	getSection();
+			});
+			
+			$( window ).scroll(function() {
+				getSection();
+			});
+			
+ 		</script>
+
+	</body>
+</html>
+
+
+
+
+̠��؝      c�Dc�IE6MSc�E   S    O^partitionKey=%28https%2Cseoultech.ac.kr%29,:https://www.seoultech.ac.kr/index.jsp necko:classified 1 strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 OK
+Date: Wed, 01 Feb 2023 07:56:52 GMT
+Content-Type: text/html; charset=UTF-8
+X-Cache: MISS from cf4.seoultech.ac.kr
+X-Cache-Lookup: MISS from cf4.seoultech.ac.kr:3128
+ original-response-headers Set-Cookie: JSESSIONID=iQ3T6v81irccA7iX0DFeZLu0FAjfH4BQMZqWFDbUJ7P388TLbVCE3pUVnPH138l6.amV1c19kb21haW4vd3d3; Path=/; HttpOnly
+Date: Wed, 01 Feb 2023 07:56:52 GMT
+Content-Type: text/html; charset=UTF-8
+X-Cache: MISS from cf4.seoultech.ac.kr
+X-Cache-Lookup: MISS from cf4.seoultech.ac.kr:3128
+Transfer-Encoding: chunked
+Via: 
+Connection: keep-alive
+ ctid 1 uncompressed-len 0 net-response-time-onstart 778 net-response-time-onstop 788   �|

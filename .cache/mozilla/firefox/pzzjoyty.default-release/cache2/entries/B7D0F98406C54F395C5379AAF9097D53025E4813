@@ -1,0 +1,398 @@
+define({
+
+	webDrive : '웹드라이브',
+	myDrive : '내 드라이브',
+	groupDrive : '공용드라이브',
+	share : '공유',
+	folder : {
+		starred : '중요 표시한 파일/폴더',
+		recent : '최근 업데이트 된 파일',
+		largeAttachments : '대용량 첨부 폴더',
+		trash : '휴지통',
+		pictures : '내 사진',
+		documents : '내 문서',
+		shared : '공유받은 폴더',
+		_new : '신규',
+		sharing : '공유한 폴더',
+	},
+	upload : '파일 올리기',
+	driveSettings : '설정',
+	collapse : '접기',
+	expand : '펼치기',
+	addFolder : '폴더 추가',
+	newFolder : '새 폴더',
+	folderNameAlreadyExists : '이미 존재하는 폴더입니다 : ',
+	fileNameAlreadyExists : '이미 존재하는 파일입니다 : ',
+	folderNameTooLong : '폴더 이름의 길이는 255자 이하로 가능합니다',
+	fileNameTooLong : '파일 이름의 길이는 255자 이하로 가능합니다',
+	invalidFileName : '파일 이름에는 다음 문자를 사용할 수 없습니다.\n    \\ / : * ? " < > |',
+	cannotRenameFolder : '이 폴더는 이름을 변경하실 수 없습니다!',
+	failedToRenameFolder : '폴더 이름을 변경할 수 없습니다!',
+	failedToRenameFile : '파일 이름을 변경할 수 없습니다!',
+	empty : '비우기',
+	downloadsSuffix : '회',
+	expiresSuffix : '만료',
+	dropFilesToUpload : '이제 <strong>파일올리기</strong>도 손쉽게!',
+	descriptionDropFilesToUpload : '파일을 여기에 끌어다 놓으면 파일 올리기가 바로 시작됩니다.',
+	selectedLocation : '선택한 위치',
+	toolbar : {
+		selectAll : '전체선택',
+		upload : '올리기',
+		download : '내려받기',
+		remove : '삭제',
+		newFolder : '새폴더',
+		attach : '메일로 보내기',
+		emptyTrash : '휴지통 비우기',
+		restore : '복원'
+	},
+	filter : {
+		types : '종류별 보기',
+		none : '전체보기',
+		files : '파일',
+		folders : '폴더',
+		starred : '중요표시',
+		extensions : '파일 확장자',
+		apply : '확인',
+		cancel : '취소'
+	},
+	view : {
+		details : '자세히 보기',
+		icons : '아이콘 보기'
+	},
+	alt : {
+		upOneLevel : '한폴더 위로',
+		file : '파일',
+		folder : '폴더',
+		selectFolder : '폴더선택',
+		selectFile : '파일선택',
+		starred : '중요표시'
+	},
+	confirm : {
+		leadingDeleteFile : '',
+		trailingDeleteFile : ' 파일을<br>삭제하시겠습니까?',
+		leadingDeleteFolder : '',
+		trailingDeleteFolder : ' 폴더를<br>삭제하시겠습니까?',
+		leadingDeleteFiles : '',
+		trailingDeleteFiles : '개의 항목을<br>삭제하시겠습니까?',
+		moveToTrash : '삭제된 파일은 휴지통으로 이동합니다.',
+		cannotBeRestored : '휴지통에서 삭제하신 항목은<br>복구할 수 없습니다.',
+		cannotRestoreLargeAttachment : '삭제된 대용량 첨부파일은 복구할 수 없습니다.',
+		cannotRestoreInGroupDrive : '공용드라이브에서 삭제하신 항목은<br>복구할 수 없습니다.',
+		replaceFolder : '이 위치에 같은 이름의 폴더가 이미 있습니다.<br>기존 폴더을 덮어쓰겠습니까?',
+		replaceFile : '이 위치에 같은 이름의 파일이 이미 있습니다.<br>기존 파일을 덮어쓰겠습니까?',
+		Name : '이름',
+		New : '신규',
+		Current : '기존',
+		OK : '확인',
+		cancel : '취소',
+		overwrite : '덮어쓰기',
+		close : '닫기',
+		savedAttachment : '웹하드에 파일이 저장되었습니다.\n저장한 파일을 확인하시겠습니까?',
+		attach : '확인'
+	},
+
+	// Delete Files ------------------------------------------------------------
+	leadingFailedToDeleteFile : '',
+	trailingFailedToDeleteFile : ' 파일을 삭제하실 수 없습니다!',
+	leadingFailedToDeleteFolder : '',
+	trailingFailedToDeleteFolder : ' 폴더를 삭제하실 수 없습니다!',
+	leadingNoPermissionToDeleteFile : '',
+	trailingNoPermissionToDeleteFile : ' 파일을<br>삭제할 권한이 없습니다!',
+	leadingNoPermissionToDeleteFolder : '',
+	trailingNoPermissionToDeleteFolder : ' 폴더를<br>삭제할 권한이 없습니다!',
+
+	// Restore Files -----------------------------------------------------------
+	leadingFailedToRestoreFile : '',
+	trailingFailedToRestoreFile : ' 파일을 복구하실 수 없습니다!',
+	leadingFailedToRestoreFolder : '',
+	trailingFailedToRestoreFolder : ' 폴더를 복구하실 수 없습니다!',
+	leadingFailedToRestoreFileAlreadyExists : '복구할 경로에 ',
+	trailingFailedToRestoreFileAlreadyExists : ' 파일이 이미 있으므로 복구하실 수 없습니다!',
+	leadingFailedToRestoreFolderAlreadyExists : '복구할 경로에 ',
+	trailingFailedToRestoreFolderAlreadyExists : ' 폴더가 이미 있으므로 복구하실 수 없습니다!',
+
+	// Copy Files --------------------------------------------------------------
+	leadingCopyToFolderNotExists : '복사될 ',
+	trailingCopyToFolderNotExists : ' 폴더가 존재하지 않습니다.',
+	leadingFailedToCopyFile : '',
+	trailingFailedToCopyFile : ' 파일을 복사하실 수 없습니다!',
+	leadingFailedToCopyFolder : '',
+	trailingFailedToCopyFolder : ' 폴더를 복사하실 수 없습니다!',
+	leadingFailedToCopyFileTooLarge : '용량이 초과되어 ',
+	trailingFailedToCopyFileTooLarge : ' 파일을 복사하실 수 없습니다!',
+	leadingFailedToCopyFolderTooLarge : '용량이 초과되어 ',
+	trailingFailedToCopyFolderTooLarge : ' 폴더를 복사하실 수 없습니다!',
+	leadingNoPermissionToCopyFile : '',
+	trailingNoPermissionToCopyFile : ' 파일을<br>복사할 권한이 없습니다!',
+	leadingNoPermissionToCopyFolder : '',
+	trailingNoPermissionToCopyFolder : ' 폴더를<br>복사할 권한이 없습니다!',
+	leadingNoPermissionToCopyToFolder : '',
+	trailingNoPermissionToCopyToFolder : ' 폴더에<br>파일을 복사할 권한이 없습니다!',
+
+	// Move Files --------------------------------------------------------------
+	leadingMoveToFolderNotExists : '이동될 ',
+	trailingMoveToFolderNotExists : ' 폴더가 존재하지 않습니다.',
+	leadingFailedToMoveFile : '',
+	trailingFailedToMoveFile : ' 파일을 이동하실 수 없습니다!',
+	leadingFailedToMoveFolder : '',
+	trailingFailedToMoveFolder : ' 폴더를 이동하실 수 없습니다!',
+	leadingFailedToMoveFileTooLarge : '용량이 초과되어 ',
+	trailingFailedToMoveFileTooLarge : ' 파일을 이동하실 수 없습니다!',
+	leadingFailedToMoveFolderTooLarge : '용량이 초과되어 ',
+	trailingFailedToMoveFolderTooLarge : ' 폴더를 이동하실 수 없습니다!',
+	leadingNoPermissionToMoveFile : '',
+	trailingNoPermissionToMoveFile : ' 파일을<br>이동할 권한이 없습니다!',
+	leadingNoPermissionToMoveFolder : '',
+	trailingNoPermissionToMoveFolder : ' 폴더를<br>이동할 권한이 없습니다!',
+	leadingNoPermissionToMoveToFolder : '',
+	trailingNoPermissionToMoveToFolder : ' 폴더에<br>파일을 이동할 권한이 없습니다!',
+
+	// Download Files ----------------------------------------------------------
+	leadingNoPermissionToDownloadFile : '',
+	trailingNoPermissionToDownloadFile : ' 파일을<br>다운로드할 권한이 없습니다!',
+	leadingNoPermissionToDownloadFolder : '',
+	trailingNoPermissionToDownloadFolder : ' 폴더를<br>다운로드할 권한이 없습니다!',
+
+	// Upload Files ------------------------------------------------------------
+	leadingNoPermissionToUpload : '',
+	trailingNoPermissionToUpload : ' 폴더에<br>파일을 업로드 할 권한이 없습니다!',
+	uploadFiles : {
+		upload : '파일 업로드',
+		close : '닫기',
+		transferOverall : '전체 전송',
+		transferStatus : '업로드 정보',
+		files : '전송 파일',
+		speed : '전송 속도',
+		perSecond : '/초',
+		bytes : '전송 용량',
+		elapsed : '전송 시간',
+		elapsedMinutes : '분 ',
+		elapsedSeconds : '초',
+		name : '이름',
+		progress : '전송량',
+		status : '상태',
+		queued : '대기 중',
+		uploading : '전송 중',
+		aborted : '중지',
+		uploaded : '전송 완료',
+		pause : '중지',
+		cannotUpload : '해당 파일을 업로드하실 수 없습니다!',
+		leadingFileTooLarge : '',
+		middlingFileTooLarge : '파일은 업로드 가능한 최대 크기 ',
+		trailingFileTooLarge : '를 초과하여 업로드 하실 수 없습니다!',
+		leadingBlockedFileExtension : '',
+		trailingBlockedFileExtension : ' 확장자를 가진 파일은 업로드 할 수 없습니다.',
+		leadingMaxFileSize : '업로드할 전체 파일 크기는 ',
+		middlingMaxFileSize : ' 를 넘을 수 없습니다! (지금까지 총 ',
+		trailingMaxFileSize : ' 추가)',
+	},
+
+	// Search ------------------------------------------------------------------
+	search : {
+		simple : '검색',
+		placeholder : '검색어',
+		advanced : '상세검색',
+		advancedOptions : '상세 옵션',
+		type : '파일형식',
+		anyType : '전체',
+		documents : '문서',
+		images : '그림',
+		videos : '동영상',
+		audio : '음악',
+		compressed : '압축',
+		locatedIn : '검색위치',
+		anyWhere : '전체',
+		lookIn : '직접선택',
+		size : '파일크기',
+		anySize : '전체',
+		small : '~1MB 미만',
+		medium : '1MB 이상~10MB 미만',
+		large : '10MB 이상~100MB 미만',
+		huge : '100MB 이상~1GB 미만',
+		gigantic : '1GB 이상~4GB 이하',
+		date : '올린기간',
+		anyTime : '전체',
+		lastWeek : '1주일',
+		lastMonth : '1개월',
+		last3Months : '3개월',
+		last6Months : '6개월',
+		custom : '직접입력',
+		find : '찾기',
+		invalidStartDate : '올린기간 시작일자의 날짜형식이 올바르지 않습니다.',
+		invalidEndDate : '올린기간 종료일자의 날짜형식이 올바르지 않습니다.',
+		endDateCannotBeEarlierThanStartDate : '올린기간 시작일자가 종료일자 보다 늦은 시간입니다.',
+		results : '파일 검색 결과',
+	},
+
+	// Sorting -----------------------------------------------------------------
+	sort : {
+		heading : '정렬 옵션',
+		starred : '중요표시',
+		type : '종류',
+		name : '이름',
+		size : '크기',
+		lastModified : '수정한 날짜',
+		dateModified : '올린 날짜',
+		location : '위치',
+		originalLocation : '원래 위치',
+		dateDeleted : '삭제 날짜',
+		download : '다운로드',
+		downloads : '다운로드 횟수',
+		dateUploaded : '올린 날짜',
+		dateExpires : '유효기간'
+	},
+	sortBy : {
+		heading : '정렬기준',
+		starred : '중요표시순',
+		starredDirection : '중요 항목 우선',
+		type : '종류순',
+		typeDirection : '이름 우선',
+		name : '이름순',
+		nameDescending : 'ㅎ 우선',
+		nameAscending : 'ㄱ 우선',
+		size : '크기순',
+		sizeDescending : '큰파일 우선',
+		sizeAscending : '작은파일 우선',
+		lastModified : '수정한 날짜순',
+		dateModified : '올린 날짜순',
+		dateModifiedDescending : '최신 항목 우선',
+		dateModifiedAscending : '오래된 항목 우선',
+		downloads : '다운로드순',
+		downloadsDescending : '많은 횟수 우선',
+		downloadsAscending : '적은 횟수 우선',
+		dateUploaded : '올린 날짜순',
+		dateUploadedDescending : '최신 항목 우선',
+		dateUploadedAscending : '오래된 항목 우선',
+		dateExpires : '유효기간순',
+		dateExpiresDirection : '만료 항목 우선'
+	},
+
+	// Context Menu ------------------------------------------------------------
+	contextMenu : {
+		items : '개 항목',
+		open : '열기',
+		upload : '이 폴더에 올리기',
+		download : '다운로드',
+		cut : '잘라내기',
+		copy : '복사',
+		paste : '붙여넣기',
+		move : '이동',
+		restore : '복원',
+		remove : '삭제',
+		rename : '이름 바꾸기',
+		addStar : '중요 설정하기',
+		removeStar : '중요 해제하기',
+		properties : '속성'
+	},
+
+	chooseLocation : {
+		heading : '위치 선택',
+		makeNewFolder : '새 폴더 만들기',
+		OK : '확인',
+		cancel : '취소'
+	},
+
+	// Properties --------------------------------------------------------------
+	properties : {
+		items : '개 항목',
+		type : '종류',
+		file : '파일',
+		folder : '폴더',
+		location : '위치',
+		originalLocation : '원래 위치',
+		size : '크기',
+		date : '날짜',
+		dateCreated : '만든 날짜',
+		dateModified : '수정한 날짜',
+		dateRemoved : '삭제한 날짜',
+		content : '내용',
+		folders : '폴더',
+		files : '파일',
+		starred : '중요표시',
+		star : '표시',
+		restore : '항목 복원',
+		doRestore : '복원하기',
+		OK : '확인',
+		close : '닫기'
+	},
+
+	// Pagination --------------------------------------------------------------
+	firstPage : '처음',
+	previousPage : '이전',
+	nextPage : '다음',
+	lastPage : '끝',
+
+	// Settings ----------------------------------------------------------------
+	settings : {
+		heading : '환경설정',
+		backToDrive : '웹드라이브로 돌아가기',
+		storage : '사용용량',
+		capacity : '내 용량 보기',
+		types : '파일 보기',
+		folders : '폴더별 보기',
+		descriptionForTrash : '휴지통 용량도 전체 사용 용량에 포함됩니다.',
+		descriptionForEmptyTrash : '용량관리를 위해 휴지통 자동삭제 기간을 조절하거나 주기적인 관리를 해주세요.',
+		descriptionForSharing : '"공유한 폴더"는 \'나의 사용중 용량\'에 포함되며 "공유받은 폴더"는 공유자의 용량에 포함됩니다.',
+		emptyTrashAutomatically : '휴지통 자동 삭제 기간 설정',
+		emptyTrash : {
+			never : '자동 삭제 안 함',
+			after5days : '삭제 5일 후 영구 삭제',
+			after15days : '삭제 15일 후 영구 삭제',
+			after30days : '삭제 30일 후 영구 삭제',
+			after50days : '삭제 50일 후 영구 삭제',
+			apply : '적용하기'
+		},
+		emptyTrashDaysModified : '변경 되었습니다.',
+		total : '전체용량',
+		used : '사용중',
+		free : '사용가능',
+		trash : '휴지통',
+		usage : '사용 중 웹드라이브 용량',
+		documents : '문서',
+		images : '사진',
+		videos : '동영상',
+		audio : '음악',
+		compressed : '압축',
+		other : '기타',
+		countPrefix : '',
+		countSuffix : '개',
+		folderName : '폴더 이름',
+		folderSize : '크기'
+	},
+
+	// Overlay -----------------------------------------------------------------
+	overlay : {
+		drive : '드라이브',
+		leadingLoading : '',
+		trailingLoading : ' 로딩 중 입니다.',
+		leadingProcessing : '',
+		trailingProcessing : ' 처리 중 입니다.',
+		leadingUploadingFile : '',
+		trailingUploadingFile : ' 파일 업로드 중 입니다.'
+	},
+
+	// jQuery UI ---------------------------------------------------------------
+	datepicker : {
+		options : {
+			changeMonth : true,
+			changeYear : true,
+			dateFormat : 'yymmdd',
+			showButtonPanel : true,
+			yearSuffix : '',
+			yearRange : 'c-99:c+99'
+		}
+	}
+});<?��m�      d߸d߸EUUd7   j    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app/disk/nls/ko/disk-i18n.js necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"14975-1659949284000"
+Last-Modified: Mon, 08 Aug 2022 09:01:24 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 14975
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"14975-1659949284000"
+Last-Modified: Mon, 08 Aug 2022 09:01:24 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 14975
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ ctid 2 uncompressed-len 0 net-response-time-onstart 36 net-response-time-onstop 36   :

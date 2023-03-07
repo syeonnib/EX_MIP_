@@ -1,0 +1,1482 @@
+define([ 'app', 'i18n!app/disk/nls/disk-i18n', 'app/disk/disk-models', 'app/disk/disk-views' ], function(app, i18n) {
+
+	app.module('disk', function(disk, app, Backbone, Marionette, $, _) {
+
+		function isPopup() {
+			try {
+				if (window.opener && window.opener.location.pathname != window.location.pathname)
+					return true;
+				if (/.*\/popup\/.*/.test(window.location.pathname))
+					return true;
+				else
+					return false;
+			} catch (error) {
+				if (/.*\/popup\/.*/.test(window.location.pathname))
+					return true;
+				else
+					return false;
+			}
+		}
+
+		disk.findFolderModel = function(id, parentModel) {
+			var pathname = parentModel.get('path') + '/' + parentModel.get('name');
+			var collection = parentModel.folders;
+			var folderModel = collection.get(id);
+			if (folderModel) {
+				return folderModel;
+			}
+			var parentId = parentModel.id;
+			parentId = parentId.substring(0, parentId.length - 1);
+			if (id.indexOf(parentId) === -1) {
+				return null;
+			}
+			if (collection.length === 0) {
+				collection = parentModel.files;
+				collection.pathname = parentModel.id;
+				collection.fetch({
+					async : false,
+					type : 'POST',
+					data : {
+						_method : 'GET',
+						pathname : pathname,
+					},
+					silent : true,
+					success : function(collection, response, options) {
+						var models = collection.filter(function(model) {
+							return model.get('directory') === true;
+						});
+						parentModel.folders.set(models, {
+							silent : false
+						});
+						switch (parentModel.get('linkCount')) {
+						case 'BigMail':
+						case 'Trash':
+							collection.each(function(model, index) {
+								model.pathname = model.get('path') + '/' + model.get('linkCount');
+								model.parentFolder = parentModel;
+							});
+							break;
+						default:
+							collection.each(function(model, index) {
+								model.parentFolder = parentModel;
+							});
+						}
+					}
+				});
+				folderModel = parentModel.folders.get(id);
+				if (folderModel) {
+					return folderModel;
+				}
+			}
+			collection = parentModel.folders;
+			collection.find(function(model, index, list) {
+				folderModel = disk.findFolderModel(id, model);
+				return folderModel ? true : false;
+			});
+			return folderModel;
+		}; // disk.findFolderModel = function(id, parentModel) {...}
+
+		disk.fetchFileCollection = function(folderModel, params) {
+			var data = {
+				_method : 'GET'
+			};
+			data.pathname = folderModel.get('path') + '/' + folderModel.get('name');
+			switch (folderModel.get('linkCount')) {
+			case 'SearchResults':
+			case 'Starred':
+			case 'Recent':
+				data.pathname = params.search.path || '';
+				if (typeof params.search == 'string') {
+					data.search = params.search;
+				} else if (typeof params.search == 'object') {
+					for ( var prop in params.search)
+						data['search.' + prop] = params.search[prop];
+				}
+			}
+			var collection = folderModel.files;
+			var jqXHR = collection.fetch({
+				type : 'POST',
+				data : data,
+				silent : true,
+				success : function(collection, response, options) {
+					var models = collection.filter(function(model) {
+						return model.get('directory') === true;
+					});
+					folderModel.folders.set(models, {
+						silent : false
+					});
+					switch (folderModel.get('linkCount')) {
+					case 'BigMail':
+					case 'Trash':
+						collection.each(function(model, index) {
+							model.pathname = model.get('path') + '/' + model.get('linkCount');
+							model.parentFolder = folderModel;
+						});
+						break;
+					default:
+						collection.each(function(model, index) {
+							model.parentFolder = folderModel;
+						});
+					}
+				},
+				error : function(collection, response, options) {
+					return;
+				},
+			});
+			return jqXHR;
+		}; // disk.fetchFileCollection = function(folderModel, params) {...}
+
+		disk.searchFiles = function(params) {
+			var folderModel, paginator = disk.filePaginator;
+			if (params.search.starred) {
+				folderModel = new disk.FileModel({
+					id : 'starred',
+					file : false,
+					directory : true,
+					name : i18n.folder.starred,
+					linkCount : 'Starred',
+					readable : true,
+					removable : true
+				});
+			} else if (params.search.recent) {
+				folderModel = new disk.FileModel({
+					id : 'recent',
+					file : false,
+					directory : true,
+					name : i18n.folder.recent,
+					linkCount : 'Recent',
+					readable : true,
+					removable : true
+				});
+			} else {
+				folderModel = new disk.FileModel({
+					id : 'search',
+					file : false,
+					directory : true,
+					name : i18n.search.results,
+					linkCount : 'SearchResults',
+					readable : true,
+					removable : true
+				});
+			}
+			if (disk.folderModel.get('linkCount') === folderModel.get('linkCount') && disk.folderModel.files.size() > 0
+					&& _.isEqual(params.search, paginator.search)) {
+				var parentFolder = disk.folderModel.parentFolder;
+				var models = disk.folderModel.files.models;
+				app.vent.trigger('paginate:files', params, parentFolder, models);
+				disk.overlayView.hideLoading();
+				return;
+			}
+			var jqXHR = disk.fetchFileCollection(folderModel, params);
+			jqXHR.always(function(data_jqXHR, textStatus, jqXHR_errorThrown) {
+				disk.folderModel.set(folderModel.toJSON());
+				disk.folderModel.folders = folderModel.folders;
+				disk.folderModel.files = folderModel.files;
+				var parentFolder = null;
+				var models = folderModel.files.models;
+				app.vent.trigger('paginate:files', params, parentFolder, models);
+				disk.overlayView.hideLoading();
+			});
+			return;
+		}; // disk.searchFiles = function(params) {...}
+
+		disk.fetchMyDriveCollection = function() {
+			var model = disk.myDriveModel;
+			var collection = disk.myDriveModel.files;
+			collection.pathname = model.id;
+			var jqXHR = collection.fetch({
+				type : 'POST',
+				data : {
+					_method : 'GET',
+					pathname : model.get('path') + '/' + model.get('name'),
+				},
+				success : function(collection, response, options) {
+					var models = collection.filter(function(model) {
+						model.parentFolder = disk.myDriveModel;
+						return model.get('directory') === true;
+					});
+					var folderModels = [];
+					folderModels.push(_.find(models, function(model) {
+						return model.get('name') === '.pictures';
+					}));
+					folderModels.push(_.find(models, function(model) {
+						return model.get('name') === '.documents';
+					}));
+					folderModels = folderModels.concat(_.filter(models, function(model) {
+						switch (model.get('linkCount')) {
+						case 'BigMail':
+						case 'Trash':
+							return false;
+						}
+						return true;
+					}));
+					folderModels.push(_.find(models, function(model) {
+						return model.get('linkCount') === 'BigMail';
+					}));
+					folderModels = _.filter(folderModels, function(model) {
+						return model ? true : false;
+					});
+					if (disk.myDriveModel.folders.length === 0) {
+						disk.myDriveModel.folders.reset(folderModels);
+					} else {
+						disk.myDriveModel.folders.set(folderModels);
+					}
+					_.some(models, function(model) {
+						if (model.get('linkCount') === 'Trash') {
+							disk.trashFolderModel.set(model.toJSON());
+							disk.trashFolderModel.folders.pathname = model.id;
+							disk.trashFolderModel.files.pathname = model.id;
+							collection.remove(model, {
+								silent : true
+							});
+							return true;
+						}
+					});
+				},
+				error : function(collection, response, options) {
+					app.log('Failed to fetch ' + model.get('path') + '/' + model.get('name') + '/files');
+				},
+			});
+			return jqXHR;
+		}; // disk.fetchMyDriveCollection = function() {...}
+
+		disk.fetchGroupFolderCollection = function() {
+			var model = disk.groupRootModel;
+			var collection = disk.groupRootModel.files;
+			collection.pathname = model.id;
+			var jqXHR = collection.fetch({
+				type : 'POST',
+				data : {
+					_method : 'GET',
+					pathname : model.get('path') + '/' + model.get('name'),
+				},
+				success : function(collection, response, options) {
+					var models = collection.filter(function(model) {
+						if (model.get('directory') === true) {
+							model.parentFolder = model;
+							return true;
+						}
+						return false;
+					});
+					model.folders.set(models);
+				}
+			});
+			return jqXHR;
+		}; // disk.fetchGroupFolderCollection = function() {...}
+
+		disk.fetchRootFileCollection = function() {
+			disk.rootFileCollection.url = function() {
+				return isPopup() ? '../../disk/files' : 'disk/files';
+			};
+			var jqXHR = disk.rootFileCollection.fetch({
+				type : 'POST',
+				data : {
+					_method : 'GET',
+					pathname : '',
+				},
+				success : function(collection, response, options) {
+					// My Drive Folders & Files
+					disk.myDriveModel = collection.find(function(model) {
+						return model.get('linkCount') == 'UserDisk';
+					});
+					if (!disk.myDriveModel) {
+						disk.myDriveModel = new disk.FileModel({
+							id : 'L-uniOydtOuUlOyKpO2BrA',
+							file : false,
+							directory : true,
+							name : '마이디스크', // '내 드라이브'
+							linkCount : 'UserDisk'
+						});
+						collection.add(disk.myDriveModel);
+					}
+					if (!disk.trashFolderModel) {
+						disk.trashFolderModel = new disk.FileModel({
+							file : false,
+							directory : true,
+							name : i18n.folder.trash,
+							linkCount : 'Trash'
+						});
+					}
+					// Group Folders & Files
+					disk.groupRootModel = collection.find(function(model) {
+						return model.get('linkCount') == 'GroupRoot';
+					});
+					if (!disk.groupRootModel) {
+						disk.groupRootModel = new disk.FileModel({
+							id : 'L-qzteycoOuUlOyKpO2BrA',
+							file : false,
+							directory : true,
+							name : '공유디스크', // '공용드라이브'
+							linkCount : 'GroupRoot'
+						});
+						collection.add(disk.groupRootModel);
+					} else {
+						disk.fetchGroupFolderCollection();
+					}
+				},
+				error : function(collection, response, options) {
+					if (!disk.myDriveModel) {
+						disk.myDriveModel = new disk.FileModel({
+							id : 'L-uniOydtOuUlOyKpO2BrA',
+							file : false,
+							directory : true,
+							name : '마이디스크', // '내 드라이브'
+							linkCount : 'UserDisk'
+						});
+					}
+					if (!disk.trashFolderModel) {
+						disk.trashFolderModel = new disk.FileModel({
+							file : false,
+							directory : true,
+							name : i18n.folder.trash,
+							linkCount : 'Trash'
+						});
+					}
+					if (!disk.groupRootModel) {
+						disk.groupRootModel = new disk.FileModel({
+							id : 'L-qzteycoOuUlOyKpO2BrA',
+							file : false,
+							directory : true,
+							name : '공유디스크', // '공용드라이브'
+							linkCount : 'GroupRoot'
+						});
+					}
+					collection.add([ disk.myDriveModel, disk.groupRootModel ]);
+					app.log("Unavailable Disk Service");
+				},
+			});
+			return jqXHR;
+		}; // disk.fetchRootFileCollection = function() {...}
+
+		disk.syncFilePaginator = function(params) {
+			var paginator = disk.filePaginator;
+			paginator.origModels = [];
+			location.hash = '#' + paginator.getURL(params);
+		};
+
+		disk.fetchFileSize = function(model, async) {
+			var url = model.url;
+			var urlRoot = _.result(model, 'urlRoot');
+			model.url = urlRoot.replace(/([^\/])$/, '$1/') + model.id + '/size';
+			model.fetch({
+				async : (async ? true : false)
+			}).always(function(data_jqXHR, textStatus, jqXHR_errorThrown) {
+				model.url = url;
+			});
+		};
+
+		disk.uploadFiles = function(files, folderModel) {
+			if (!folderModel) {
+				folderModel = disk.folderModel;
+			}
+			if (folderModel.get('writable') === false) {
+				msg = i18n.leadingNoPermissionToUpload;
+				var folderName = folderModel.get('name');
+				switch (folderModel.get('linkCount')) {
+				case 'BigMail':
+					folderName = i18n.folder.largeAttachments;
+					break;
+				case 'Trash':
+					folderName = i18n.folder.trash;
+					break;
+				}
+				if (folderName.length > 16) {
+					msg += "'" + folderName.substring(0, 13) + "...'";
+				} else {
+					msg += "'" + folderName + "'";
+				}
+				msg += i18n.trailingNoPermissionToUpload;
+				var modalView = new disk.ModalView({
+					model : new Backbone.Model({
+						message : msg
+					}),
+					width : 324
+				});
+				modalView.render().$el.show();
+				return;
+			}
+			var quotaModel = new disk.QuotaModel({
+				id : folderModel.id,
+			});
+			quotaModel.fetch({
+				async : false,
+				type : 'POST',
+				data : {
+					_method : 'GET',
+					pathname : folderModel.get('path') + '/' + folderModel.get('name')
+				}
+			});
+			if (!disk.configModel)
+				disk.configModel = new disk.ConfigModel();
+			disk.configModel.fetch({
+				async : false
+			});
+			if (!disk.fileFilterCollection)
+				disk.fileFilterCollection = new disk.FileFilterCollection();
+			disk.fileFilterCollection.fetch({
+				async : false
+			});
+			var filterItems = [];
+			disk.fileFilterCollection.each(function(model, index, list) {
+				var item = model.get('FILTER_ITEM');
+				if (item)
+					filterItems.push(item);
+			});
+			var pattern = (function(pattern) {
+				if (!pattern || typeof pattern !== 'string')
+					return /[^\s\S]/;
+				pattern = pattern.replace(/\s|\*/g, '');
+				var specialCharacters = "^$.*+?=!:|\/()[]{}";
+				var expr = [];
+				var ch = '';
+				for (var i = 0; i < pattern.length; i++) {
+					ch = pattern.charAt(i);
+					if (specialCharacters.indexOf(ch) != -1)
+						expr.push("\\");
+					expr.push(ch);
+				}
+				pattern = expr.join("");
+				pattern = pattern.replace(/,/g, '|');
+				return new RegExp('(' + pattern + ')$', 'i');
+			})(filterItems.join(","));
+			var quota = quotaModel.get('quota')
+			var usage = quotaModel.get('usage');
+			var maxFileSize = disk.configModel.get('UPLOAD_FILE_SIZE_LIMIT');
+			var free = quota - usage;
+			var filesSize = 0;
+			var models = [];
+			var formatSize = function(number, pattern) {
+				pattern = pattern ? pattern : '0[.]00b';
+				return number ? numeral(number).format(pattern) : '0KB';
+			};
+			for (var i = 0; i < files.length; i++) {
+				var file = files[i];
+				if (pattern.test(file.name)) {
+					alert(i18n.uploadFiles.leadingBlockedFileExtension + filterItems.join(',')
+							+ i18n.uploadFiles.trailingBlockedFileExtension);
+					continue;
+				}
+				if (maxFileSize > 0 && maxFileSize <= file.size) {
+					alert(i18n.uploadFiles.leadingFileTooLarge + '"' + file.name + ' (' + formatSize(file.size) + ')"'
+							+ i18n.uploadFiles.middlingFileTooLarge + formatSize(maxFileSize)
+							+ i18n.uploadFiles.trailingFileTooLarge);
+					continue;
+				}
+				filesSize += file.size;
+				models.push({
+					file : file,
+				});
+			}
+			if (quota == 0 || filesSize > free) {
+				alert(i18n.uploadFiles.leadingMaxFileSize + formatSize(free) + i18n.uploadFiles.middlingMaxFileSize
+						+ formatSize(filesSize) + i18n.uploadFiles.trailingMaxFileSize);
+				return;
+			}
+			var collection = new Backbone.Collection(models);
+			var zIndex = disk.overlayView.$overlay.css('z-index');
+			zIndex = isNaN(zIndex) ? 'auto' : parseInt(zIndex) + 1;
+			var uploadView = new disk.FilesUploadView({
+				collection : collection,
+				folderModel : folderModel,
+				zIndex : zIndex,
+			});
+			var $uploadView = uploadView.render().$el.appendTo('body');
+			var $viewport = $(window).off('resize.uploadDiskFiles');
+			$viewport.on('resize.uploadDiskFiles', function(event) {
+				var viewportWidth = $(this).width();
+				var viewportHeight = $(this).height();
+				var width = $uploadView.width(), height = $uploadView.height();
+				var top = Math.floor((viewportHeight / 2) - (height / 2));
+				var left = Math.floor((viewportWidth / 2) - (width / 2));
+				$uploadView.css({
+					top : top,
+					left : left
+				});
+			}).trigger('resize.uploadDiskFiles');
+			disk.overlayView.showOverlay();
+			$uploadView.show();
+			uploadView.upload(function() {
+				uploadView.close();
+				disk.userModel.fetch();
+				disk.syncFilePaginator();
+			}, null);
+		}; // var uploadFiles = function(files, folderModel) {...}
+
+		disk.uploadFilesHandler = function(event) {
+			event.preventDefault() && event.stopPropagation();
+			var folderModel = $(this).data('upload-to-folder');
+			var $fileInput = $('body > input#disk_files');
+			if (!$fileInput.length) {
+				$fileInput = $('<input>', {
+					'id' : 'disk_files',
+					'type' : 'file',
+					'multiple' : 'true',
+					'style' : 'position: absolute; top: -1000px; left: -1000px;'
+				}).appendTo('body');
+				$fileInput.change(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var files = this.files;
+					if (files.length == 0) {
+						return false;
+					}
+					disk.overlayView.showOverlay();
+					disk.uploadFiles(files, folderModel);
+					disk.overlayView.hideOverlay();
+					$fileInput.remove();
+					return false;
+				});
+			}
+			if ($fileInput[0].files) {
+				$fileInput.click();
+				return false;
+			}
+			if (!document.diskFileUploadIframe) {
+				$('<iframe>', {
+					'name' : 'diskFileUploadIframe',
+					'src' : 'disk/file/form',
+					'style' : 'position: absolute; display: none;',
+				}).appendTo('body');
+			}
+			if (document.diskFileUploadIframe) {
+				var iframe = document.diskFileUploadIframe;
+				var form = iframe.fileUploadForm;
+				if (!form || !form.file)
+					return false;
+				if (!folderModel)
+					folderModel = disk.folderModel;
+				var path = folderModel.get('path') + '/' + folderModel.get('name');
+				form.path.value = path;
+				var changed = false;
+				form.file.onchange = function() {
+					changed = true;
+					return false;
+				};
+				form.file.click();
+				if (!changed) {
+					return false;
+				}
+				form.submit();
+				disk.overlayView.showUploading();
+				app.vent.once('disk-file:uploaded', function(file) {
+					disk.overlayView.hideUploading();
+					var iframe = document.diskFileUploadIframe;
+					var url = iframe.location.pathname + '/form';
+					iframe.location.replace(url);
+					if (!file || (file.status && file.status == 'fail')) {
+						alert(i18n.uploadFiles.cannotUpload);
+						return;
+					}
+					disk.userModel.fetch();
+					disk.syncFilePaginator();
+				});
+			}
+			return false;
+		}; // disk.uploadFilesHandler = function(event) {...};
+
+		disk.downloadFiles = function(models) {
+			if (!models || !models.length) {
+				return;
+			}
+			function downloadFiles() {
+				var popup = isPopup();
+				if (models.length === 1) {
+					if (popup)
+						location.href = '../../disk/file?pathname=' + models[0].id;
+					else
+						location.href = 'disk/file?pathname=' + models[0].id;
+					return;
+				}
+				(function download(models, index) {
+					var model = models[index];
+					var iframe = document.createElement('iframe');
+					iframe.style.position = 'absolute';
+					iframe.style.display = 'none';
+					if (popup)
+						iframe.src = '../../disk/file?pathname=' + model.id;
+					else
+						iframe.src = 'disk/file?pathname=' + model.id;
+					document.documentElement.appendChild(iframe);
+					var interval = setInterval(function() {
+						try {
+							var readyState = iframe.contentWindow.document.readyState;
+							if (readyState === 'interactive' || readyState === 'complete') {
+								clearInterval(interval);
+								setTimeout(function() {
+									iframe.parentNode.removeChild(iframe);
+								}, 1000);
+								if (index + 1 < models.length) {
+									download(models, index + 1);
+								}
+							}
+						} catch (error) {
+							app.log(error);
+							clearInterval(interval);
+							setTimeout(function() {
+								iframe.parentNode.removeChild(iframe);
+							}, 1000);
+						}
+					}, 1000);
+				})(models, 0);
+			} // function downloadFiles() {...}
+			(function checkPermission(models, index) {
+				if (models.length <= index) {
+					if (models.length > 0)
+						downloadFiles();
+					return;
+				}
+				var model = models[index];
+				if (model.get('readable') === true) {
+					checkPermission(models, index + 1);
+					return;
+				}
+				var msg = '';
+				if (model.get('directory')) {
+					msg += i18n.leadingNoPermissionToDownloadFolder;
+				} else {
+					msg += i18n.leadingNoPermissionToDownloadFile;
+				}
+				var filename = model.get('name');
+				switch (model.get('linkCount')) {
+				case 'BigMail':
+					filename = i18n.folder.largeAttachments;
+					break;
+				}
+				if (filename.length > 16) {
+					msg += "'" + filename.substring(0, 13) + "...'";
+				} else {
+					msg += "'" + filename + "'";
+				}
+				if (model.get('directory')) {
+					msg += i18n.trailingNoPermissionToDownloadFolder;
+				} else {
+					msg += i18n.trailingNoPermissionToDownloadFile;
+				}
+				var modalView = new disk.ModalView({
+					model : new Backbone.Model({
+						message : msg
+					}),
+					width : 324,
+					close : function() {
+						models.splice(index, 1);
+						checkPermission(models, index);
+					}
+				});
+				modalView.render().$el.show();
+			})(models, 0);
+		}; // disk.downloadFiles = function(models) {...};
+
+		disk.deleteFiles = function(models) {
+			if (!models || !models.length) {
+				return;
+			}
+			function deleteFiles() {
+				var deletables = [];
+				_.each(models, function(model, index, list) {
+					deletables.push(function() {
+						var jqXHR = model.destroy({
+							wait : true,
+							error : function(model, response, options) {
+								disk.overlayView.hideProcessing();
+								var msg = '', name = model.get('name');
+								switch (model.get('linkCount')) {
+								case 'BigMail':
+									name = i18n.folder.largeAttachments;
+									break;
+								case 'Trash':
+									name = i18n.folder.trash;
+									break;
+								}
+								if (model.get('directory')) {
+									msg += i18n.leadingFailedToDeleteFolder;
+									msg += "'" + name + "'";
+									msg += i18n.trailingFailedToDeleteFolder;
+									alert(msg);
+								} else {
+									msg += i18n.leadingFailedToDeleteFile;
+									msg += "'" + name + "'";
+									msg += i18n.trailingFailedToDeleteFile;
+									alert(msg);
+								}
+							}
+						});
+						return jqXHR;
+					});
+				});
+				var index = 0;
+				(function always(data_jqXHR, textStatus, jqXHR_errorThrown) {
+					disk.overlayView.showProcessing();
+					setTimeout(function() {
+						if (index < deletables.length) {
+							var jqXHR = deletables[index++].call();
+							jqXHR.done(function(data, textStatus, jqXHR) {
+								return;
+							}).fail(function(jqXHR, textStatus, errorThrown) {
+								var model = models[index - 1];
+								var pathname = model.get('path') + '/' + model.get('name');
+								app.log('Failed to Delete ' + pathname);
+							}).always(always);
+						} else {
+							disk.overlayView.hideProcessing();
+							disk.userModel.fetch();
+							var parentFolder = models[0].parentFolder;
+							if (!parentFolder)
+								return;
+							switch (parentFolder.get('linkCount')) {
+							case 'SearchResults':
+							case 'Starred':
+							case 'Recent':
+								disk.folderModel.files.reset(null, {
+									silent : true
+								});
+							}
+							disk.fetchMyDriveCollection();
+							if (models[0].id === disk.folderModel.id)
+								location.hash = '#disk/files?id=' + parentFolder.id;
+							else
+								disk.syncFilePaginator();
+						}
+					}, 15);
+				})();
+			} // function deleteFiles() {...}
+			function showConfirm() {
+				var modalView = new disk.ModalView({
+					template : function(data) {
+						var templateId = '#modal-confirm-delete-template';
+						var html = disk.$template.filter(templateId).html();
+						var compiledTemplate = _.template(html);
+						html = compiledTemplate({
+							data : data,
+							groupRoot : disk.groupRootModel.toJSON(),
+							i18n : i18n
+						});
+						return html;
+					},
+					collection : new Backbone.Collection(models),
+					width : 325,
+					buttons : {
+						'div.footer button:eq(0)' : function() { // OK
+							modalView.close();
+							setTimeout(function() {
+								deleteFiles();
+							}, 500);
+						},
+						'div.footer button:eq(1)' : function() { // Cancel
+							modalView.close();
+						}
+					}
+				});
+				modalView.render().$el.show();
+			} // function showConfirm() {...}
+			(function checkPermission(models, index) {
+				if (models.length <= index) {
+					if (models.length > 0)
+						showConfirm();
+					return;
+				}
+				var model = models[index];
+				if (model.get('removable') === true) {
+					checkPermission(models, index + 1);
+					return;
+				}
+				var msg = '';
+				if (model.get('directory')) {
+					msg += i18n.leadingNoPermissionToDeleteFolder;
+				} else {
+					msg += i18n.leadingNoPermissionToDeleteFile;
+				}
+				var filename = model.get('name');
+				switch (model.get('linkCount')) {
+				case 'BigMail':
+					filename = i18n.folder.largeAttachments;
+					break;
+				}
+				if (/^trash\.[0-9]+(?:\.[0-9]+)*$/.test(model.get('linkCount'))) {
+					filename = filename.substring(filename.lastIndexOf('/') + 1);
+				}
+				if (filename.length > 16) {
+					msg += "'" + filename.substring(0, 13) + "...'";
+				} else {
+					msg += "'" + filename + "'";
+				}
+				if (model.get('directory')) {
+					msg += i18n.trailingNoPermissionToDeleteFolder;
+				} else {
+					msg += i18n.trailingNoPermissionToDeleteFile;
+				}
+				var modalView = new disk.ModalView({
+					model : new Backbone.Model({
+						message : msg
+					}),
+					width : 324,
+					close : function() {
+						models.splice(index, 1);
+						checkPermission(models, index);
+					}
+				});
+				modalView.render().$el.show();
+			})(models, 0);
+			return;
+		}; // disk.deleteFiles = function(models) {...}
+
+		disk.emptyTrash = function() {
+			var trashFolderModel = disk.trashFolderModel;
+			var jqXHR = disk.fetchFileCollection(trashFolderModel);
+			jqXHR.done(function(data, textStatus, jqXHR) {
+				var models = [];
+				trashFolderModel.files.each(function(model, index) {
+					models.push(model);
+				});
+				disk.deleteFiles(models);
+			}).fail(function(jqXHR, textStatus, errorThrown) {
+				app.log('Failed to fetch Trash Files');
+			});
+			return;
+		}; // disk.emptyTrash = function() {...}
+
+		disk.restoreFiles = function(models) {
+			if (!models || !models.length) {
+				return;
+			}
+			var restorables = [];
+			_.each(models, function(element, index, list) {
+				var force = false;
+				restorables.push(function() {
+					var model = element.clone();
+					var path = '/' + disk.myDriveModel.get('name') + model.get('name');
+					path = path.substring(0, path.lastIndexOf('/'));
+					var fetchError = false;
+					var collection = new disk.FileCollection();
+					collection.pathname = model.get('parentId');
+					collection.fetch({
+						async : false,
+						type : 'POST',
+						data : {
+							_method : 'GET',
+							pathname : path
+						},
+						error : function(collection, response, options) {
+							return;
+						},
+					});
+					var name = model.get('name');
+					name = name.substring(name.lastIndexOf('/') + 1);
+					var _model = collection.find(function(model) {
+						return name === model.get('name');
+					});
+					function restore() {
+						var jqXHR = model.save({
+							restore : model.get('linkCount'),
+							force : true
+						}, {
+							patch : true,
+							error : function(model, response, options) {
+								disk.overlayView.hideProcessing();
+								var msg = '';
+								switch (response.status) {
+								case 409:
+									if (model.get('directory')) {
+										msg += i18n.leadingFailedToRestoreFolderAlreadyExists;
+										msg += "'" + name + "'";
+										msg += i18n.trailingFailedToRestoreFolderAlreadyExists;
+										alert(msg);
+									} else {
+										msg += i18n.leadingFailedToRestoreFileAlreadyExists;
+										msg += "'" + name + "'";
+										msg += i18n.trailingFailedToRestoreFileAlreadyExists;
+										alert(msg);
+									}
+									break;
+								default:
+									if (model.get('directory')) {
+										msg += i18n.leadingFailedToRestoreFolder;
+										msg += "'" + name + "'";
+										msg += i18n.trailingFailedToRestoreFolder;
+										alert(msg);
+									} else {
+										msg += i18n.leadingFailedToRestoreFile;
+										msg += "'" + name + "'";
+										msg += i18n.trailingFailedToRestoreFile;
+										alert(msg);
+									}
+								}
+							}
+						});
+						return jqXHR;
+					} // function restore() {...}
+					if (!_model) {
+						return restore();
+					}
+					if (_model.get('directory')) {
+						disk.fetchFileSize(_model, false);
+					}
+					disk.overlayView.hideProcessing();
+					var deferred = $.Deferred();
+					var modalView = new disk.ModalView({
+						template : function(data) {
+							var templateId = '#modal-confirm-overwrite-template';
+							var html = disk.$template.filter(templateId).html();
+							var compiledTemplate = _.template(html);
+							html = compiledTemplate({
+								data : data,
+								i18n : i18n
+							});
+							return html;
+						},
+						collection : new Backbone.Collection([ model, _model ]),
+						width : 402,
+						buttons : {
+							'div.footer button:eq(0)' : function() { // Yes
+								modalView.close();
+								var jqXHR = restore();
+								jqXHR.done(function(data, textStatus, jqXHR) {
+									deferred.resolve(data, textStatus, jqXHR);
+								}).fail(function(jqXHR, textStatus, errorThrown) {
+									deferred.reject(jqXHR, textStatus, errorThrown);
+								});
+							},
+							'div.footer button:eq(1)' : function() { // No
+								modalView.close();
+								deferred.resolve();
+							}
+						}
+					});
+					modalView.render().$el.show();
+					setTimeout(function() {
+						disk.overlayView.showOverlay();
+					}, 500);
+					return deferred;
+				}); // restorables.push(function() {...});
+			});
+			var index = 0;
+			(function always(data_jqXHR, textStatus, jqXHR_errorThrown) {
+				disk.overlayView.showProcessing();
+				setTimeout(function() {
+					if (index < restorables.length) {
+						var jqXHR = restorables[index++].call();
+						jqXHR.done(function(data, textStatus, jqXHR) {
+							return;
+						}).fail(function(jqXHR, textStatus, errorThrown) {
+							var model = models[index - 1];
+							app.log('Failed to Restore ' + model.get('name'));
+						}).always(always);
+					} else {
+						disk.overlayView.hideProcessing();
+						disk.fetchMyDriveCollection();
+						disk.userModel.fetch();
+						disk.syncFilePaginator();
+					}
+				}, 15);
+			})();
+			return;
+		}; // disk.restoreFiles = function(models) {...}
+
+		disk.copyTo = function(folderModel) {
+			var models = disk.copyFiles.splice(0, disk.copyFiles.length);
+			if (!models.length) {
+				return;
+			}
+			if (folderModel.get('writable') === false) {
+				var msg = i18n.leadingNoPermissionToCopyToFolder;
+				var folderName = folderModel.get('name');
+				switch (folderModel.get('linkCount')) {
+				case 'BigMail':
+					folderName = i18n.folder.largeAttachments;
+					break;
+				}
+				if (folderName.length > 16) {
+					msg += "'" + folderName.substring(0, 13) + "...'";
+				} else {
+					msg += "'" + folderName + "'";
+				}
+				msg += i18n.trailingNoPermissionToCopyToFolder;
+				var modalView = new disk.ModalView({
+					model : new Backbone.Model({
+						message : msg
+					})
+				});
+				modalView.render().$el.show();
+				return;
+			}
+			disk.overlayView.showOverlay();
+			var pathname = folderModel.get('path') + '/' + folderModel.get('name');
+			var fetchError = false;
+			var collection = new disk.FileCollection();
+			collection.pathname = folderModel.id;
+			collection.fetch({
+				async : false,
+				type : 'POST',
+				data : {
+					_method : 'GET',
+					pathname : pathname
+				},
+				error : function(collection, response, options) {
+					var msg = i18n.leadingCopyToFolderNotExists;
+					msg += "'" + folderModel.get('name') + "'";
+					msg += i18n.trailingCopyToFolderNotExists;
+					alert(msg);
+					fetchError = true;
+				},
+			});
+			if (fetchError) {
+				disk.overlayView.hideOverlay();
+				return;
+			}
+			function copyFiles() {
+				var copyables = [];
+				_.each(models, function(element, index, list) {
+					copyables.push(function() {
+						var model = element.clone();
+						var _model = collection.find(function(_model) {
+							return model.get('name') === _model.get('name');
+						});
+						function copy() {
+							var name = model.get('name');
+							if (/^[0-9]+\.[0-9]+\.[0-9]+$/.test(model.get('linkCount')))
+								model.set('name', model.get('linkCount'));
+							var jqXHR = model.save({
+								path : model.get('path'),
+								name : model.get('name'),
+								copyTo : pathname
+							}, {
+								patch : true,
+								error : function(model, response, options) {
+									disk.overlayView.hideProcessing();
+									var msg = '';
+									switch (response.status) {
+									case 413:
+										if (model.get('directory')) {
+											msg += i18n.leadingFailedToCopyFolderTooLarge;
+											msg += "'" + name + "'";
+											msg += i18n.trailingFailedToCopyFolderTooLarge;
+											alert(msg);
+										} else {
+											msg += i18n.leadingFailedToCopyFileTooLarge;
+											msg += "'" + name + "'";
+											msg += i18n.trailingFailedToCopyFileTooLarge;
+											alert(msg);
+										}
+										break;
+									default:
+										if (model.get('directory')) {
+											msg += i18n.leadingFailedToCopyFolder;
+											msg += "'" + name + "'";
+											msg += i18n.trailingFailedToCopyFolder;
+											alert(msg);
+										} else {
+											msg += i18n.leadingFailedToCopyFile;
+											msg += "'" + name + "'";
+											msg += i18n.trailingFailedToCopyFile;
+											alert(msg);
+										}
+									}
+								}
+							});
+							return jqXHR;
+						} // function copy() {...}
+						if (!_model) {
+							return copy();
+						}
+						if (model.get('directory'))
+							disk.fetchFileSize(model, false);
+						if (_model.get('directory'))
+							disk.fetchFileSize(_model, false);
+						disk.overlayView.hideProcessing();
+						var deferred = $.Deferred();
+						var modalView = new disk.ModalView({
+							template : function(data) {
+								var templateId = '#modal-confirm-overwrite-template';
+								var html = disk.$template.filter(templateId).html();
+								var compiledTemplate = _.template(html);
+								html = compiledTemplate({
+									data : data,
+									i18n : i18n
+								});
+								return html;
+							},
+							collection : new Backbone.Collection([ model, _model ]),
+							width : 402,
+							buttons : {
+								'div.footer button:eq(0)' : function() { // Yes
+									modalView.close();
+									var jqXHR = copy();
+									jqXHR.done(function(data, textStatus, jqXHR) {
+										deferred.resolve(data, textStatus, jqXHR);
+									}).fail(function(jqXHR, textStatus, errorThrown) {
+										deferred.reject(jqXHR, textStatus, errorThrown);
+									});
+								},
+								'div.footer button:eq(1)' : function() { // No
+									modalView.close();
+									deferred.resolve();
+								}
+							}
+						});
+						modalView.render().$el.show();
+						setTimeout(function() {
+							disk.overlayView.showOverlay();
+						}, 500);
+						return deferred;
+					}); // copyables.push(function() {...});
+				}); // _.each(models, function(element, index, list) {...});
+				var index = 0;
+				(function always(data_jqXHR, textStatus, jqXHR_errorThrown) {
+					disk.overlayView.showProcessing();
+					setTimeout(function() {
+						if (index < copyables.length) {
+							var jqXHR = copyables[index++].call();
+							jqXHR.done(function(data, textStatus, jqXHR) {
+								return;
+							}).fail(function(jqXHR, textStatus, errorThrown) {
+								var model = models[index - 1];
+								var from = model.get('path') + '/' + model.get('name');
+								var to = folderModel.get('path') + '/' + folderModel.get('name');
+								app.log('Failed to Copy ' + from + ' To ' + to);
+							}).always(always);
+						} else {
+							disk.overlayView.hideProcessing();
+							disk.userModel.fetch();
+							var parentFolder = models[0].parentFolder;
+							if (!parentFolder)
+								return;
+							switch (parentFolder.get('linkCount')) {
+							case 'SearchResults':
+							case 'Starred':
+							case 'Recent':
+								disk.folderModel.files.reset(null, {
+									silent : true
+								});
+							}
+							disk.syncFilePaginator();
+						}
+					}, 15);
+				})();
+			} // function copyFiles() {...}
+			(function checkPermission(models, index) {
+				if (models.length <= index) {
+					if (models.length > 0)
+						copyFiles();
+					return;
+				}
+				var model = models[index];
+				if (model.get('readable') === true) {
+					checkPermission(models, index + 1);
+					return;
+				}
+				var msg = '';
+				if (model.get('directory')) {
+					msg = i18n.leadingNoPermissionToCopyFolder;
+				} else {
+					msg = i18n.leadingNoPermissionToCopyFile;
+				}
+				var filename = model.get('name');
+				switch (model.get('linkCount')) {
+				case 'BigMail':
+					filename = i18n.folder.largeAttachments;
+					break;
+				}
+				if (filename.length > 16) {
+					msg += "'" + filename.substring(0, 13) + "...'";
+				} else {
+					msg += "'" + filename + "'";
+				}
+				if (model.get('directory')) {
+					msg += i18n.trailingNoPermissionToCopyFolder;
+				} else {
+					msg += i18n.trailingNoPermissionToCopyFile;
+				}
+				var modalView = new disk.ModalView({
+					model : new Backbone.Model({
+						message : msg
+					}),
+					close : function() {
+						models.splice(index, 1);
+						checkPermission(models, index);
+					}
+				});
+				modalView.render().$el.show();
+			})(models, 0);
+			return;
+		}; // disk.copyTo = function(folderModel) {...}
+
+		disk.moveTo = function(folderModel) {
+			var models = disk.moveFiles.splice(0, disk.moveFiles.length);
+			if (!models.length) {
+				return;
+			}
+			if (folderModel.get('writable') === false) {
+				var msg = i18n.leadingNoPermissionToMoveToFolder;
+				var folderName = folderModel.get('name');
+				switch (folderModel.get('linkCount')) {
+				case 'BigMail':
+					folderName = i18n.folder.largeAttachments;
+					break;
+				case 'GroupRoot':
+					folderName = i18n.groupDrive;
+					break;
+				}
+				if (folderName.length > 16) {
+					msg += "'" + folderName.substring(0, 13) + "...'";
+				} else {
+					msg += "'" + folderName + "'";
+				}
+				msg += i18n.trailingNoPermissionToMoveToFolder;
+				var modalView = new disk.ModalView({
+					model : new Backbone.Model({
+						message : msg
+					})
+				});
+				modalView.render().$el.show();
+				return;
+			}
+			disk.overlayView.showOverlay();
+			var pathname = folderModel.get('path') + '/' + folderModel.get('name');
+			var fetchError = false;
+			var collection = new disk.FileCollection();
+			collection.pathname = folderModel.id;
+			collection.fetch({
+				async : false,
+				type : 'POST',
+				data : {
+					_method : 'GET',
+					pathname : pathname
+				},
+				error : function(collection, response, options) {
+					var msg = i18n.leadingMoveToFolderNotExists;
+					msg += "'" + folderModel.get('name') + "'";
+					msg += i18n.trailingMoveToFolderNotExists;
+					alert(msg);
+					fetchError = true;
+				}
+			});
+			if (fetchError) {
+				disk.overlayView.hideOverlay();
+				return;
+			}
+			function moveFiles() {
+				var movables = [];
+				_.each(models, function(element, index, list) {
+					movables.push(function() {
+						var model = element.clone();
+						var _model = collection.find(function(_model) {
+							return model.get('name') === _model.get('name');
+						});
+						function move() {
+							var jqXHR = model.save({
+								path : model.get('path'),
+								name : model.get('name'),
+								moveTo : pathname
+							}, {
+								patch : true,
+								error : function(model, response, options) {
+									disk.overlayView.hideProcessing();
+									var msg = '';
+									switch (response.status) {
+									case 413:
+										if (model.get('directory')) {
+											msg += i18n.leadingFailedToMoveFolderTooLarge;
+											msg += "'" + model.get('name') + "'";
+											msg += i18n.trailingFailedToMoveFolderTooLarge;
+											alert(msg);
+										} else {
+											msg += i18n.leadingFailedToMoveFileTooLarge;
+											msg += "'" + model.get('name') + "'";
+											msg += i18n.trailingFailedToMoveFileTooLarge;
+											alert(msg);
+										}
+										break;
+									default:
+										if (model.get('directory')) {
+											msg += i18n.leadingFailedToMoveFolder;
+											msg += "'" + model.get('name') + "'";
+											msg += i18n.trailingFailedToMoveFolder;
+											alert(msg);
+										} else {
+											msg += i18n.leadingFailedToMoveFile;
+											msg += "'" + model.get('name') + "'";
+											msg += i18n.trailingFailedToMoveFile;
+											alert(msg);
+										}
+									}
+								}
+							});
+							return jqXHR;
+						} // function move() {...}
+						if (!_model) {
+							return move();
+						}
+						if (model.get('directory'))
+							disk.fetchFileSize(model, false);
+						if (_model.get('directory'))
+							disk.fetchFileSize(_model, false);
+						disk.overlayView.hideProcessing();
+						var deferred = $.Deferred();
+						var modalView = new disk.ModalView({
+							template : function(data) {
+								var templateId = '#modal-confirm-overwrite-template';
+								var html = disk.$template.filter(templateId).html();
+								var compiledTemplate = _.template(html);
+								html = compiledTemplate({
+									data : data,
+									i18n : i18n
+								});
+								return html;
+							},
+							collection : new Backbone.Collection([ model, _model ]),
+							width : 402,
+							buttons : {
+								'div.footer button:eq(0)' : function() { // Yes
+									modalView.close();
+									var jqXHR = move();
+									jqXHR.done(function(data, textStatus, jqXHR) {
+										deferred.resolve(data, textStatus, jqXHR);
+									}).fail(function(jqXHR, textStatus, errorThrown) {
+										deferred.reject(jqXHR, textStatus, errorThrown);
+									});
+								},
+								'div.footer button:eq(1)' : function() { // No
+									modalView.close();
+									deferred.resolve();
+								}
+							}
+						});
+						modalView.render().$el.show();
+						setTimeout(function() {
+							disk.overlayView.showOverlay();
+						}, 500);
+						return deferred;
+					}); // movables.push(function() {...});
+				}); // _.each(models, function(element, index, list) {...});
+				var index = 0;
+				(function always(data_jqXHR, textStatus, jqXHR_errorThrown) {
+					disk.overlayView.showProcessing();
+					setTimeout(function() {
+						if (index < movables.length) {
+							var jqXHR = movables[index++].call();
+							jqXHR.done(function(data, textStatus, jqXHR) {
+								return;
+							}).fail(function(jqXHR, textStatus, errorThrown) {
+								var model = models[index - 1];
+								var from = model.get('path') + '/' + model.get('name');
+								var to = folderModel.get('path') + '/' + folderModel.get('name');
+								app.log('Failed to Move ' + from + ' To ' + to);
+							}).always(always);
+						} else {
+							var moveFrom = models[0].get('path');
+							var moveTo = folderModel.get('path') + '/' + folderModel.get('name');
+							var parentFolder = models[0].parentFolder;
+							if (!parentFolder)
+								return;
+							switch (parentFolder.get('linkCount')) {
+							case 'SearchResults':
+							case 'Starred':
+							case 'Recent':
+								disk.folderModel.files.reset(null, {
+									silent : true
+								});
+								break;
+							default:
+								if (parentFolder.id === disk.folderModel.id)
+									break;
+								disk.fetchFileCollection(parentFolder);
+							}
+							disk.fetchFileCollection(folderModel);
+							disk.overlayView.hideProcessing();
+							disk.userModel.fetch();
+							if (models.length === 1 && models[0].get('directory')
+									&& models[0].id === disk.folderModel.id) {
+								if (parentFolder)
+									location.hash = '#disk/files?id=' + parentFolder.id;
+								else
+									location.hash = '#disk/files?id=' + disk.myDriveModel.id;
+							} else if (parentFolder && parentFolder.id === disk.folderModel.id) {
+								disk.syncFilePaginator();
+							} else if (folderModel.id === disk.folderModel.id) {
+								disk.syncFilePaginator();
+							}
+						}
+					}, 15);
+				})();
+			} // function moveFiles() {...}
+			(function checkPermission(models, index) {
+				if (models.length <= index) {
+					if (models.length > 0)
+						moveFiles();
+					return;
+				}
+				var model = models[index];
+				if (model.get('readable') === true) {
+					checkPermission(models, index + 1);
+					return;
+				}
+				var msg = '';
+				if (model.get('directory')) {
+					msg = i18n.leadingNoPermissionToMoveFolder;
+				} else {
+					msg = i18n.leadingNoPermissionToMoveFile;
+				}
+				var filename = model.get('name');
+				switch (model.get('linkCount')) {
+				case 'BigMail':
+					filename = i18n.folder.largeAttachments;
+					break;
+				}
+				if (filename.length > 16) {
+					msg += "'" + filename.substring(0, 13) + "...'";
+				} else {
+					msg += "'" + filename + "'";
+				}
+				if (model.get('directory')) {
+					msg += i18n.trailingNoPermissionToMoveFolder;
+				} else {
+					msg += i18n.trailingNoPermissionToMoveFile;
+				}
+				var modalView = new disk.ModalView({
+					model : new Backbone.Model({
+						message : msg
+					}),
+					close : function() {
+						models.splice(index, 1);
+						checkPermission(models, index);
+					}
+				});
+				modalView.render().$el.show();
+			})(models, 0);
+			return;
+		}; // disk.moveTo = function(folderModel) {...}
+
+		disk.updateStarred = function(model, starred) {
+			if (!model || !model.save)
+				return;
+			model.save({
+				path : model.get('path'),
+				name : model.get('name'),
+				starred : starred
+			}, {
+				patch : true,
+				wait : true,
+				error : function(model, response, options) {
+					var behavior = starred ? 'add' : 'remove';
+					var pathname = model.get('path') + '/' + model.get('name');
+					app.log('Failed to ' + behavior + ' Star ' + pathname);
+				}
+			});
+			return;
+		}; // disk.updateStarred = function(model, starred) {...}
+
+	}); // app.module('disk', function() {...});
+
+}); // define(['app',...], function(app,...) {...});
+�nVCE�      d߸d߸EUUd7   d    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app/disk/disk-utils.js necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"46786-1659949288000"
+Last-Modified: Mon, 08 Aug 2022 09:01:28 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 46786
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"46786-1659949288000"
+Last-Modified: Mon, 08 Aug 2022 09:01:28 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 46786
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ ctid 2 uncompressed-len 0 net-response-time-onstart 55 net-response-time-onstop 60   ��

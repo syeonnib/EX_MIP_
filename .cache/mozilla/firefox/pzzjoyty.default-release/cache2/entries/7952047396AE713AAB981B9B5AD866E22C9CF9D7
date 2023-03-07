@@ -1,0 +1,736 @@
+function InternetAddress() {
+	this.address; // email address
+	this.personal; // The personal name.
+	this.encodedPersonal; // The RFC 2047 encoded version of the personal
+	// name.
+}
+
+InternetAddress.prototype.setAddress = function(address) {
+	this.address = address;
+};
+
+InternetAddress.prototype.setPersonal = function(name) {
+	this.encodedPersonal = name;
+};
+
+InternetAddress.prototype.getAddress = function() {
+	return this.address;
+};
+
+InternetAddress.prototype.getPersonal = function() {
+	return this.encodedPersonal;
+};
+
+InternetAddress.ignoreBogusGroupName = true;
+
+InternetAddress.specialsNoDotNoAt = "()<>,;:\\\"[]";
+
+InternetAddress.specialsNoDot = InternetAddress.specialsNoDotNoAt + "@";
+
+InternetAddress.RFC822 = "()<>@,;:\\\"\t .[]";
+
+InternetAddress.rfc822phrase = InternetAddress.RFC822.replace(' ', '\0').replace('\t', '\0');
+
+InternetAddress.quotePhrase = function(phrase) {
+	var len = phrase.length;
+	var needQuoting = false;
+
+	for (var i = 0; i < len; i++) {
+		var c = phrase.charAt(i);
+		if (c == '"' || c == '\\') {
+			// need to escape them and then quote the whole string
+			var arr = [];
+			arr.push('"');
+			for (var j = 0; j < len; j++) {
+				var cc = phrase.charAt(j);
+				if (cc == '"' || cc == '\\')
+					// Escape the character
+					arr.push('\\');
+				arr.push(cc);
+			}
+			arr.push('"');
+			return arr.join('');
+		} else if ((c < 040 && c != '\r' && c != '\n' && c != '\t') || c >= 0177
+				|| InternetAddress.rfc822phrase.indexOf(c) >= 0)
+			// These characters cause the string to be quoted
+			needQuoting = true;
+	}
+
+	if (needQuoting) {
+		var arr = [];
+		arr.push('"');
+		arr.push(phrase);
+		arr.push('"');
+		return arr.join('');
+	} else
+		return phrase;
+};
+
+InternetAddress.indexOfAny = function(s, any, start) {
+	try {
+		if (start == null) {
+			start = 0;
+		}
+		var len = s.length;
+		for (var i = start; i < len; i++) {
+			if (any.indexOf(s.charAt(i)) >= 0)
+				return i;
+		}
+		return -1;
+	} catch (e) {
+		return -1;
+	}
+};
+
+InternetAddress.prototype.isSimple = function() {
+	return this.address == null
+			|| InternetAddress.indexOfAny(this.address, InternetAddress.specialsNoDotNoAt) < 0;
+};
+
+InternetAddress.prototype.isGroup = function() {
+	// quick and dirty check
+	return this.address != null && InternetAddress.endsWith(this.address, ";")
+			&& this.address.indexOf(':') > 0;
+};
+
+InternetAddress.unquote = function(s) {
+	if (InternetAddress.startsWith(s, "\"") && InternetAddress.endsWith(s, "\"")) {
+		s = s.substring(1, s.length - 1);
+		// check for any escaped characters
+		if (s.indexOf('\\') >= 0) {
+			var arr = []; // approx
+			for (var i = 0; i < s.length; i++) {
+				var c = s.charAt(i);
+				if (c == '\\' && i < s.length - 1)
+					c = s.charAt(++i);
+				arr.push(c);
+			}
+			s = arr.join('');
+		}
+	}
+	return s;
+};
+
+InternetAddress.trim = function(s) {
+	return s.replace(/^\s+/, "").replace(/\s+$/, "");
+};
+
+InternetAddress.startsWith = function(s, prefix) {
+	return s.indexOf(prefix) === 0;
+};
+
+InternetAddress.endsWith = function(s, suffix) {
+	return s.match(suffix + "$") == suffix;
+};
+
+InternetAddress.errorMessage = function(s, ref, pos) {
+	if (ref == null)
+		return s;
+	if (pos == null)
+		pos = -1;
+	s += " in string ``" + ref + "''";
+	if (pos < 0)
+		return s;
+	return s + " at position " + pos;
+};
+
+InternetAddress.checkAddress = function(addr, routeAddr, validate) {
+	var i, start = 0;
+
+	var len = addr.length;
+	if (len == 0)
+		throw new Error(InternetAddress.errorMessage("Empty address", addr));
+
+	/*
+	 * routeAddr indicates that the address is allowed to have an RFC 822
+	 * "route".
+	 */
+	if (routeAddr && addr.charAt(0) == '@') {
+		/*
+		 * Check for a legal "route-addr": [@domain[,@domain
+		 * ...]:]local@domain
+		 */
+		for (start = 0; (i = indexOfAny(addr, ",:", start)) >= 0; start = i + 1) {
+			if (addr.charAt(start) != '@')
+				throw new Error(errorMessage("Illegal route-addr", addr));
+			if (addr.charAt(i) == ':') {
+				// end of route-addr
+				start = i + 1;
+				break;
+			}
+		}
+	}
+
+	/*
+	 * The rest should be "local@domain", but we allow simply "local" unless
+	 * called from validate.
+	 * 
+	 * local-part must follow RFC 822 - no specials except '.' unless
+	 * quoted.
+	 */
+	var c = -1;
+	var lastc = -1;
+	var inquote = false;
+	for (i = start; i < len; i++) {
+		lastc = c;
+		c = addr.charAt(i);
+		// a quoted-pair is only supposed to occur inside a quoted string,
+		// but some people use it outside so we're more lenient
+		if (c == '\\' || lastc == '\\')
+			continue;
+		if (c == '"') {
+			if (inquote) {
+				// peek ahead, next char must be "@"
+				if (validate && i + 1 < len && addr.charAt(i + 1) != '@')
+					throw new Error(InternetAddress.errorMessage(
+							"Quote not at end of local address", addr));
+				inquote = false;
+			} else {
+				if (validate && i != 0)
+					throw new Error(InternetAddress.errorMessage(
+							"Quote not at start of local address", addr));
+				inquote = true;
+			}
+			continue;
+		}
+		if (inquote)
+			continue;
+		if (c == '@') {
+			if (i == 0)
+				throw new Error(InternetAddress.errorMessage("Missing local name", addr));
+			break; // done with local part
+		}
+		if (c <= 040 || c >= 0177)
+			throw new Error(InternetAddress.errorMessage(
+					"Local address contains control or whitespace", addr));
+		if (InternetAddress.specialsNoDot.indexOf(c) >= 0)
+			throw new Error(InternetAddress.errorMessage(
+					"Local address contains illegal character", addr));
+	}
+	if (inquote)
+		throw new Error(InternetAddress.errorMessage("Unterminated quote", addr));
+
+	/*
+	 * Done with local part, now check domain.
+	 * 
+	 * Note that the MimeMessage class doesn't remember addresses as
+	 * separate objects; it writes them out as headers and then parses the
+	 * headers when the addresses are requested. In order to support the
+	 * case where a "simple" address is used, but the address also has a
+	 * personal name and thus looks like it should be a valid RFC822 address
+	 * when parsed, we only check this if we're explicitly called from the
+	 * validate method.
+	 */
+
+	if (c != '@') {
+		if (validate)
+			throw new Error(InternetAddress.errorMessage("Missing final '@domain'", addr));
+		return;
+	}
+
+	// check for illegal chars in the domain, but ignore domain literals
+
+	start = i + 1;
+	if (start >= len)
+		throw new Error(InternetAddress.errorMessage("Missing domain", addr));
+
+	if (addr.charAt(start) == '.')
+		throw new Error(InternetAddress.errorMessage("Domain starts with dot", addr));
+	for (i = start; i < len; i++) {
+		c = addr.charAt(i);
+		if (c == '[')
+			return; // domain literal, don't validate
+		if (c <= 040 || c >= 0177)
+			throw new Error(InternetAddress.errorMessage("Domain contains control or whitespace",
+					addr));
+		// RFC 2822 rule
+		// if (specialsNoDot.indexOf(c) >= 0)
+		/*
+		 * RFC 1034 rule is more strict the full rule is:
+		 * 
+		 * <domain> ::= <subdomain> | " " <subdomain> ::= <label> |
+		 * <subdomain> "." <label> <label> ::= <letter> [ [ <ldh-str> ]
+		 * <let-dig> ] <ldh-str> ::= <let-dig-hyp> | <let-dig-hyp> <ldh-str>
+		 * <let-dig-hyp> ::= <let-dig> | "-" <let-dig> ::= <letter> |
+		 * <digit>
+		 */
+		if (!(Character.isLetterOrDigit(c) || c == '-' || c == '.'))
+			throw new Error(InternetAddress.errorMessage("Domain contains illegal character", addr));
+		if (c == '.' && lastc == '.')
+			throw new Error(InternetAddress.errorMessage("Domain contains dot-dot", addr));
+		lastc = c;
+	}
+	if (lastc == '.')
+		throw new Error(InternetAddress.errorMessage("Domain ends with dot", addr));
+};
+
+InternetAddress.parse = function(s, strict, parseHdr) {
+	if (strict == null)
+		strict = false;
+	if (parseHdr == null)
+		parseHdr = true;
+	var start, end, index, nesting;
+	var start_personal = -1, end_personal = -1;
+	var length = s.length;
+	var ignoreErrors = parseHdr && !strict;
+	var in_group = false; // we're processing a group term
+	var route_addr = false; // address came from route-addr term
+	var rfc822 = false; // looks like an RFC822 address
+	var c;
+	var arr = new Array();
+
+	var ma;
+
+	for (start = end = -1, index = 0; index < length; index++) {
+		c = s.charAt(index);
+
+		switch (c) {
+		/*
+		case '(': // We are parsing a Comment. Ignore everything inside.
+			// XXX - comment fields should be parsed as whitespace,
+			// more than one allowed per address
+			rfc822 = true;
+			if (start >= 0 && end == -1)
+				end = index;
+			var pindex = index;
+			for (index++, nesting = 1; index < length && nesting > 0; index++) {
+				c = s.charAt(index);
+				switch (c) {
+				case '\\':
+					index++; // skip both '\' and the escaped char
+					break;
+				case '(':
+					nesting++;
+					break;
+				case ')':
+					nesting--;
+					break;
+				default:
+					break;
+				}
+			}
+			if (nesting > 0) {
+				if (!ignoreErrors)
+					throw new Error(MailAddress.errorMessage("Missing ')'", s,
+							index));
+				// pretend the first paren was a regular character and
+				// continue parsing after it
+				index = pindex + 1;
+				break;
+			}
+			index--; // point to closing paren
+			if (start_personal == -1)
+				start_personal = pindex + 1;
+			if (end_personal == -1)
+				end_personal = index;
+			break;
+		
+		case ')':
+			if (!ignoreErrors)
+				throw new Error(MailAddress.errorMessage("Missing '('", s,
+						index));
+			// pretend the left paren was a regular character and
+			// continue parsing
+			if (start == -1)
+				start = index;
+			break;
+		*/
+		case '<':
+			rfc822 = true;
+			if (route_addr) {
+				if (!ignoreErrors)
+					throw new Error(InternetAddress.errorMessage("Extra route-addr", s, index));
+
+				// assume missing comma between addresses
+				if (start == -1) {
+					route_addr = false;
+					rfc822 = false;
+					start = end = -1;
+					break; // nope, nothing there
+				}
+				if (!in_group) {
+					// got a token, add this to our InternetAddress vector
+					if (end == -1) // should never happen
+						end = index;
+					var addr = InternetAddress.trim(s.substring(start, end));
+
+					ma = new InternetAddress();
+					ma.setAddress(addr);
+					if (start_personal >= 0) {
+						ma.encodedPersonal = InternetAddress.trim(s.substring(start_personal,
+								end_personal));
+						ma.encodedPersonal = InternetAddress.unquote(ma.encodedPersonal);
+					}
+					arr.push(ma);
+
+					route_addr = false;
+					rfc822 = false;
+					start = end = -1;
+					start_personal = end_personal = -1;
+					// continue processing this new address...
+				}
+			}
+
+			var rindex = index;
+			var inquote = false;
+			outf: for (index++; index < length; index++) {
+				c = s.charAt(index);
+				switch (c) {
+				case '\\': // XXX - is this needed?
+					index++; // skip both '\' and the escaped char
+					break;
+				case '"':
+					inquote = !inquote;
+					break;
+				case '>':
+					if (inquote)
+						continue;
+					break outf; // out of for loop
+				default:
+					break;
+				}
+			}
+
+			// did we find a matching quote?
+			if (inquote) {
+				if (!ignoreErrors)
+					throw new Error(InternetAddress.errorMessage("Missing '\"'", s, index));
+				// didn't find matching quote, try again ignoring quotes
+				// (e.g., ``<"@foo.com>'')
+				outq: for (index = rindex + 1; index < length; index++) {
+					c = s.charAt(index);
+					if (c == '\\') // XXX - is this needed?
+						index++; // skip both '\' and the escaped char
+					else if (c == '>')
+						break;
+				}
+			}
+
+			// did we find a terminating '>'?
+			if (index >= length) {
+				if (!ignoreErrors)
+					throw new Error(InternetAddress.errorMessage("Missing '>'", s, index));
+				// pretend the "<" was a regular character and
+				// continue parsing after it (e.g., ``<@foo.com'')
+				index = rindex + 1;
+				if (start == -1)
+					start = rindex; // back up to include "<"
+				break;
+			}
+
+			if (!in_group) {
+				start_personal = start;
+				if (start_personal >= 0)
+					end_personal = rindex;
+				start = rindex + 1;
+			}
+			route_addr = true;
+			end = index;
+			break;
+
+		case '>':
+			if (!ignoreErrors)
+				throw new Error(InternetAddress.errorMessage("Missing '<'", s, index));
+			// pretend the ">" was a regular character and
+			// continue parsing (e.g., ``>@foo.com'')
+			if (start == -1)
+				start = index;
+			break;
+
+		case '"': // parse quoted string
+			var qindex = index;
+			rfc822 = true;
+			if (start == -1)
+				start = index;
+			outq: for (index++; index < length; index++) {
+				c = s.charAt(index);
+				switch (c) {
+				case '\\':
+					index++; // skip both '\' and the escaped char
+					break;
+				case '"':
+					break outq; // out of for loop
+				default:
+					break;
+				}
+			}
+			if (index >= length) {
+				if (!ignoreErrors)
+					throw new Error(InternetAddress.errorMessage("Missing '\"'", s, index));
+				// pretend the quote was a regular character and
+				// continue parsing after it (e.g., ``"@foo.com'')
+				index = qindex + 1;
+			}
+			break;
+
+		case '[': // a domain-literal, probably
+			rfc822 = true;
+			var lindex = index;
+			outb: for (index++; index < length; index++) {
+				c = s.charAt(index);
+				switch (c) {
+				case '\\':
+					index++; // skip both '\' and the escaped char
+					break;
+				case ']':
+					break outb; // out of for loop
+				default:
+					break;
+				}
+			}
+			if (index >= length) {
+				if (!ignoreErrors)
+					throw new Error(InternetAddress.errorMessage("Missing ']'", s, index));
+				// pretend the "[" was a regular character and
+				// continue parsing after it (e.g., ``[@foo.com'')
+				index = lindex + 1;
+			}
+			break;
+
+		case ';':
+			if (start == -1) {
+				route_addr = false;
+				rfc822 = false;
+				start = end = -1;
+				break; // nope, nothing there
+			}
+			if (in_group) {
+				in_group = false;
+				/*
+				 * If parsing headers, but not strictly, peek ahead. If next
+				 * var is "@", treat the group name like the local part of
+				 * the address, e.g.,
+				 * "Undisclosed-Recipient:;@java.sun.com".
+				 */
+				if (parseHdr && !strict && index + 1 < length && s.charAt(index + 1) == '@')
+					break;
+				ma = new InternetAddress();
+				end = index + 1;
+				ma.setAddress(InternetAddress.trim(s.substring(start, end)));
+				arr.push(ma);
+
+				route_addr = false;
+				rfc822 = false;
+				start = end = -1;
+				start_personal = end_personal = -1;
+				break;
+			}
+			if (!ignoreErrors)
+				throw new Error(InternetAddress.errorMessage("Illegal semicolon, not in group", s,
+						index));
+
+			// otherwise, parsing a header; treat semicolon like comma
+			// fall through to comma case...
+
+		case ',': // end of an address, probably
+			if (start == -1) {
+				route_addr = false;
+				rfc822 = false;
+				start = end = -1;
+				break; // nope, nothing there
+			}
+			if (in_group) {
+				route_addr = false;
+				break;
+			}
+			// got a token, add this to our InternetAddress vector
+			if (end == -1)
+				end = index;
+
+			var addr = InternetAddress.trim(s.substring(start, end));
+			var pers = null;
+			if (rfc822 && start_personal >= 0) {
+				pers = InternetAddress.unquote(InternetAddress.trim(s.substring(start_personal,
+						end_personal)));
+				if (InternetAddress.trim(pers).length == 0)
+					pers = null;
+			}
+
+			/*
+			 * If the personal name field has an "@" and the address field
+			 * does not, assume they were reversed, e.g., ``"joe doe"
+			 * (john.doe@example.com)''.
+			 */
+			if (parseHdr && !strict && pers != null && pers.indexOf('@') >= 0
+					&& addr.indexOf('@') < 0 && addr.indexOf('!') < 0) {
+				var tmp = addr;
+				addr = pers;
+				pers = tmp;
+			}
+			if (rfc822 || strict || parseHdr) {
+				if (!ignoreErrors)
+					InternetAddress.checkAddress(addr, route_addr, false);
+				ma = new InternetAddress();
+				ma.setAddress(addr);
+				if (pers != null)
+					ma.encodedPersonal = pers;
+				arr.push(ma);
+			} else {
+				// maybe we passed over more than one space-separated addr
+				var tokens = addr.split(/\s|\t|\n|\r|\f/);
+				for (var i = 0; i < tokens.length; i++) {
+					var a = tokens[i];
+					InternetAddress.checkAddress(a, false, false);
+					ma = new InternetAddress();
+					ma.setAddress(a);
+					arr.push(ma);
+				}
+			}
+
+			route_addr = false;
+			rfc822 = false;
+			start = end = -1;
+			start_personal = end_personal = -1;
+			break;
+
+		case ':':
+			rfc822 = true;
+			if (in_group)
+				if (!ignoreErrors)
+					throw new Error(InternetAddress.errorMessage("Nested group", s, index));
+			if (start == -1)
+				start = index;
+			if (parseHdr && !strict) {
+				/*
+				 * If next char is a special character that can't occur at
+				 * the start of a valid address, treat the group name as the
+				 * entire address, e.g., "Date:, Tue", "Re:@foo".
+				 */
+				if (index + 1 < length) {
+					var addressSpecials = ")>[]:@\\,.";
+					var nc = s.charAt(index + 1);
+					if (addressSpecials.indexOf(nc) >= 0) {
+						if (nc != '@')
+							break; // don't change in_group
+						/*
+						 * Handle a common error:
+						 * ``Undisclosed-Recipient:@example.com;''
+						 * 
+						 * Scan ahead. If we find a semicolon before one of
+						 * these other special characters, consider it to be
+						 * a group after all.
+						 */
+						for (var i = index + 2; i < length; i++) {
+							nc = s.charAt(i);
+							if (nc == ';')
+								break;
+							if (addressSpecials.indexOf(nc) >= 0)
+								break;
+						}
+						if (nc == ';')
+							break; // don't change in_group
+					}
+				}
+
+				// ignore bogus "mailto:" prefix in front of an address,
+				// or bogus mail header name included in the address field
+				var gname = s.substring(start, index);
+				if (ignoreBogusGroupName
+						&& (gname.equalsIgnoreCase("mailto") || gname.equalsIgnoreCase("From")
+								|| gname.equalsIgnoreCase("To") || gname.equalsIgnoreCase("Cc")
+								|| gname.equalsIgnoreCase("Subject") || gname
+								.equalsIgnoreCase("Re")))
+					start = -1; // we're not really in a group
+				else
+					in_group = true;
+			} else
+				in_group = true;
+			break;
+
+		// Ignore whitespace
+		case ' ':
+		case '\t':
+		case '\r':
+		case '\n':
+			break;
+
+		default:
+			if (start == -1)
+				start = index;
+			break;
+		}
+	}
+
+	if (start >= 0) {
+		/*
+		 * The last token, add this to our InternetAddress vector. Note that
+		 * this block of code should be identical to the block above for
+		 * "case ','".
+		 */
+		if (end == -1)
+			end = length;
+
+		var addr = InternetAddress.trim(s.substring(start, end));
+		var pers = null;
+		if (rfc822 && start_personal >= 0) {
+			pers = InternetAddress.unquote(InternetAddress.trim(s.substring(start_personal,
+					end_personal)));
+			if (InternetAddress.trim(pers).length == 0)
+				pers = null;
+		}
+
+		/*
+		 * If the personal name field has an "@" and the address field does
+		 * not, assume they were reversed, e.g., ``"joe doe"
+		 * (john.doe@example.com)''.
+		 */
+		if (parseHdr && !strict && pers != null && pers.indexOf('@') >= 0 && addr.indexOf('@') < 0
+				&& addr.indexOf('!') < 0) {
+			var tmp = addr;
+			addr = pers;
+			pers = tmp;
+		}
+		if (rfc822 || strict || parseHdr) {
+			if (!ignoreErrors)
+				InternetAddress.checkAddress(addr, route_addr, false);
+			ma = new InternetAddress();
+			ma.setAddress(addr);
+			if (pers != null)
+				ma.encodedPersonal = pers;
+			arr.push(ma);
+		} else {
+			// maybe we passed over more than one space-separated addr
+			var tokens = addr.split(/\s|\t|\n|\r|\f/);
+			for (var i = 0; i < tokens.length; i++) {
+				var a = tokens[i];
+				InternetAddress.checkAddress(a, false, false);
+				ma = new InternetAddress();
+				ma.setAddress(a);
+				arr.push(ma);
+			}
+		}
+	}
+
+	return arr;
+};
+
+InternetAddress.parseHeader = function(addresslist, strict) {
+	return InternetAddress.parse(addresslist, strict, true);
+};
+
+InternetAddress.prototype.toString = function() {
+	// if (this.encodedPersonal == null && this.personal != null)
+	// try {
+	// this.encodedPersonal = MimeUtility.encodeWord(this.personal);
+	// } catch (e) {
+	// }
+	if (this.encodedPersonal != null)
+		return InternetAddress.quotePhrase(this.encodedPersonal) + " <" + this.address + ">";
+	else if (this.isGroup() || this.isSimple())
+		return this.address;
+	else
+		return "<" + address + ">";
+};Èj^ÏF2      dﬂ∏dﬂ∏EUUd7   j    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/js/assets/internetaddress.js necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"20465-1659949284000"
+Last-Modified: Mon, 08 Aug 2022 09:01:24 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 20465
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"20465-1659949284000"
+Last-Modified: Mon, 08 Aug 2022 09:01:24 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 20465
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ ctid 2 uncompressed-len 0 net-response-time-onstart 31 net-response-time-onstop 33   OÒ

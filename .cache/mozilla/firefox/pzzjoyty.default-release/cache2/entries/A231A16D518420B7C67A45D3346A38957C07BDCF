@@ -1,0 +1,438 @@
+define([ 'app', 'backbone.paginator' ], function(app) {
+
+	app.BackboneModel = Backbone.Model.extend({
+
+		constructor : function() {
+			Backbone.Model.apply(this, arguments);
+		},
+
+		initialize : function(attributes, options) {
+			Backbone.Model.prototype.initialize.apply(this, arguments);
+		},
+
+		parse : function(response, options) {
+			return response;
+		},
+
+		validate : function(attrs, options) {
+			var errors = {};
+			if (!_.isEmpty(errors))
+				return errors;
+		},
+
+		fetch : function(options) {
+			if (!options) {
+				options = {};
+			}
+			var success = options.success;
+			options.success = function(model, response, options) {
+				if (success) {
+					success(model, response, options);
+					return;
+				}
+			};
+			wrapError(this, options);
+			if (!options.statusCode) {
+				options.statusCode = {
+					302 : function() {
+						alert("page not found");
+					}
+				};
+			}
+			var jqXHR = Backbone.Model.prototype.fetch.apply(this, [ options ]);
+			return jqXHR;
+		},
+
+		save : function(attributes, options) {
+			if (!options) {
+				options = {};
+			}
+			var success = options.success;
+			options.success = function(model, response, options) {
+				if (success)
+					success(model, response, options);
+			};
+			wrapError(this, options);
+			var jqXHR = Backbone.Model.prototype.save.apply(this, [ attributes, options ]);
+			return jqXHR;
+		},
+
+		destroy : function(options) {
+			if (!options) {
+				options = {};
+			}
+			var success = options.success;
+			options.success = function(model, response, options) {
+				if (success)
+					success(model, response, options);
+			};
+			wrapError(this, options);
+			var jqXHR = Backbone.Model.prototype.destroy.apply(this, [ options ]);
+			return jqXHR;
+		},
+
+	}); // app.BackboneModel
+
+	app.BackboneCollection = Backbone.Collection.extend({
+
+		model : app.BackboneModel,
+
+		constructor : function() {
+			Backbone.Collection.apply(this, arguments);
+		},
+
+		initialize : function(models, options) {
+			Backbone.Collection.prototype.initialize.apply(this, arguments);
+		},
+
+		create : function(attributes, options) {
+			if (!options) {
+				options = {};
+			}
+			var success = options.success;
+			options.success = function(model, response, options) {
+				if (success) {
+					success(model, response, options);
+					return;
+				}
+			};
+			wrapError(this, options);
+			var model = Backbone.Collection.prototype.create.call(this, attributes, options);
+			return model;
+		},
+
+		fetch : function(options) {
+			if (!options) {
+				options = {};
+			}
+			var success = options.success;
+			options.success = function(collection, response, options) {
+				if (success)
+					success(collection, response, options);
+			};
+			wrapError(this, options);
+			var jqXHR = Backbone.Collection.prototype.fetch.call(this, options);
+			return jqXHR;
+		},
+
+		findModel : function(attribute, value) { // Custom Method
+			var model = _.find(this.models, function(model) {
+				return model.get(attribute) == value;
+			});
+			return model;
+		},
+
+	}); // app.BackboneCollection
+
+	app.RequestPaginator = Backbone.Paginator.requestPager.extend({
+
+		model : app.BackboneModel,
+
+		// custom property
+		sortOrder : '',
+
+		paginator_core : {
+			type : 'GET',
+			dataType : 'json',
+			url : '/pages'
+		},
+
+		paginator_ui : {
+			firstPage : 1,
+			currentPage : 1,
+			perPage : 0,
+			totalPages : 1,
+			pagesInRange : 0
+		},
+
+		server_api : {
+			'firstPage' : function() {
+				return this.firstPage;
+			},
+			'currentPage' : function() {
+				return this.currentPage;
+			},
+			'perPage' : function() {
+				return this.perPage;
+			},
+			'sortField' : function() {
+				return this.sortField || '';
+			},
+			'sortOrder' : function() { // custom property
+				return this.sortOrder || '';
+			}
+		},
+
+		parse : function(response) {
+			this.firstPage = response.firstPage;
+			this.currentPage = response.currentPage;
+			this.perPage = response.perPage;
+			this.sortField = response.sortField;
+			this.sortOrder = response.sortOrder; // custom property
+			this.totalRecords = response.totalRecords;
+			this.totalPages = Math.ceil(this.totalRecords / this.perPage);
+
+			return response;
+		},
+
+		setPagination : function(info) {
+			var pages = [];
+
+			var firstPage = info.firstPage;
+			var totalRecords = info.totalRecords;
+			var perPage = info.perPage;
+			var lastPage = Math.floor(totalRecords / perPage) + firstPage;
+
+			if (totalRecords % perPage == 0) {
+				lastPage -= 1;
+			}
+
+			var pagesInRange = info.pagesInRange ? info.pagesInRange : 10;
+			var currentPage = info.currentPage;
+			var offsetPage = Math.floor((currentPage - firstPage) / pagesInRange) * pagesInRange + firstPage;
+
+			for (var i = 0; i < pagesInRange; i++) {
+				var page = offsetPage + i;
+				if (page <= lastPage) {
+					pages.push(page);
+				}
+			}
+
+			if (offsetPage > pagesInRange) {
+				info.prevRangeOffset = offsetPage - pagesInRange;
+			}
+			if (pages.length == pagesInRange && pages[pagesInRange - 1] < lastPage) {
+				info.nextRangeOffset = offsetPage + pagesInRange;
+			}
+			return pages;
+		},
+
+		pager : function(options) {
+			var jqXHR = Backbone.Paginator.requestPager.prototype.pager.call(this, options);
+			jqXHR.done(function(data, textStatus, jqXHR) {
+				app.debug('jqXHR.done(function(data, textStatus, jqXHR) {...})');
+			}).fail(function(jqXHR, textStatus, errorThrown) {
+				app.debug('jqXHR.fail(function(jqXHR, textStatus, errorThrown) {...})');
+				if (jqXHR.readyState === 0 && jqXHR.status === 0 && jqXHR.statusText === "NetworkError")
+					alert('A network error occurred. Please try again in a few moments');
+			}).always(function(data_jqXHR, textStatus, jqXHR_errorThrown) {
+				app.debug('jqXHR.always(function(data_jqXHR, textStatus, jqXHR_errorThrown) {...})');
+			});
+			return jqXHR;
+		},
+
+		fetch : function(options) {
+			if (!options) {
+				options = {};
+			}
+			var success = options.success;
+			options.success = function(collection, response, options) {
+				if (success)
+					success(collection, response, options);
+			};
+			wrapError(this, options);
+			var jqXHR = Backbone.Collection.prototype.fetch.call(this, options);
+			return jqXHR;
+		},
+
+		setParameters : function(params) { // Custom Method
+			this.params = params;
+			var server_api = {}
+			if (this.paginator_core.type == 'POST') {
+				server_api['_method'] = 'GET';
+			}
+			for ( var prop in params) {
+				switch (typeof params[prop]) {
+				case 'string':
+					server_api[prop] = params[prop].replace(/\+/g, '%2B');
+					break;
+				case 'object':
+					var param = params[prop];
+					for ( var p in param) {
+						if (typeof param[p] == 'string')
+							server_api[prop + '.' + p] = param[p].replace(/\+/g, '%2B');
+						else
+							server_api[prop + '.' + p] = param[p];
+					}
+				}
+			}
+			this.server_api = server_api;
+		},
+
+		setParams : function(params) { // Custom Method
+			this.setParameters(params);
+		},
+
+		findModel : function(attribute, value) { // Custom Method
+			var model = _.find(this.models, function(model) {
+				return model.get(attribute) == value;
+			});
+			return model;
+		}
+
+	}); // app.RequestPaginator
+
+	app.ClientPaginator = Backbone.Paginator.clientPager.extend({
+
+		model : app.BackboneModel,
+
+		paginator_core : {
+			type : 'GET',
+			dataType : 'json',
+			url : '/pages'
+		},
+
+		paginator_ui : {
+			firstPage : 1,
+			currentPage : 1,
+			perPage : 100,
+			totalPages : 10,
+			pagesInRange : 10
+		},
+
+		server_api : {
+			'firstPage' : function() {
+				return this.firstPage || this.defaults_ui.firstPage;
+			},
+			'currentPage' : function() {
+				return this.currentPage || this.defaults_ui.currentPage;
+			},
+			'perPage' : function() {
+				return this.perPage || this.defaults_ui.perPage;
+			},
+			'sortField' : function() {
+				return this.sortField || '';
+			},
+			'sortOrder' : function() { // custom property
+				return this.sortOrder || '';
+			}
+		},
+
+		parse : function(response) {
+			this.firstPage = response.firstPage;
+			this.currentPage = response.currentPage;
+			this.perPage = response.perPage;
+			this.sortField = response.sortField;
+			this.sortOrder = response.sortOrder; // custom property
+			this.totalRecords = response.totalRecords;
+			this.totalPages = Math.ceil(this.totalRecords / this.perPage);
+
+			return response;
+		},
+
+		setPagination : function(info) {
+			var pages = [];
+
+			if (!info.firstPage)
+				info.firstPage = this.firstPage;
+
+			var firstPage = info.firstPage;
+			var totalRecords = info.totalRecords;
+			var perPage = info.perPage;
+			var lastPage = Math.floor(totalRecords / perPage) + firstPage;
+
+			if (totalRecords % perPage == 0) {
+				lastPage -= 1;
+			}
+
+			var pagesInRange = info.pagesInRange ? info.pagesInRange : this.pagesInRange;
+			var currentPage = info.currentPage;
+			var offsetPage = Math.floor((currentPage - firstPage) / pagesInRange) * pagesInRange + firstPage;
+
+			for (var i = 0; i < pagesInRange; i++) {
+				var page = offsetPage + i;
+				if (page <= lastPage) {
+					pages.push(page);
+				}
+			}
+
+			if (offsetPage > pagesInRange) {
+				info.prevRangeOffset = offsetPage - pagesInRange;
+			}
+			if (pages.length == pagesInRange && pages[pagesInRange - 1] < lastPage) {
+				info.nextRangeOffset = offsetPage + pagesInRange;
+			}
+			return pages;
+		},
+
+		setParameters : function(params) { // Custom Method
+			this.params = params;
+			var server_api = {}
+			if (this.paginator_core.type == 'POST') {
+				server_api['_method'] = 'GET';
+			}
+			for ( var prop in params) {
+				switch (typeof params[prop]) {
+				case 'string':
+					server_api[prop] = params[prop].replace(/\+/g, '%2B');
+					break;
+				case 'object':
+					var param = params[prop];
+					for ( var p in param) {
+						if (typeof param[p] == 'string')
+							server_api[prop + '.' + p] = param[p].replace(/\+/g, '%2B');
+						else
+							server_api[prop + '.' + p] = param[p];
+					}
+				}
+			}
+			this.server_api = server_api;
+		},
+
+		setParams : function(params) { // Custom Method
+			this.setParameters(params);
+		}
+
+	});
+
+	var wrapError = function(model, options) {
+		var error = options.error;
+		options.error = function(model, response, options) {
+			var jqXHR = response;
+			if (jqXHR.readyState === 0 && jqXHR.status === 0 && jqXHR.statusText === "NetworkError") {
+				alert('A network error occurred. Please try again in a few moments');
+				/*
+				 * setTimeout(function() { location.reload(); }, 1000);
+				 */
+			}
+			if (jqXHR) {
+				app.log('status: ' + jqXHR.status);
+				app.log('statusText: ' + jqXHR.statusText);
+				app.log('readyState: ' + jqXHR.readyState);
+				var responseText = jqXHR.responseText;
+				if (responseText) {
+					responseText = responseText.replace(/\\t/g, '\t');
+					responseText = responseText.replace(/\\r/g, '\r');
+					responseText = responseText.replace(/\\n/g, '\n');
+					responseText = responseText.replace(/&quot;/g, '"');
+					responseText = responseText.replace(/&amp;/g, '&');
+					responseText = responseText.replace(/&lt;/g, '<');
+					responseText = responseText.replace(/&gt;/g, '>');
+				}
+				app.log('responseText: ' + responseText);
+			}
+			if (error) {
+				error(model, response, options);
+			} else {
+				if (jqXHR.status === 0)
+					app.log("Error: " + jqXHR.status + ' ' + jqXHR.statusText);
+				else
+					alert("Error: " + jqXHR.status + ' ' + jqXHR.statusText);
+			}
+		};
+	};
+}); // define([ 'app', 'backbone.paginator' ], function(app) { ... });
+ï+0Swg      dß¸dß¸EUUd7   _    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app/app-models.js necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"11667-1659949284000"
+Last-Modified: Mon, 08 Aug 2022 09:01:24 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 11667
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"11667-1659949284000"
+Last-Modified: Mon, 08 Aug 2022 09:01:24 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 11667
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ ctid 2 uncompressed-len 0 net-response-time-onstart 51 net-response-time-onstop 51   -“

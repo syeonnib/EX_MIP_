@@ -1,0 +1,958 @@
+<!doctype html>
+<html><head><title data-rh="true">[ROS] 패키지 빌드와 노드 작성</title><link data-rh="true" rel="canonical" href="https://velog.io/@717lumos/ROS-패키지-빌드와-노드-작성"/><link data-rh="true" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css" integrity="sha384-zB1R0rpPzHqg7Kpt0Aljp8JPLqbXI3bhnPWROx27a9N0Ll6ZP/+DiW/UqRcLbRjq" crossorigin="anonymous"/><meta data-rh="true" property="fb:app_id" content="203040656938507"/><meta data-rh="true" name="description" content="ROS에서의 패키지 빌드와 노드 작성, 실행 과정"/><meta data-rh="true" property="og:url" content="https://velog.io/@717lumos/ROS-패키지-빌드와-노드-작성"/><meta data-rh="true" property="og:type" content="article"/><meta data-rh="true" property="og:title" content="[ROS] 패키지 빌드와 노드 작성"/><meta data-rh="true" property="og:description" content="ROS에서의 패키지 빌드와 노드 작성, 실행 과정"/><meta data-rh="true" property="og:image" content="https://velog.velcdn.com/images/717lumos/post/1db9c7f0-55cf-4140-80e0-5c870e0b6da5/%EA%B7%B8%EB%A6%BC1.png"/><meta data-rh="true" name="twitter:card" content="summary_large_image"/><meta data-rh="true" name="twitter:title" content="[ROS] 패키지 빌드와 노드 작성"/><meta data-rh="true" name="twitter:description" content="ROS에서의 패키지 빌드와 노드 작성, 실행 과정"/><meta data-rh="true" name="twitter:image" content="https://images.velog.io/images/717lumos/post/1db9c7f0-55cf-4140-80e0-5c870e0b6da5/그림1.png"/><style data-styled="" data-styled-version="5.3.3">.hSMJOX{display:-webkit-inline-box;display:-webkit-inline-flex;display:-ms-inline-flexbox;display:inline-flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;font-weight:bold;cursor:pointer;outline:none;border:none;color:white;background:var(--primary1);color:var(--button-text);border-radius:4px;padding-top:0;padding-bottom:0;height:2rem;padding-left:1.25rem;padding-right:1.25rem;font-size:1rem;}/*!sc*/
+.hSMJOX:hover,.hSMJOX:focus{background:var(--primary2);}/*!sc*/
+.sc-jrQzAO + .sc-jrQzAO{margin-left:0.5rem;}/*!sc*/
+.hSMJOX:disabled{cursor:not-allowed;background:var(--bg-element4);color:var(--text3);}/*!sc*/
+.hSMJOX:disabled:hover{background:var(--bg-element4);color:var(--text3);}/*!sc*/
+data-styled.g11[id="sc-jrQzAO"]{content:"hSMJOX,"}/*!sc*/
+body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Apple SD Gothic Neo","Malgun Gothic","맑은 고딕",나눔고딕,"Nanum Gothic","Noto Sans KR","Noto Sans CJK KR",arial,돋움,Dotum,Tahoma,Geneva,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;color:var(--text1);box-sizing:border-box;}/*!sc*/
+*{box-sizing:inherit;}/*!sc*/
+code{font-family:'Fira Mono',source-code-pro,Menlo,Monaco,Consolas,'Courier New', monospace;}/*!sc*/
+input,button,textarea{font-family:inherit;}/*!sc*/
+html,body,#root{height:100%;}/*!sc*/
+body{--bg-page1:#F8F9FA;--bg-page2:#FFFFFF;--bg-element1:#FFFFFF;--bg-element2:#F8F9FA;--bg-element3:#E9ECEF;--bg-element4:#DEE2E6;--bg-element5:#212529;--bg-element6:#343A40;--bg-element7:#FFFFFF;--bg-element8:#FBFDFC;--bg-invert:#1E1E1E;--bg-inline-code:#E9ECEF;--bg-tag:#F8F9FA;--text1:#212529;--text2:#495057;--text3:#868E96;--text4:#CED4DA;--border1:#343A40;--border2:#ADB5BD;--border3:#DEE2E6;--border4:#F1F3F5;--primary1:#12B886;--primary2:#20C997;--destructive1:#FF6B6B;--destructive2:#FF8787;--button-text:#FFFFFF;--slight-layer:rgba(0,0,0,0.05);--opaque-layer:rgba(249,249,249,0.85);--editor-footer:#FFFFFF;--prism-bg:#fbfcfd;--prism-default-text:#24292e;--prism-selection-bg:rgba(0,0,0,0.15);--prism-code-block-bg:#fbfcfd;--prism-code-1:#969896;--prism-code-2:#24292e;--prism-code-3:#a626a4;--prism-code-4:#63a35c;--prism-code-5:#0184bc;--prism-code-6:#50a14f;--prism-code-7:#a626a4;--prism-code-8:#005cc5;--prism-code-9:#a626a4;--prism-line-number:#585c63;}/*!sc*/
+@media (prefers-color-scheme:dark){body{--bg-page1:#121212;--bg-page2:#121212;--bg-element1:#1E1E1E;--bg-element2:#1E1E1E;--bg-element3:#252525;--bg-element4:#2E2E2E;--bg-element5:#F1F3F5;--bg-element6:#F8F9FA;--bg-element7:#252525;--bg-element8:#0c0c0c;--bg-invert:#FFFFFF;--bg-inline-code:#363636;--bg-tag:#252525;--text1:#ECECEC;--text2:#D9D9D9;--text3:#ACACAC;--text4:#595959;--border1:#E0E0E0;--border2:#A0A0A0;--border3:#4D4D4D;--border4:#2A2A2A;--primary1:#96F2D7;--primary2:#63E6BE;--destructive1:#FFC9C9;--destructive2:#FFA8A8;--button-text:#121212;--slight-layer:rgba(255,255,255,0.1);--opaque-layer:rgba(0,0,0,0.85);--editor-footer:#2E2E2E;--prism-bg:#1E1E1E;--prism-default-text:#e0e6f1;--prism-selection-bg:#383e49;--prism-code-block-bg:#1e1e1e;--prism-code-1:#7c858d;--prism-code-2:#abb2bf;--prism-code-3:#e06c75;--prism-code-4:#d19a66;--prism-code-5:#98c379;--prism-code-6:#56b6c2;--prism-code-7:#c678dd;--prism-code-8:#61afef;--prism-code-9:#c678dd;--prism-line-number:#5c6370;}}/*!sc*/
+body[data-theme='light']{--bg-page1:#F8F9FA;--bg-page2:#FFFFFF;--bg-element1:#FFFFFF;--bg-element2:#F8F9FA;--bg-element3:#E9ECEF;--bg-element4:#DEE2E6;--bg-element5:#212529;--bg-element6:#343A40;--bg-element7:#FFFFFF;--bg-element8:#FBFDFC;--bg-invert:#1E1E1E;--bg-inline-code:#E9ECEF;--bg-tag:#F8F9FA;--text1:#212529;--text2:#495057;--text3:#868E96;--text4:#CED4DA;--border1:#343A40;--border2:#ADB5BD;--border3:#DEE2E6;--border4:#F1F3F5;--primary1:#12B886;--primary2:#20C997;--destructive1:#FF6B6B;--destructive2:#FF8787;--button-text:#FFFFFF;--slight-layer:rgba(0,0,0,0.05);--opaque-layer:rgba(249,249,249,0.85);--editor-footer:#FFFFFF;--prism-bg:#fbfcfd;--prism-default-text:#24292e;--prism-selection-bg:rgba(0,0,0,0.15);--prism-code-block-bg:#fbfcfd;--prism-code-1:#969896;--prism-code-2:#24292e;--prism-code-3:#a626a4;--prism-code-4:#63a35c;--prism-code-5:#0184bc;--prism-code-6:#50a14f;--prism-code-7:#a626a4;--prism-code-8:#005cc5;--prism-code-9:#a626a4;--prism-line-number:#585c63;}/*!sc*/
+body[data-theme='dark']{--bg-page1:#121212;--bg-page2:#121212;--bg-element1:#1E1E1E;--bg-element2:#1E1E1E;--bg-element3:#252525;--bg-element4:#2E2E2E;--bg-element5:#F1F3F5;--bg-element6:#F8F9FA;--bg-element7:#252525;--bg-element8:#0c0c0c;--bg-invert:#FFFFFF;--bg-inline-code:#363636;--bg-tag:#252525;--text1:#ECECEC;--text2:#D9D9D9;--text3:#ACACAC;--text4:#595959;--border1:#E0E0E0;--border2:#A0A0A0;--border3:#4D4D4D;--border4:#2A2A2A;--primary1:#96F2D7;--primary2:#63E6BE;--destructive1:#FFC9C9;--destructive2:#FFA8A8;--button-text:#121212;--slight-layer:rgba(255,255,255,0.1);--opaque-layer:rgba(0,0,0,0.85);--editor-footer:#2E2E2E;--prism-bg:#1E1E1E;--prism-default-text:#e0e6f1;--prism-selection-bg:#383e49;--prism-code-block-bg:#1e1e1e;--prism-code-1:#7c858d;--prism-code-2:#abb2bf;--prism-code-3:#e06c75;--prism-code-4:#d19a66;--prism-code-5:#98c379;--prism-code-6:#56b6c2;--prism-code-7:#c678dd;--prism-code-8:#61afef;--prism-code-9:#c678dd;--prism-line-number:#5c6370;}/*!sc*/
+data-styled.g13[id="sc-global-gYCCRU1"]{content:"sc-global-gYCCRU1,"}/*!sc*/
+.gflbJg{height:2rem;padding-left:1rem;padding-right:1rem;font-size:1rem;border-radius:1rem;background:none;border:none;outline:none;font-weight:bold;word-break:keep-all;background:var(--bg-element5);color:var(--button-text);-webkit-transition:0.125s all ease-in;transition:0.125s all ease-in;cursor:pointer;}/*!sc*/
+.gflbJg:hover{background:var(--bg-element6);}/*!sc*/
+.gflbJg:focus{box-shadow:0px 2px 12px #00000030;}/*!sc*/
+.gflbJg:disabled{background:var(--bg-element2);}/*!sc*/
+data-styled.g17[id="sc-egiyK"]{content:"gflbJg,"}/*!sc*/
+.bjBHVb{width:1728px;margin-left:auto;margin-right:auto;}/*!sc*/
+@media (max-width:1919px){.bjBHVb{width:1376px;}}/*!sc*/
+@media (max-width:1440px){.bjBHVb{width:1024px;}}/*!sc*/
+@media (max-width:1056px){.bjBHVb{width:calc(100% - 2rem);}}/*!sc*/
+data-styled.g19[id="sc-ksdxgE"]{content:"bjBHVb,"}/*!sc*/
+.bfzLNu{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;font-weight:bold;color:var(--text1);font-size:1.3125rem;-webkit-text-decoration:none;text-decoration:none;font-family:Fira Mono,monospace;}/*!sc*/
+@media (max-width:1024px){.bfzLNu{font-size:1.125rem;}.bfzLNu .velog-logo{height:1.25rem;}}/*!sc*/
+.bfzLNu a{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;color:inherit;-webkit-text-decoration:none;text-decoration:none;}/*!sc*/
+.bfzLNu .user-logo{display:block;max-width:calc(100vw - 200px);text-overflow:ellipsis;white-space:nowrap;overflow-x:hidden;overflow-y:hidden;}/*!sc*/
+data-styled.g24[id="sc-ieecCq"]{content:"bfzLNu,"}/*!sc*/
+.iXFSLX{color:inherit;}/*!sc*/
+.iXFSLX svg{color:inherit;margin-right:1rem;width:1.75rem;height:1.75rem;display:block;}/*!sc*/
+@media (max-width:1024px){.iXFSLX svg{width:1.5rem;height:1.5rem;margin-right:0.75rem;}}/*!sc*/
+data-styled.g25[id="sc-dJjYzT"]{content:"iXFSLX,"}/*!sc*/
+.borNha{height:4rem;}/*!sc*/
+data-styled.g29[id="sc-fKVqWL"]{content:"borNha,"}/*!sc*/
+.efICyG{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;background:transparent;border:none;width:2.5rem;height:2.5rem;outline:none;border-radius:50%;color:var(--text1);cursor:pointer;margin-right:0.5rem;}/*!sc*/
+.efICyG:hover{background:var(--slight-layer);}/*!sc*/
+.efICyG svg{width:1.125rem;height:1.125rem;}/*!sc*/
+data-styled.g30[id="sc-bBHxTw"]{content:"efICyG,"}/*!sc*/
+.fBIRvV{height:100%;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:justify;-webkit-justify-content:space-between;-ms-flex-pack:justify;justify-content:space-between;}/*!sc*/
+data-styled.g31[id="sc-iwjdpV"]{content:"fBIRvV,"}/*!sc*/
+.fYCKhW{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;position:relative;}/*!sc*/
+@media (max-width:1024px){.fYCKhW .write-button{display:none;}}/*!sc*/
+data-styled.g32[id="sc-cxpSdN"]{content:"fYCKhW,"}/*!sc*/
+.eMcrQs{position:fixed;top:0;background:var(--bg-element1);width:100%;z-index:10;box-shadow:0px 0 8px rgba(0,0,0,0.08);}/*!sc*/
+.eMcrQs .tab-wrapper{margin-top:-2rem;}/*!sc*/
+data-styled.g47[id="sc-iUKqMP"]{content:"eMcrQs,"}/*!sc*/
+.hKuDqm{padding-bottom:4rem;}/*!sc*/
+data-styled.g50[id="sc-cTAqQK"]{content:"hKuDqm,"}/*!sc*/
+.dIcmEw{background:var(--bg-element4);-webkit-animation:gsdBxV 1s ease-in-out infinite;animation:gsdBxV 1s ease-in-out infinite;display:inline-block;border-radius:4px;height:1em;}/*!sc*/
+.sc-hUpaCq + .sc-hUpaCq{margin-left:0.5rem;}/*!sc*/
+.dxYoct{background:var(--bg-element4);-webkit-animation:gsdBxV 1s ease-in-out infinite;animation:gsdBxV 1s ease-in-out infinite;display:inline-block;border-radius:4px;height:1em;}/*!sc*/
+data-styled.g57[id="sc-hUpaCq"]{content:"dIcmEw,dxYoct,"}/*!sc*/
+body{background:var(--bg-page2);}/*!sc*/
+data-styled.g66[id="sc-global-iqNrnJ1"]{content:"sc-global-iqNrnJ1,"}/*!sc*/
+.cFguvd{width:768px;margin-left:auto;margin-right:auto;}/*!sc*/
+@media (max-width:768px){.cFguvd{width:100%;}}/*!sc*/
+data-styled.g67[id="sc-hiwPVj"]{content:"cFguvd,"}/*!sc*/
+@media (max-width:1024px){.EUNkM{padding-left:1rem;padding-right:1rem;}}/*!sc*/
+data-styled.g68[id="sc-ehCJOs"]{content:"EUNkM,"}/*!sc*/
+.jKJFef{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;}/*!sc*/
+@media (max-width:768px){.jKJFef{-webkit-flex-direction:column;-ms-flex-direction:column;flex-direction:column;-webkit-align-items:flex-start;-webkit-box-align:flex-start;-ms-flex-align:flex-start;align-items:flex-start;}}/*!sc*/
+.jKJFef img{display:block;width:8rem;height:8rem;border-radius:50%;object-fit:cover;box-shadow:0 0 4px 0 rgba(0,0,0,0.06);}/*!sc*/
+@media (max-width:768px){.jKJFef img{width:5rem;height:5rem;}}/*!sc*/
+data-styled.g69[id="sc-lcepkR"]{content:"jKJFef,"}/*!sc*/
+.blFlll{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-flex-direction:column;-ms-flex-direction:column;flex-direction:column;-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;margin-left:1rem;}/*!sc*/
+.blFlll .name{font-size:1.5rem;line-height:1.5;font-weight:bold;color:var(--text1);}/*!sc*/
+.blFlll .name a{color:inherit;-webkit-text-decoration:none;text-decoration:none;}/*!sc*/
+.blFlll .name a:hover{color:var(--text1);-webkit-text-decoration:underline;text-decoration:underline;}/*!sc*/
+.blFlll .description{white-space:pre-wrap;font-size:1.125rem;line-height:1.5;margin-top:0.25rem;color:var(--text2);-webkit-letter-spacing:-0.004em;-moz-letter-spacing:-0.004em;-ms-letter-spacing:-0.004em;letter-spacing:-0.004em;}/*!sc*/
+@media (max-width:768px){.blFlll{margin-left:0;margin-top:1rem;}.blFlll .name{font-size:1.125rem;}.blFlll .description{margin-top:0.5rem;font-size:0.875rem;-webkit-letter-spacing:-0.004em;-moz-letter-spacing:-0.004em;-ms-letter-spacing:-0.004em;letter-spacing:-0.004em;}}/*!sc*/
+data-styled.g70[id="sc-gGCDDS"]{content:"blFlll,"}/*!sc*/
+.ksTJra{background:var(--bg-element3);width:100%;height:1px;margin-top:2rem;margin-bottom:1.5rem;}/*!sc*/
+@media (max-width:768px){.ksTJra{margin-top:1rem;margin-bottom:1rem;}}/*!sc*/
+data-styled.g71[id="sc-clIzBv"]{content:"ksTJra,"}/*!sc*/
+.ecAFug{color:var(--text3);display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;}/*!sc*/
+.ecAFug svg{cursor:pointer;width:2rem;height:2rem;}/*!sc*/
+.ecAFug svg:hover{color:var(--text1);}/*!sc*/
+@media (max-width:768px){.ecAFug svg{width:1.5rem;height:1.5rem;}}/*!sc*/
+.ecAFug a{color:inherit;display:block;}/*!sc*/
+.ecAFug a + a,.ecAFug a + svg{margin-left:1rem;}/*!sc*/
+data-styled.g72[id="sc-faUpoM"]{content:"ecAFug,"}/*!sc*/
+.jzqqDG{margin-bottom:0.875rem;background:var(--bg-tag);padding-left:1rem;padding-right:1rem;height:2rem;border-radius:1rem;display:-webkit-inline-box;display:-webkit-inline-flex;display:-ms-inline-flexbox;display:inline-flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;margin-right:0.875rem;color:var(--primary1);-webkit-text-decoration:none;text-decoration:none;font-weight:500;font-size:1rem;}/*!sc*/
+@media (max-width:768px){.jzqqDG{height:1.5rem;font-size:0.75rem;border-radius:0.75rem;padding-left:0.75rem;padding-right:0.75rem;margin-right:0.5rem;margin-bottom:0.5rem;}}/*!sc*/
+.jzqqDG:hover{opacity:0.75;}/*!sc*/
+data-styled.g82[id="sc-bTfYFJ"]{content:"jzqqDG,"}/*!sc*/
+.fHQVzZ{font-size:1.125rem;color:var(--text1);-webkit-transition:color 0.125s ease-in;transition:color 0.125s ease-in;line-height:1.7;-webkit-letter-spacing:-0.004em;-moz-letter-spacing:-0.004em;-ms-letter-spacing:-0.004em;letter-spacing:-0.004em;word-break:keep-all;word-wrap:break-word;}/*!sc*/
+.fHQVzZ ul b,.fHQVzZ ol b,.fHQVzZ p b{font-weight:400;}/*!sc*/
+.fHQVzZ ul code,.fHQVzZ ol code,.fHQVzZ p code{background:var(--bg-inline-code);padding:0.2em 0.4em;font-size:85%;border-radius:3px;}/*!sc*/
+.fHQVzZ ul a code,.fHQVzZ ol a code,.fHQVzZ p a code{color:var(--primary1);}/*!sc*/
+.fHQVzZ a{color:var(--primary1);-webkit-text-decoration:none;text-decoration:none;}/*!sc*/
+.fHQVzZ a:hover{color:var(--primary1);-webkit-text-decoration:underline;text-decoration:underline;}/*!sc*/
+.fHQVzZ code{font-family:'Fira Mono',source-code-pro,Menlo,Monaco,Consolas, 'Courier New',monospace;}/*!sc*/
+.fHQVzZ hr{border:none;height:1px;width:100%;background:var(--border3);margin-top:2rem;margin-bottom:2rem;}/*!sc*/
+.fHQVzZ p img{display:block;margin:0 auto;max-width:100%;margin-top:3rem;margin-bottom:3rem;}/*!sc*/
+.fHQVzZ h1{font-size:2.5rem;}/*!sc*/
+.fHQVzZ h2{font-size:2rem;}/*!sc*/
+.fHQVzZ h3{font-size:1.5rem;}/*!sc*/
+.fHQVzZ h4{font-size:1.125rem;}/*!sc*/
+.fHQVzZ h1,.fHQVzZ h2,.fHQVzZ h3,.fHQVzZ h4{line-height:1.5;margin-bottom:1rem;}/*!sc*/
+.fHQVzZ p + h1,.fHQVzZ p + h2,.fHQVzZ p + h3,.fHQVzZ p + h4{margin-top:2.5rem;}/*!sc*/
+@media (max-width:768px){.fHQVzZ{font-size:1rem;}.fHQVzZ h1{font-size:2.25rem;}.fHQVzZ h2{font-size:1.75rem;}.fHQVzZ h3{font-size:1.25rem;}.fHQVzZ h4{font-size:1rem;}.fHQVzZ h1,.fHQVzZ h2,.fHQVzZ h3,.fHQVzZ h4{margin-bottom:0.75rem;}.fHQVzZ p + h1,.fHQVzZ p + h2,.fHQVzZ p + h3,.fHQVzZ p + h4{margin-top:2rem;}}/*!sc*/
+.fHQVzZ blockquote{margin-top:2rem;margin-bottom:2rem;border-left:4px solid var(--primary2);border-top-right-radius:4px;border-bottom-right-radius:4px;background:var(--bg-element2);margin-left:0;margin-right:0;padding:1rem;padding-left:2rem;color:var(--text1);}/*!sc*/
+.fHQVzZ blockquote ul,.fHQVzZ blockquote ol{padding-left:1rem;}/*!sc*/
+.fHQVzZ blockquote *:first-child{margin-top:0;}/*!sc*/
+.fHQVzZ blockquote *:last-child{margin-bottom:0;}/*!sc*/
+data-styled.g105[id="sc-uojGG"]{content:"fHQVzZ,"}/*!sc*/
+.dXLRLL.atom-one pre{background:var(--prism-bg);}/*!sc*/
+.dXLRLL.atom-one code[class*='language-'],.dXLRLL.atom-one pre[class*='language-']{color:var(--prism-default-text);background:none;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none;}/*!sc*/
+.dXLRLL.atom-one pre[class*='language-']::-moz-selection,.dXLRLL.atom-one pre[class*='language-'] ::-moz-selection,.dXLRLL.atom-one code[class*='language-']::-moz-selection,.dXLRLL.atom-one code[class*='language-'] ::-moz-selection{text-shadow:none;background:var(--prism-selection-bg);}/*!sc*/
+.dXLRLL.atom-one pre[class*='language-']::selection,.dXLRLL.atom-one pre[class*='language-'] ::selection,.dXLRLL.atom-one code[class*='language-']::selection,.dXLRLL.atom-one code[class*='language-'] ::selection{text-shadow:none;background:var(--prism-selection-bg);}/*!sc*/
+@media print{.dXLRLL.atom-one code[class*='language-'],.dXLRLL.atom-one pre[class*='language-']{text-shadow:none;}}/*!sc*/
+.dXLRLL.atom-one pre[class*='language-']{padding:1em;margin:0.5em 0;overflow:auto;}/*!sc*/
+.dXLRLL.atom-one:not(pre) > code[class*='language-'],.dXLRLL.atom-one pre[class*='language-']{background:var(--prism-code-block-bg);}/*!sc*/
+.dXLRLL.atom-one:not(pre) > code[class*='language-']{padding:0.1em;border-radius:0.3em;white-space:normal;}/*!sc*/
+.dXLRLL.atom-one .token.comment,.dXLRLL.atom-one .token.prolog,.dXLRLL.atom-one .token.doctype,.dXLRLL.atom-one .token.cdata{color:var(--prism-code-1);}/*!sc*/
+.dXLRLL.atom-one .token.punctuation{color:var(--prism-code-2);}/*!sc*/
+.dXLRLL.atom-one .token.selector,.dXLRLL.atom-one .token.tag{color:var(--prism-code-3);}/*!sc*/
+.dXLRLL.atom-one .token.property,.dXLRLL.atom-one .token.boolean,.dXLRLL.atom-one .token.number,.dXLRLL.atom-one .token.constant,.dXLRLL.atom-one .token.symbol,.dXLRLL.atom-one .token.attr-name,.dXLRLL.atom-one .token.deleted{color:var(--prism-code-4);}/*!sc*/
+.dXLRLL.atom-one .token.string,.dXLRLL.atom-one .token.char,.dXLRLL.atom-one .token.attr-value,.dXLRLL.atom-one .token.builtin,.dXLRLL.atom-one .token.inserted{color:var(--prism-code-6);}/*!sc*/
+.dXLRLL.atom-one .token.operator,.dXLRLL.atom-one .token.entity,.dXLRLL.atom-one .token.url,.dXLRLL.atom-one .language-css .token.string,.dXLRLL.atom-one .style .token.string{color:var(--prism-code-5);}/*!sc*/
+.dXLRLL.atom-one .token.atrule,.dXLRLL.atom-one .token.keyword{color:var(--prism-code-7);}/*!sc*/
+.dXLRLL.atom-one .token.function{color:var(--prism-code-8);}/*!sc*/
+.dXLRLL.atom-one .token.regex,.dXLRLL.atom-one .token.important,.dXLRLL.atom-one .token.variable{color:var(--prism-code-9);}/*!sc*/
+.dXLRLL.atom-one .token.important,.dXLRLL.atom-one .token.bold{font-weight:bold;}/*!sc*/
+.dXLRLL.atom-one .token.italic{font-style:italic;}/*!sc*/
+.dXLRLL.atom-one .token.entity{cursor:help;}/*!sc*/
+.dXLRLL.atom-one pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber;}/*!sc*/
+.dXLRLL.atom-one pre.line-numbers > code{position:relative;}/*!sc*/
+.dXLRLL.atom-one .line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:0;font-size:100%;left:-3.8em;width:3em;-webkit-letter-spacing:-1px;-moz-letter-spacing:-1px;-ms-letter-spacing:-1px;letter-spacing:-1px;border-right:0;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;}/*!sc*/
+.dXLRLL.atom-one .line-numbers-rows > span{pointer-events:none;display:block;counter-increment:linenumber;}/*!sc*/
+.dXLRLL.atom-one .line-numbers-rows > span:before{content:counter(linenumber);color:var(--prism-line-number);display:block;padding-right:0.8em;text-align:right;}/*!sc*/
+.dXLRLL.github code,.dXLRLL.github code[class*='language-'],.dXLRLL.github pre[class*='language-']{color:#24292e;}/*!sc*/
+.dXLRLL.github pre{color:#24292e;background:#f6f8fa;}/*!sc*/
+.dXLRLL.github .token.function{color:#005cc5;}/*!sc*/
+.dXLRLL.github .token.comment,.dXLRLL.github .token.prolog,.dXLRLL.github .token.doctype,.dXLRLL.github .token.cdata{color:#969896;}/*!sc*/
+.dXLRLL.github .token.punctuation{color:#24292e;}/*!sc*/
+.dXLRLL.github .token.string{color:#032f62;}/*!sc*/
+.dXLRLL.github .token.atrule,.dXLRLL.github .token.attr-value{color:#183691;}/*!sc*/
+.dXLRLL.github .token.property,.dXLRLL.github .token.tag{color:#63a35c;}/*!sc*/
+.dXLRLL.github .token.boolean,.dXLRLL.github .token.number{color:#0086b3;}/*!sc*/
+.dXLRLL.github .token.selector,.dXLRLL.github .token.attr-name,.dXLRLL.github .token.attr-value .punctuation:first-child,.dXLRLL.github .token.keyword,.dXLRLL.github .token.regex,.dXLRLL.github .token.important{color:#d73a49;}/*!sc*/
+.dXLRLL.github .token.operator,.dXLRLL.github .token.entity,.dXLRLL.github .token.url,.dXLRLL.github .language-css{color:#d73a49;}/*!sc*/
+.dXLRLL.github .token.entity{cursor:help;}/*!sc*/
+.dXLRLL.github .namespace{opacity:0.7;}/*!sc*/
+.dXLRLL.monokai code[class*='language-'],.dXLRLL.monokai pre[class*='language-']{color:#f8f8f2;text-shadow:0 1px rgba(0,0,0,0.3);}/*!sc*/
+.dXLRLL.monokai:not(pre) > code[class*='language-'],.dXLRLL.monokai pre[class*='language-']{background:#272822;}/*!sc*/
+.dXLRLL.monokai pre{color:#f8f8f2;text-shadow:0 1px rgba(0,0,0,0.3);background:#272822;}/*!sc*/
+.dXLRLL.monokai .token.comment,.dXLRLL.monokai .token.prolog,.dXLRLL.monokai .token.doctype,.dXLRLL.monokai .token.cdata{color:#778090;}/*!sc*/
+.dXLRLL.monokai .token.punctuation{color:#f8f8f2;}/*!sc*/
+.dXLRLL.monokai .namespace{opacity:0.7;}/*!sc*/
+.dXLRLL.monokai .token.property,.dXLRLL.monokai .token.tag,.dXLRLL.monokai .token.constant,.dXLRLL.monokai .token.symbol,.dXLRLL.monokai .token.deleted{color:#f92672;}/*!sc*/
+.dXLRLL.monokai .token.boolean,.dXLRLL.monokai .token.number{color:#ae81ff;}/*!sc*/
+.dXLRLL.monokai .token.selector,.dXLRLL.monokai .token.attr-name,.dXLRLL.monokai .token.string,.dXLRLL.monokai .token.char,.dXLRLL.monokai .token.builtin,.dXLRLL.monokai .token.inserted{color:#a6e22e;}/*!sc*/
+.dXLRLL.monokai .token.operator,.dXLRLL.monokai .token.entity,.dXLRLL.monokai .token.url,.dXLRLL.monokai .language-css .token.string,.dXLRLL.monokai .style .token.string,.dXLRLL.monokai .token.variable{color:#f8f8f2;}/*!sc*/
+.dXLRLL.monokai .token.atrule,.dXLRLL.monokai .token.attr-value,.dXLRLL.monokai .token.function{color:#e6db74;}/*!sc*/
+.dXLRLL.monokai .token.keyword{color:#f92672;}/*!sc*/
+.dXLRLL.monokai .token.regex,.dXLRLL.monokai .token.important{color:#fd971f;}/*!sc*/
+.dXLRLL.monokai .token.important,.dXLRLL.monokai .token.bold{font-weight:bold;}/*!sc*/
+.dXLRLL.monokai .token.italic{font-style:italic;}/*!sc*/
+.dXLRLL.monokai .token.entity{cursor:help;}/*!sc*/
+.dXLRLL.dracula code[class*='language-'],.dXLRLL.dracula pre[class*='language-']{color:#ccc;background:rgb(40,41,54);}/*!sc*/
+.dXLRLL.dracula pre[class*='language-']::-moz-selection,.dXLRLL.dracula pre[class*='language-'] ::-moz-selection,.dXLRLL.dracula code[class*='language-']::-moz-selection,.dXLRLL.dracula code[class*='language-'] ::-moz-selection{text-shadow:none;background-color:#5a5f80;}/*!sc*/
+.dXLRLL.dracula pre[class*='language-']::selection,.dXLRLL.dracula pre[class*='language-'] ::selection,.dXLRLL.dracula code[class*='language-']::selection,.dXLRLL.dracula code[class*='language-'] ::selection{text-shadow:none;background-color:#5a5f80;}/*!sc*/
+.dXLRLL.dracula:not(pre) > code[class*='language-']{border-radius:0.3em;white-space:normal;}/*!sc*/
+.dXLRLL.dracula pre{color:#ccc;background:rgb(40,41,54);}/*!sc*/
+.dXLRLL.dracula .limit-300{height:300px !important;}/*!sc*/
+.dXLRLL.dracula .limit-400{height:400px !important;}/*!sc*/
+.dXLRLL.dracula .limit-500{height:500px !important;}/*!sc*/
+.dXLRLL.dracula .limit-600{height:600px !important;}/*!sc*/
+.dXLRLL.dracula .limit-700{height:700px !important;}/*!sc*/
+.dXLRLL.dracula .limit-800{height:800px !important;}/*!sc*/
+.dXLRLL.dracula .token.comment{color:rgba(98,114,164,1);}/*!sc*/
+.dXLRLL.dracula .token.prolog{color:rgba(207,207,194,1);}/*!sc*/
+.dXLRLL.dracula .token.tag{color:rgba(220,104,170,1);}/*!sc*/
+.dXLRLL.dracula .token.entity{color:rgba(139,233,253,1);}/*!sc*/
+.dXLRLL.dracula .token.atrule{color:rgba(98,239,117,1);}/*!sc*/
+.dXLRLL.dracula .token.url{color:rgba(102,217,239,1);}/*!sc*/
+.dXLRLL.dracula .token.selector{color:rgba(207,207,194,1);}/*!sc*/
+.dXLRLL.dracula .token.string{color:rgba(241,250,140,1);}/*!sc*/
+.dXLRLL.dracula .token.property{color:rgba(255,184,108,1);}/*!sc*/
+.dXLRLL.dracula .token.important{color:rgba(255,121,198,1);font-weight:bold;}/*!sc*/
+.dXLRLL.dracula .token.punctuation{color:rgba(230,219,116,1);}/*!sc*/
+.dXLRLL.dracula .token.number{color:rgba(189,147,249,1);}/*!sc*/
+.dXLRLL.dracula .token.function{color:rgba(80,250,123,1);}/*!sc*/
+.dXLRLL.dracula .token.class-name{color:rgba(255,184,108,1);}/*!sc*/
+.dXLRLL.dracula .token.keyword{color:rgba(255,121,198,1);}/*!sc*/
+.dXLRLL.dracula .token.boolean{color:rgba(255,184,108,1);}/*!sc*/
+.dXLRLL.dracula .token.operator{color:rgba(139,233,253,1);}/*!sc*/
+.dXLRLL.dracula .token.char{color:rgba(255,135,157,1);}/*!sc*/
+.dXLRLL.dracula .token.regex{color:rgba(80,250,123,1);}/*!sc*/
+.dXLRLL.dracula .token.variable{color:rgba(80,250,123,1);}/*!sc*/
+.dXLRLL.dracula .token.constant{color:rgba(255,184,108,1);}/*!sc*/
+.dXLRLL.dracula .token.symbol{color:rgba(255,184,108,1);}/*!sc*/
+.dXLRLL.dracula .token.builtin{color:rgba(255,121,198,1);}/*!sc*/
+.dXLRLL.dracula .token.attr-value{color:#7ec699;}/*!sc*/
+.dXLRLL.dracula .token.deleted{color:#e2777a;}/*!sc*/
+.dXLRLL.dracula .token.namespace{color:#e2777a;}/*!sc*/
+.dXLRLL.dracula .token.bold{font-weight:bold;}/*!sc*/
+.dXLRLL.dracula .token.italic{font-style:italic;}/*!sc*/
+.dXLRLL.dracula .token{color:#ff79c6;}/*!sc*/
+.dXLRLL.dracula .langague-cpp .token.string{color:#8be9fd;}/*!sc*/
+.dXLRLL.dracula .langague-c .token.string{color:#8be9fd;}/*!sc*/
+.dXLRLL.dracula .language-css .token.selector{color:rgba(80,250,123,1);}/*!sc*/
+.dXLRLL.dracula .language-css .token.property{color:rgba(255,184,108,1);}/*!sc*/
+.dXLRLL.dracula .language-java span.token.class-name{color:#8be9fd;}/*!sc*/
+.dXLRLL.dracula .language-java .token.class-name{color:#8be9fd;}/*!sc*/
+.dXLRLL.dracula .language-markup .token.attr-value{color:rgba(102,217,239,1);}/*!sc*/
+.dXLRLL.dracula .language-markup .token.tag{color:rgba(80,250,123,1);}/*!sc*/
+.dXLRLL.dracula .language-objectivec .token.property{color:#66d9ef;}/*!sc*/
+.dXLRLL.dracula .language-objectivec .token.string{color:#50fa7b;}/*!sc*/
+.dXLRLL.dracula .language-php .token.boolean{color:#8be9fd;}/*!sc*/
+.dXLRLL.dracula .language-php .token.function{color:#ff79c6;}/*!sc*/
+.dXLRLL.dracula .language-php .token.keyword{color:#66d9ef;}/*!sc*/
+.dXLRLL.dracula .language-ruby .token.symbol{color:#8be9fd;}/*!sc*/
+.dXLRLL.dracula .language-ruby .token.class-name{color:#cfcfc2;}/*!sc*/
+.dXLRLL.dracula pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber;}/*!sc*/
+.dXLRLL.dracula pre.line-numbers > code{position:relative;white-space:inherit;}/*!sc*/
+.dXLRLL.dracula .line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:0;font-size:100%;left:-3.8em;width:3em;-webkit-letter-spacing:-1px;-moz-letter-spacing:-1px;-ms-letter-spacing:-1px;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;}/*!sc*/
+.dXLRLL.dracula .line-numbers-rows > span{pointer-events:none;display:block;counter-increment:linenumber;}/*!sc*/
+.dXLRLL.dracula .line-numbers-rows > span:before{content:counter(linenumber);color:#999;display:block;padding-right:0.8em;text-align:right;}/*!sc*/
+.dXLRLL.dracula div.code-toolbar{position:relative;}/*!sc*/
+.dXLRLL.dracula div.code-toolbar > .toolbar{position:absolute;top:0.3em;right:0.2em;-webkit-transition:opacity 0.3s ease-in-out;transition:opacity 0.3s ease-in-out;opacity:0;}/*!sc*/
+.dXLRLL.dracula div.code-toolbar:hover > .toolbar{opacity:1;}/*!sc*/
+.dXLRLL.dracula div.code-toolbar > .toolbar .toolbar-item{display:inline-block;padding-right:20px;}/*!sc*/
+.dXLRLL.dracula div.code-toolbar > .toolbar a{cursor:pointer;}/*!sc*/
+.dXLRLL.dracula div.code-toolbar > .toolbar button{background:none;border:0;color:inherit;font:inherit;line-height:normal;overflow:visible;padding:0;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;}/*!sc*/
+.dXLRLL.dracula div.code-toolbar > .toolbar a,.dXLRLL.dracula div.code-toolbar > .toolbar button,.dXLRLL.dracula div.code-toolbar > .toolbar span{color:#ccc;font-size:0.8em;padding:0.5em;background:rgba(98,114,164,1);border-radius:0.5em;}/*!sc*/
+.dXLRLL.dracula div.code-toolbar > .toolbar a:hover,.dXLRLL.dracula div.code-toolbar > .toolbar a:focus,.dXLRLL.dracula div.code-toolbar > .toolbar button:hover,.dXLRLL.dracula div.code-toolbar > .toolbar button:focus,.dXLRLL.dracula div.code-toolbar > .toolbar span:hover,.dXLRLL.dracula div.code-toolbar > .toolbar span:focus{color:inherit;-webkit-text-decoration:none;text-decoration:none;background-color:var(--verde);}/*!sc*/
+.dXLRLL pre{font-family:'Fira Mono',source-code-pro,Menlo,Monaco,Consolas, 'Courier New',monospace;font-size:0.875rem;padding:1rem;border-radius:4px;line-height:1.5;overflow-x:auto;-webkit-letter-spacing:0px;-moz-letter-spacing:0px;-ms-letter-spacing:0px;letter-spacing:0px;}/*!sc*/
+@media (max-width:768px){.dXLRLL pre{font-size:0.75rem;padding:0.75rem;}}/*!sc*/
+.dXLRLL img{max-width:100%;height:auto;display:block;margin-top:1.5rem;margin-bottom:1.5rem;}/*!sc*/
+.dXLRLL iframe{width:768px;height:430px;max-width:100%;background:black;display:block;margin:auto;border:none;border-radius:4px;overflow:hidden;}/*!sc*/
+.dXLRLL .twitter-wrapper{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;border-left:none;background:none;padding:none;}/*!sc*/
+.dXLRLL table{min-width:40%;max-width:100%;border:1px solid var(--border2);border-collapse:collapse;font-size:0.875rem;}/*!sc*/
+.dXLRLL table thead > tr > th{border-bottom:4px solid var(--border2);}/*!sc*/
+.dXLRLL table th,.dXLRLL table td{word-break:break-word;padding:0.5rem;}/*!sc*/
+.dXLRLL table td + td,.dXLRLL table th + th{border-left:1px solid var(--border2);}/*!sc*/
+.dXLRLL table tr:nth-child(even){background:var(--bg-element2);}/*!sc*/
+.dXLRLL table tr:nth-child(odd){background:var(--bg-page1);}/*!sc*/
+.dXLRLL .katex-mathml{display:none;}/*!sc*/
+data-styled.g106[id="sc-bilyIR"]{content:"dXLRLL,"}/*!sc*/
+@-webkit-keyframes gsdBxV{0%{opacity:0.5;}50%{opacity:1;}100%{opacity:0.5;}}/*!sc*/
+@keyframes gsdBxV{0%{opacity:0.5;}50%{opacity:1;}100%{opacity:0.5;}}/*!sc*/
+data-styled.g116[id="sc-keyframes-gsdBxV"]{content:"gsdBxV,"}/*!sc*/
+body{background:var(--bg-page2);}/*!sc*/
+data-styled.g117[id="sc-global-iqNrnJ2"]{content:"sc-global-iqNrnJ2,"}/*!sc*/
+body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Apple SD Gothic Neo","Malgun Gothic","맑은 고딕",나눔고딕,"Nanum Gothic","Noto Sans KR","Noto Sans CJK KR",arial,돋움,Dotum,Tahoma,Geneva,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;color:var(--text1);box-sizing:border-box;}/*!sc*/
+*{box-sizing:inherit;}/*!sc*/
+code{font-family:'Fira Mono',source-code-pro,Menlo,Monaco,Consolas,'Courier New', monospace;}/*!sc*/
+input,button,textarea{font-family:inherit;}/*!sc*/
+html,body,#root{height:100%;}/*!sc*/
+body{--bg-page1:#F8F9FA;--bg-page2:#FFFFFF;--bg-element1:#FFFFFF;--bg-element2:#F8F9FA;--bg-element3:#E9ECEF;--bg-element4:#DEE2E6;--bg-element5:#212529;--bg-element6:#343A40;--bg-element7:#FFFFFF;--bg-element8:#FBFDFC;--bg-invert:#1E1E1E;--bg-inline-code:#E9ECEF;--bg-tag:#F8F9FA;--text1:#212529;--text2:#495057;--text3:#868E96;--text4:#CED4DA;--border1:#343A40;--border2:#ADB5BD;--border3:#DEE2E6;--border4:#F1F3F5;--primary1:#12B886;--primary2:#20C997;--destructive1:#FF6B6B;--destructive2:#FF8787;--button-text:#FFFFFF;--slight-layer:rgba(0,0,0,0.05);--opaque-layer:rgba(249,249,249,0.85);--editor-footer:#FFFFFF;--prism-bg:#fbfcfd;--prism-default-text:#24292e;--prism-selection-bg:rgba(0,0,0,0.15);--prism-code-block-bg:#fbfcfd;--prism-code-1:#969896;--prism-code-2:#24292e;--prism-code-3:#a626a4;--prism-code-4:#63a35c;--prism-code-5:#0184bc;--prism-code-6:#50a14f;--prism-code-7:#a626a4;--prism-code-8:#005cc5;--prism-code-9:#a626a4;--prism-line-number:#585c63;}/*!sc*/
+@media (prefers-color-scheme:dark){body{--bg-page1:#121212;--bg-page2:#121212;--bg-element1:#1E1E1E;--bg-element2:#1E1E1E;--bg-element3:#252525;--bg-element4:#2E2E2E;--bg-element5:#F1F3F5;--bg-element6:#F8F9FA;--bg-element7:#252525;--bg-element8:#0c0c0c;--bg-invert:#FFFFFF;--bg-inline-code:#363636;--bg-tag:#252525;--text1:#ECECEC;--text2:#D9D9D9;--text3:#ACACAC;--text4:#595959;--border1:#E0E0E0;--border2:#A0A0A0;--border3:#4D4D4D;--border4:#2A2A2A;--primary1:#96F2D7;--primary2:#63E6BE;--destructive1:#FFC9C9;--destructive2:#FFA8A8;--button-text:#121212;--slight-layer:rgba(255,255,255,0.1);--opaque-layer:rgba(0,0,0,0.85);--editor-footer:#2E2E2E;--prism-bg:#1E1E1E;--prism-default-text:#e0e6f1;--prism-selection-bg:#383e49;--prism-code-block-bg:#1e1e1e;--prism-code-1:#7c858d;--prism-code-2:#abb2bf;--prism-code-3:#e06c75;--prism-code-4:#d19a66;--prism-code-5:#98c379;--prism-code-6:#56b6c2;--prism-code-7:#c678dd;--prism-code-8:#61afef;--prism-code-9:#c678dd;--prism-line-number:#5c6370;}}/*!sc*/
+body[data-theme='light']{--bg-page1:#F8F9FA;--bg-page2:#FFFFFF;--bg-element1:#FFFFFF;--bg-element2:#F8F9FA;--bg-element3:#E9ECEF;--bg-element4:#DEE2E6;--bg-element5:#212529;--bg-element6:#343A40;--bg-element7:#FFFFFF;--bg-element8:#FBFDFC;--bg-invert:#1E1E1E;--bg-inline-code:#E9ECEF;--bg-tag:#F8F9FA;--text1:#212529;--text2:#495057;--text3:#868E96;--text4:#CED4DA;--border1:#343A40;--border2:#ADB5BD;--border3:#DEE2E6;--border4:#F1F3F5;--primary1:#12B886;--primary2:#20C997;--destructive1:#FF6B6B;--destructive2:#FF8787;--button-text:#FFFFFF;--slight-layer:rgba(0,0,0,0.05);--opaque-layer:rgba(249,249,249,0.85);--editor-footer:#FFFFFF;--prism-bg:#fbfcfd;--prism-default-text:#24292e;--prism-selection-bg:rgba(0,0,0,0.15);--prism-code-block-bg:#fbfcfd;--prism-code-1:#969896;--prism-code-2:#24292e;--prism-code-3:#a626a4;--prism-code-4:#63a35c;--prism-code-5:#0184bc;--prism-code-6:#50a14f;--prism-code-7:#a626a4;--prism-code-8:#005cc5;--prism-code-9:#a626a4;--prism-line-number:#585c63;}/*!sc*/
+body[data-theme='dark']{--bg-page1:#121212;--bg-page2:#121212;--bg-element1:#1E1E1E;--bg-element2:#1E1E1E;--bg-element3:#252525;--bg-element4:#2E2E2E;--bg-element5:#F1F3F5;--bg-element6:#F8F9FA;--bg-element7:#252525;--bg-element8:#0c0c0c;--bg-invert:#FFFFFF;--bg-inline-code:#363636;--bg-tag:#252525;--text1:#ECECEC;--text2:#D9D9D9;--text3:#ACACAC;--text4:#595959;--border1:#E0E0E0;--border2:#A0A0A0;--border3:#4D4D4D;--border4:#2A2A2A;--primary1:#96F2D7;--primary2:#63E6BE;--destructive1:#FFC9C9;--destructive2:#FFA8A8;--button-text:#121212;--slight-layer:rgba(255,255,255,0.1);--opaque-layer:rgba(0,0,0,0.85);--editor-footer:#2E2E2E;--prism-bg:#1E1E1E;--prism-default-text:#e0e6f1;--prism-selection-bg:#383e49;--prism-code-block-bg:#1e1e1e;--prism-code-1:#7c858d;--prism-code-2:#abb2bf;--prism-code-3:#e06c75;--prism-code-4:#d19a66;--prism-code-5:#98c379;--prism-code-6:#56b6c2;--prism-code-7:#c678dd;--prism-code-8:#61afef;--prism-code-9:#c678dd;--prism-line-number:#5c6370;}/*!sc*/
+data-styled.g118[id="sc-global-gYCCRU2"]{content:"sc-global-gYCCRU2,"}/*!sc*/
+body{background:var(--bg-page2);}/*!sc*/
+data-styled.g119[id="sc-global-iqNrnJ3"]{content:"sc-global-iqNrnJ3,"}/*!sc*/
+body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Apple SD Gothic Neo","Malgun Gothic","맑은 고딕",나눔고딕,"Nanum Gothic","Noto Sans KR","Noto Sans CJK KR",arial,돋움,Dotum,Tahoma,Geneva,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;color:var(--text1);box-sizing:border-box;}/*!sc*/
+*{box-sizing:inherit;}/*!sc*/
+code{font-family:'Fira Mono',source-code-pro,Menlo,Monaco,Consolas,'Courier New', monospace;}/*!sc*/
+input,button,textarea{font-family:inherit;}/*!sc*/
+html,body,#root{height:100%;}/*!sc*/
+body{--bg-page1:#F8F9FA;--bg-page2:#FFFFFF;--bg-element1:#FFFFFF;--bg-element2:#F8F9FA;--bg-element3:#E9ECEF;--bg-element4:#DEE2E6;--bg-element5:#212529;--bg-element6:#343A40;--bg-element7:#FFFFFF;--bg-element8:#FBFDFC;--bg-invert:#1E1E1E;--bg-inline-code:#E9ECEF;--bg-tag:#F8F9FA;--text1:#212529;--text2:#495057;--text3:#868E96;--text4:#CED4DA;--border1:#343A40;--border2:#ADB5BD;--border3:#DEE2E6;--border4:#F1F3F5;--primary1:#12B886;--primary2:#20C997;--destructive1:#FF6B6B;--destructive2:#FF8787;--button-text:#FFFFFF;--slight-layer:rgba(0,0,0,0.05);--opaque-layer:rgba(249,249,249,0.85);--editor-footer:#FFFFFF;--prism-bg:#fbfcfd;--prism-default-text:#24292e;--prism-selection-bg:rgba(0,0,0,0.15);--prism-code-block-bg:#fbfcfd;--prism-code-1:#969896;--prism-code-2:#24292e;--prism-code-3:#a626a4;--prism-code-4:#63a35c;--prism-code-5:#0184bc;--prism-code-6:#50a14f;--prism-code-7:#a626a4;--prism-code-8:#005cc5;--prism-code-9:#a626a4;--prism-line-number:#585c63;}/*!sc*/
+@media (prefers-color-scheme:dark){body{--bg-page1:#121212;--bg-page2:#121212;--bg-element1:#1E1E1E;--bg-element2:#1E1E1E;--bg-element3:#252525;--bg-element4:#2E2E2E;--bg-element5:#F1F3F5;--bg-element6:#F8F9FA;--bg-element7:#252525;--bg-element8:#0c0c0c;--bg-invert:#FFFFFF;--bg-inline-code:#363636;--bg-tag:#252525;--text1:#ECECEC;--text2:#D9D9D9;--text3:#ACACAC;--text4:#595959;--border1:#E0E0E0;--border2:#A0A0A0;--border3:#4D4D4D;--border4:#2A2A2A;--primary1:#96F2D7;--primary2:#63E6BE;--destructive1:#FFC9C9;--destructive2:#FFA8A8;--button-text:#121212;--slight-layer:rgba(255,255,255,0.1);--opaque-layer:rgba(0,0,0,0.85);--editor-footer:#2E2E2E;--prism-bg:#1E1E1E;--prism-default-text:#e0e6f1;--prism-selection-bg:#383e49;--prism-code-block-bg:#1e1e1e;--prism-code-1:#7c858d;--prism-code-2:#abb2bf;--prism-code-3:#e06c75;--prism-code-4:#d19a66;--prism-code-5:#98c379;--prism-code-6:#56b6c2;--prism-code-7:#c678dd;--prism-code-8:#61afef;--prism-code-9:#c678dd;--prism-line-number:#5c6370;}}/*!sc*/
+body[data-theme='light']{--bg-page1:#F8F9FA;--bg-page2:#FFFFFF;--bg-element1:#FFFFFF;--bg-element2:#F8F9FA;--bg-element3:#E9ECEF;--bg-element4:#DEE2E6;--bg-element5:#212529;--bg-element6:#343A40;--bg-element7:#FFFFFF;--bg-element8:#FBFDFC;--bg-invert:#1E1E1E;--bg-inline-code:#E9ECEF;--bg-tag:#F8F9FA;--text1:#212529;--text2:#495057;--text3:#868E96;--text4:#CED4DA;--border1:#343A40;--border2:#ADB5BD;--border3:#DEE2E6;--border4:#F1F3F5;--primary1:#12B886;--primary2:#20C997;--destructive1:#FF6B6B;--destructive2:#FF8787;--button-text:#FFFFFF;--slight-layer:rgba(0,0,0,0.05);--opaque-layer:rgba(249,249,249,0.85);--editor-footer:#FFFFFF;--prism-bg:#fbfcfd;--prism-default-text:#24292e;--prism-selection-bg:rgba(0,0,0,0.15);--prism-code-block-bg:#fbfcfd;--prism-code-1:#969896;--prism-code-2:#24292e;--prism-code-3:#a626a4;--prism-code-4:#63a35c;--prism-code-5:#0184bc;--prism-code-6:#50a14f;--prism-code-7:#a626a4;--prism-code-8:#005cc5;--prism-code-9:#a626a4;--prism-line-number:#585c63;}/*!sc*/
+body[data-theme='dark']{--bg-page1:#121212;--bg-page2:#121212;--bg-element1:#1E1E1E;--bg-element2:#1E1E1E;--bg-element3:#252525;--bg-element4:#2E2E2E;--bg-element5:#F1F3F5;--bg-element6:#F8F9FA;--bg-element7:#252525;--bg-element8:#0c0c0c;--bg-invert:#FFFFFF;--bg-inline-code:#363636;--bg-tag:#252525;--text1:#ECECEC;--text2:#D9D9D9;--text3:#ACACAC;--text4:#595959;--border1:#E0E0E0;--border2:#A0A0A0;--border3:#4D4D4D;--border4:#2A2A2A;--primary1:#96F2D7;--primary2:#63E6BE;--destructive1:#FFC9C9;--destructive2:#FFA8A8;--button-text:#121212;--slight-layer:rgba(255,255,255,0.1);--opaque-layer:rgba(0,0,0,0.85);--editor-footer:#2E2E2E;--prism-bg:#1E1E1E;--prism-default-text:#e0e6f1;--prism-selection-bg:#383e49;--prism-code-block-bg:#1e1e1e;--prism-code-1:#7c858d;--prism-code-2:#abb2bf;--prism-code-3:#e06c75;--prism-code-4:#d19a66;--prism-code-5:#98c379;--prism-code-6:#56b6c2;--prism-code-7:#c678dd;--prism-code-8:#61afef;--prism-code-9:#c678dd;--prism-line-number:#5c6370;}/*!sc*/
+data-styled.g120[id="sc-global-gYCCRU3"]{content:"sc-global-gYCCRU3,"}/*!sc*/
+.kbsxbm{margin-top:2rem;padding:2rem 1.5rem;background:var(--bg-element2);border-radius:8px;box-shadow:0 0 4px 0 rgba(0,0,0,0.06);position:relative;}/*!sc*/
+@media (max-width:768px){.kbsxbm{padding:1rem;}}/*!sc*/
+.kbsxbm svg{color:var(--primary1);}/*!sc*/
+.kbsxbm h2{margin-top:0;color:var(--text2);font-weight:bold;padding-right:2rem;font-size:1.5rem;}/*!sc*/
+.kbsxbm h2 a{-webkit-text-decoration:none;text-decoration:none;color:inherit;}/*!sc*/
+.kbsxbm h2 a:hover{color:var(--text3);-webkit-text-decoration:underline;text-decoration:underline;}/*!sc*/
+@media (max-width:768px){.kbsxbm h2{font-size:1.125rem;padding-right:2.5rem;margin-bottom:1.5rem;}}/*!sc*/
+.kbsxbm .series-corner-image{position:absolute;right:1.5rem;top:0px;}/*!sc*/
+@media (max-width:768px){.kbsxbm .series-corner-image{right:1rem;width:1.5rem;height:auto;}}/*!sc*/
+data-styled.g121[id="sc-jWUzzU"]{content:"kbsxbm,"}/*!sc*/
+.iQOHos{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;}/*!sc*/
+.iQOHos .series-number{font-size:0.875rem;color:var(--text3);}/*!sc*/
+data-styled.g122[id="sc-eFegNN"]{content:"iQOHos,"}/*!sc*/
+.fYjAMj{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;margin-left:-5px;color:var(--text2);line-height:1;cursor:pointer;}/*!sc*/
+.fYjAMj svg{margin-right:0.25rem;color:var(--text1);font-size:1.5rem;}/*!sc*/
+.fYjAMj:hover{color:var(--text1);}/*!sc*/
+.fYjAMj:hover svg{color:var(--text1);}/*!sc*/
+data-styled.g123[id="sc-fmBCVi"]{content:"fYjAMj,"}/*!sc*/
+.eZZiTh{margin-top:3rem;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-box-pack:justify;-webkit-justify-content:space-between;-ms-flex-pack:justify;justify-content:space-between;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;}/*!sc*/
+data-styled.g124[id="sc-lkgTHX"]{content:"eZZiTh,"}/*!sc*/
+.lipOAy{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;margin-left:1.125rem;}/*!sc*/
+data-styled.g125[id="sc-jlRLRk"]{content:"lipOAy,"}/*!sc*/
+.gQqugj{width:1.5rem;height:1.5rem;border-radius:50%;outline:none;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;font-size:1.25rem;color:var(--primary1);background:var(--bg-element1);border:1px solid var(--border4);padding:0;cursor:pointer;}/*!sc*/
+.gQqugj:hover{background:var(--primary1);color:white;}/*!sc*/
+.sc-dUbtfd + .sc-dUbtfd{margin-left:0.375rem;}/*!sc*/
+.gQqugj:disabled{cursor:default;background:var(--bg-element2);border:1px solid var(--border4);color:var(--text3);opacity:0.3;}/*!sc*/
+data-styled.g126[id="sc-dUbtfd"]{content:"gQqugj,"}/*!sc*/
+.cNVTnR{margin-top:0.875rem;margin-bottom:-0.875rem;min-height:0.875rem;}/*!sc*/
+@media (max-width:768px){.cNVTnR{margin-top:0.5rem;margin-bottom:-0.5rem;min-height:0.5rem;}}/*!sc*/
+data-styled.g128[id="sc-cbTzjv"]{content:"cNVTnR,"}/*!sc*/
+.gsfKnO{margin-top:5.5rem;}/*!sc*/
+@media (max-width:1024px){.gsfKnO .head-wrapper{padding-left:1rem;padding-right:1rem;}}/*!sc*/
+.gsfKnO h1{font-size:3rem;line-height:1.5;-webkit-letter-spacing:-0.004em;-moz-letter-spacing:-0.004em;-ms-letter-spacing:-0.004em;letter-spacing:-0.004em;margin-top:0;font-weight:800;color:var(--text1);margin-bottom:2rem;word-break:keep-all;-webkit-transition:color 0.125s ease-in;transition:color 0.125s ease-in;}/*!sc*/
+@media (max-width:1024px){.gsfKnO{margin-top:2rem;}.gsfKnO h1{font-size:2.25rem;}}/*!sc*/
+data-styled.g129[id="sc-hjGZqJ"]{content:"gsfKnO,"}/*!sc*/
+.dDHrzp{-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;font-size:1rem;color:var(--text2);display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-box-pack:justify;-webkit-justify-content:space-between;-ms-flex-pack:justify;justify-content:space-between;}/*!sc*/
+.dDHrzp .information .username{color:var(--text1);font-weight:bold;}/*!sc*/
+.dDHrzp .information .username a{color:inherit;-webkit-text-decoration:none;text-decoration:none;}/*!sc*/
+.dDHrzp .information .username a:hover{color:var(--text2);-webkit-text-decoration:underline;text-decoration:underline;}/*!sc*/
+.dDHrzp .information .separator{margin-left:0.5rem;margin-right:0.5rem;}/*!sc*/
+@media (max-width:768px){.dDHrzp .information{font-size:0.875rem;}}/*!sc*/
+@media (max-width:768px){.dDHrzp{margin-bottom:0.75rem;}}/*!sc*/
+data-styled.g130[id="sc-gUQvok"]{content:"dDHrzp,"}/*!sc*/
+.jiCLIY{max-height:100vh;max-width:100%;width:auto;margin:0 auto;height:auto;object-fit:contain;display:block;margin-top:2rem;}/*!sc*/
+@media (max-width:768px){.jiCLIY{margin-top:1.5rem;}}/*!sc*/
+data-styled.g132[id="sc-fIosxK"]{content:"jiCLIY,"}/*!sc*/
+.dfOlGt{-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;display:none;}/*!sc*/
+@media (max-width:1024px){.dfOlGt{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;}}/*!sc*/
+data-styled.g133[id="sc-gyElHZ"]{content:"dfOlGt,"}/*!sc*/
+.htesZW{width:768px;margin:0 auto;margin-top:5rem;}/*!sc*/
+@media (max-width:1024px){.htesZW{padding-left:1rem;padding-right:1rem;}}/*!sc*/
+@media (max-width:768px){.htesZW{width:100%;}}/*!sc*/
+data-styled.g135[id="sc-fmciRz"]{content:"htesZW,"}/*!sc*/
+.idIUOf{margin-top:3rem;color:var(--text1);}/*!sc*/
+.idIUOf h4{font-size:1.125rem;line-height:1.5;font-weight:600;margin-bottom:1rem;}/*!sc*/
+@media (max-width:768px){.idIUOf{padding-left:1rem;padding-right:1rem;}}/*!sc*/
+data-styled.g136[id="sc-eXlEPa"]{content:"idIUOf,"}/*!sc*/
+.krngTE > .buttons-wrapper{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-box-pack:end;-webkit-justify-content:flex-end;-ms-flex-pack:end;justify-content:flex-end;}/*!sc*/
+data-styled.g138[id="sc-iqVWFU"]{content:"krngTE,"}/*!sc*/
+.jhMJlT{resize:none;padding:1rem;padding-bottom:1.5rem;outline:none;border:1px solid var(--border4);margin-bottom:1.5rem;width:100%;border-radius:4px;min-height:6.125rem;font-size:1rem;color:var(--text1);line-height:1.75;background:var(--bg-element1);}/*!sc*/
+.jhMJlT::-webkit-input-placeholder{color:var(--text3);}/*!sc*/
+.jhMJlT::-moz-placeholder{color:var(--text3);}/*!sc*/
+.jhMJlT:-ms-input-placeholder{color:var(--text3);}/*!sc*/
+.jhMJlT::placeholder{color:var(--text3);}/*!sc*/
+@media (max-width:768px){.jhMJlT{margin-bottom:1rem;}}/*!sc*/
+data-styled.g139[id="sc-eWfVMQ"]{content:"jhMJlT,"}/*!sc*/
+.kUmPrc{margin-top:2.5rem;}/*!sc*/
+data-styled.g150[id="sc-cvZCdy"]{content:"kUmPrc,"}/*!sc*/
+.bJCPVh{position:relative;margin-top:2rem;}/*!sc*/
+@media (max-width:1024px){.bJCPVh{display:none;}}/*!sc*/
+data-styled.g152[id="sc-gIBqdA"]{content:"bJCPVh,"}/*!sc*/
+.gkYvcr{position:absolute;left:-7rem;}/*!sc*/
+data-styled.g153[id="sc-fyrocj"]{content:"gkYvcr,"}/*!sc*/
+.hSCPhJ{width:4rem;background:var(--bg-element2);border:1px solid var(--border4);border-radius:2rem;padding:0.5rem;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-flex-direction:column;-ms-flex-direction:column;flex-direction:column;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;}/*!sc*/
+data-styled.g154[id="sc-iWVNaa"]{content:"hSCPhJ,"}/*!sc*/
+.icTekR{height:3rem;width:3rem;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;background:var(--bg-element1);border:1px solid var(--border3);border-radius:1.5rem;color:var(--text3);cursor:pointer;z-index:5;}/*!sc*/
+.icTekR svg{width:24px;height:24px;}/*!sc*/
+.icTekR svg.share{width:20px;height:20px;}/*!sc*/
+.icTekR:hover{color:var(--text1);border-color:var(--text1);}/*!sc*/
+data-styled.g155[id="sc-jKTccl"]{content:"icTekR,"}/*!sc*/
+.cVezZP{margin-top:0.5rem;color:var(--text2);line-height:1;font-size:0.75rem;margin-bottom:1rem;font-weight:bold;}/*!sc*/
+data-styled.g156[id="sc-bUbRBg"]{content:"cVezZP,"}/*!sc*/
+.goNwbY{position:relative;width:100%;z-index:5;}/*!sc*/
+.goNwbY .positioner{position:absolute;}/*!sc*/
+data-styled.g157[id="sc-tAExr"]{content:"goNwbY,"}/*!sc*/
+.cgggzD{top:0;left:0;position:absolute;width:48px;height:48px;}/*!sc*/
+data-styled.g158[id="sc-dSfdvi"]{content:"cgggzD,"}/*!sc*/
+.hLgkiL{width:32px;height:32px;border-radius:16px;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;border:1px solid var(--primary2);font-size:1.5rem;color:var(--primary2);margin-right:1rem;}/*!sc*/
+.iTucXk{width:32px;height:32px;border-radius:16px;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;border:1px solid var(--primary2);font-size:1.5rem;color:var(--primary2);margin-left:1rem;}/*!sc*/
+data-styled.g163[id="sc-dkQkyq"]{content:"hLgkiL,iTucXk,"}/*!sc*/
+.hXdGSC{cursor:pointer;background:var(--bg-element2);box-shadow:0 0 4px 0 rgba(0,0,0,0.06);width:100%;padding-left:1rem;padding-right:1rem;height:4rem;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-text-decoration:none;text-decoration:none;}/*!sc*/
+.hXdGSC:hover .sc-dkQkyq{-webkit-animation-duration:0.35s;animation-duration:0.35s;-webkit-animation-name:dRQjsE;animation-name:dRQjsE;-webkit-animation-fill-mode:forwards;animation-fill-mode:forwards;-webkit-animation-timing-function:ease-out;animation-timing-function:ease-out;}/*!sc*/
+.fUgawR{cursor:pointer;background:var(--bg-element2);box-shadow:0 0 4px 0 rgba(0,0,0,0.06);width:100%;padding-left:1rem;padding-right:1rem;height:4rem;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-text-decoration:none;text-decoration:none;-webkit-flex-direction:row-reverse;-ms-flex-direction:row-reverse;flex-direction:row-reverse;}/*!sc*/
+.fUgawR:hover .sc-dkQkyq{-webkit-animation-duration:0.35s;animation-duration:0.35s;-webkit-animation-name:iyGUEJ;animation-name:iyGUEJ;-webkit-animation-fill-mode:forwards;animation-fill-mode:forwards;-webkit-animation-timing-function:ease-out;animation-timing-function:ease-out;}/*!sc*/
+data-styled.g164[id="sc-jivBlf"]{content:"hXdGSC,fUgawR,"}/*!sc*/
+.dSzcTT{-webkit-flex:1;-ms-flex:1;flex:1;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-flex-direction:column;-ms-flex-direction:column;flex-direction:column;-webkit-align-items:flex-start;-webkit-box-align:flex-start;-ms-flex-align:flex-start;align-items:flex-start;line-height:1;min-width:0;}/*!sc*/
+.dSzcTT .description{font-size:0.75rem;font-weight:bold;color:var(--text2);}/*!sc*/
+.dSzcTT h3{width:100%;font-size:1.125rem;color:var(--text2);line-height:1.15;margin:0;margin-top:0.5rem;text-overflow:ellipsis;white-space:nowrap;overflow-x:hidden;overflow-y:hidden;}/*!sc*/
+@media (max-width:768px){.dSzcTT h3{font-size:1rem;}}/*!sc*/
+.kRplDU{-webkit-flex:1;-ms-flex:1;flex:1;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-flex-direction:column;-ms-flex-direction:column;flex-direction:column;-webkit-align-items:flex-end;-webkit-box-align:flex-end;-ms-flex-align:flex-end;align-items:flex-end;line-height:1;min-width:0;}/*!sc*/
+.kRplDU .description{font-size:0.75rem;font-weight:bold;color:var(--text2);}/*!sc*/
+.kRplDU h3{text-align:right;width:100%;font-size:1.125rem;color:var(--text2);line-height:1.15;margin:0;margin-top:0.5rem;text-overflow:ellipsis;white-space:nowrap;overflow-x:hidden;overflow-y:hidden;}/*!sc*/
+@media (max-width:768px){.kRplDU h3{font-size:1rem;}}/*!sc*/
+data-styled.g165[id="sc-hkgtus"]{content:"dSzcTT,kRplDU,"}/*!sc*/
+.ljzUGV{margin-top:3rem;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;}/*!sc*/
+@media (max-width:768px){.ljzUGV{-webkit-flex-direction:column-reverse;-ms-flex-direction:column-reverse;flex-direction:column-reverse;padding-left:1rem;padding-right:1rem;}}/*!sc*/
+data-styled.g166[id="sc-bSqaIl"]{content:"ljzUGV,"}/*!sc*/
+.gaMjeC{min-width:0;-webkit-flex:1;-ms-flex:1;flex:1;}/*!sc*/
+.sc-jvvksu + .sc-jvvksu{margin-left:3rem;}/*!sc*/
+@media (max-width:768px){.gaMjeC{-webkit-flex:initial;-ms-flex:initial;flex:initial;width:100%;}.sc-jvvksu + .sc-jvvksu{margin-left:0;margin-bottom:1.5rem;}}/*!sc*/
+data-styled.g167[id="sc-jvvksu"]{content:"gaMjeC,"}/*!sc*/
+.gLyGdS{margin-top:5.5rem;}/*!sc*/
+.gLyGdS h1{padding-right:2rem;font-size:3.75rem;margin-top:0;margin-bottom:2rem;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;}/*!sc*/
+.gLyGdS .subinfo{font-size:1rem;}/*!sc*/
+.gLyGdS .tags{font-size:2rem;margin-top:0.875rem;}/*!sc*/
+.gLyGdS .tags .tag-skeleton + .tag-skeleton{margin-left:0.5rem;}/*!sc*/
+.gLyGdS .series{margin-top:2rem;}/*!sc*/
+.gLyGdS .thumbnail{margin-top:2rem;padding-top:52.35%;position:relative;}/*!sc*/
+.gLyGdS .thumbnail .thumbnail-skeleton{position:absolute;top:0;left:0;width:100%;height:100%;}/*!sc*/
+.gLyGdS .contents{margin-top:5rem;}/*!sc*/
+.gLyGdS .contents .line{margin-bottom:0.75rem;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;font-size:1.125rem;}/*!sc*/
+.gLyGdS .contents .lines + .lines{margin-top:3rem;}/*!sc*/
+@media (max-width:1024px){.gLyGdS{margin-top:2rem;}.gLyGdS h1{font-size:2.25rem;}.gLyGdS .subinfo{font-size:0.875rem;}.gLyGdS .tags{font-size:1.5rem;}}/*!sc*/
+data-styled.g168[id="sc-edERGn"]{content:"gLyGdS,"}/*!sc*/
+@media (max-width:768px){.cyvMZx{padding-left:1rem;padding-right:1rem;}}/*!sc*/
+data-styled.g169[id="sc-jlsrNB"]{content:"cyvMZx,"}/*!sc*/
+.dJakgs{background:var(--bg-element1);border:1px solid var(--border2);padding-left:0.75rem;padding-right:0.75rem;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;height:1.5rem;border-radius:0.75rem;outline:none;}/*!sc*/
+.dJakgs svg{width:0.75rem;height:0.75rem;margin-right:0.75rem;color:var(--text3);}/*!sc*/
+.dJakgs span{font-size:0.75rem;font-weight:bold;color:var(--text3);}/*!sc*/
+data-styled.g170[id="sc-iWBNLc"]{content:"dJakgs,"}/*!sc*/
+.ezZFpf{margin-top:1rem;margin-bottom:1rem;}/*!sc*/
+data-styled.g175[id="sc-dkqQuH"]{content:"ezZFpf,"}/*!sc*/
+.djbDSV{margin-top:16rem;margin-bottom:6rem;}/*!sc*/
+@media (max-width:1024px){.djbDSV{margin-top:8rem;margin-bottom:3rem;}}/*!sc*/
+@media (max-width:768px){.djbDSV{margin-top:2rem;}}/*!sc*/
+data-styled.g176[id="sc-cVAmsi"]{content:"djbDSV,"}/*!sc*/
+@-webkit-keyframes dRQjsE{0%{-webkit-transform:translateX(0px);-ms-transform:translateX(0px);transform:translateX(0px);}50%{-webkit-transform:translateX(-8px);-ms-transform:translateX(-8px);transform:translateX(-8px);}100%{-webkit-transform:translateX(0px);-ms-transform:translateX(0px);transform:translateX(0px);}}/*!sc*/
+@keyframes dRQjsE{0%{-webkit-transform:translateX(0px);-ms-transform:translateX(0px);transform:translateX(0px);}50%{-webkit-transform:translateX(-8px);-ms-transform:translateX(-8px);transform:translateX(-8px);}100%{-webkit-transform:translateX(0px);-ms-transform:translateX(0px);transform:translateX(0px);}}/*!sc*/
+data-styled.g177[id="sc-keyframes-dRQjsE"]{content:"dRQjsE,"}/*!sc*/
+@-webkit-keyframes iyGUEJ{0%{-webkit-transform:translateX(0px);-ms-transform:translateX(0px);transform:translateX(0px);}50%{-webkit-transform:translateX(8px);-ms-transform:translateX(8px);transform:translateX(8px);}100%{-webkit-transform:translateX(0px);-ms-transform:translateX(0px);transform:translateX(0px);}}/*!sc*/
+@keyframes iyGUEJ{0%{-webkit-transform:translateX(0px);-ms-transform:translateX(0px);transform:translateX(0px);}50%{-webkit-transform:translateX(8px);-ms-transform:translateX(8px);transform:translateX(8px);}100%{-webkit-transform:translateX(0px);-ms-transform:translateX(0px);transform:translateX(0px);}}/*!sc*/
+data-styled.g178[id="sc-keyframes-iyGUEJ"]{content:"iyGUEJ,"}/*!sc*/
+body{background:var(--bg-page2);}/*!sc*/
+data-styled.g179[id="sc-global-iqNrnJ4"]{content:"sc-global-iqNrnJ4,"}/*!sc*/
+body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Apple SD Gothic Neo","Malgun Gothic","맑은 고딕",나눔고딕,"Nanum Gothic","Noto Sans KR","Noto Sans CJK KR",arial,돋움,Dotum,Tahoma,Geneva,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;color:var(--text1);box-sizing:border-box;}/*!sc*/
+*{box-sizing:inherit;}/*!sc*/
+code{font-family:'Fira Mono',source-code-pro,Menlo,Monaco,Consolas,'Courier New', monospace;}/*!sc*/
+input,button,textarea{font-family:inherit;}/*!sc*/
+html,body,#root{height:100%;}/*!sc*/
+body{--bg-page1:#F8F9FA;--bg-page2:#FFFFFF;--bg-element1:#FFFFFF;--bg-element2:#F8F9FA;--bg-element3:#E9ECEF;--bg-element4:#DEE2E6;--bg-element5:#212529;--bg-element6:#343A40;--bg-element7:#FFFFFF;--bg-element8:#FBFDFC;--bg-invert:#1E1E1E;--bg-inline-code:#E9ECEF;--bg-tag:#F8F9FA;--text1:#212529;--text2:#495057;--text3:#868E96;--text4:#CED4DA;--border1:#343A40;--border2:#ADB5BD;--border3:#DEE2E6;--border4:#F1F3F5;--primary1:#12B886;--primary2:#20C997;--destructive1:#FF6B6B;--destructive2:#FF8787;--button-text:#FFFFFF;--slight-layer:rgba(0,0,0,0.05);--opaque-layer:rgba(249,249,249,0.85);--editor-footer:#FFFFFF;--prism-bg:#fbfcfd;--prism-default-text:#24292e;--prism-selection-bg:rgba(0,0,0,0.15);--prism-code-block-bg:#fbfcfd;--prism-code-1:#969896;--prism-code-2:#24292e;--prism-code-3:#a626a4;--prism-code-4:#63a35c;--prism-code-5:#0184bc;--prism-code-6:#50a14f;--prism-code-7:#a626a4;--prism-code-8:#005cc5;--prism-code-9:#a626a4;--prism-line-number:#585c63;}/*!sc*/
+@media (prefers-color-scheme:dark){body{--bg-page1:#121212;--bg-page2:#121212;--bg-element1:#1E1E1E;--bg-element2:#1E1E1E;--bg-element3:#252525;--bg-element4:#2E2E2E;--bg-element5:#F1F3F5;--bg-element6:#F8F9FA;--bg-element7:#252525;--bg-element8:#0c0c0c;--bg-invert:#FFFFFF;--bg-inline-code:#363636;--bg-tag:#252525;--text1:#ECECEC;--text2:#D9D9D9;--text3:#ACACAC;--text4:#595959;--border1:#E0E0E0;--border2:#A0A0A0;--border3:#4D4D4D;--border4:#2A2A2A;--primary1:#96F2D7;--primary2:#63E6BE;--destructive1:#FFC9C9;--destructive2:#FFA8A8;--button-text:#121212;--slight-layer:rgba(255,255,255,0.1);--opaque-layer:rgba(0,0,0,0.85);--editor-footer:#2E2E2E;--prism-bg:#1E1E1E;--prism-default-text:#e0e6f1;--prism-selection-bg:#383e49;--prism-code-block-bg:#1e1e1e;--prism-code-1:#7c858d;--prism-code-2:#abb2bf;--prism-code-3:#e06c75;--prism-code-4:#d19a66;--prism-code-5:#98c379;--prism-code-6:#56b6c2;--prism-code-7:#c678dd;--prism-code-8:#61afef;--prism-code-9:#c678dd;--prism-line-number:#5c6370;}}/*!sc*/
+body[data-theme='light']{--bg-page1:#F8F9FA;--bg-page2:#FFFFFF;--bg-element1:#FFFFFF;--bg-element2:#F8F9FA;--bg-element3:#E9ECEF;--bg-element4:#DEE2E6;--bg-element5:#212529;--bg-element6:#343A40;--bg-element7:#FFFFFF;--bg-element8:#FBFDFC;--bg-invert:#1E1E1E;--bg-inline-code:#E9ECEF;--bg-tag:#F8F9FA;--text1:#212529;--text2:#495057;--text3:#868E96;--text4:#CED4DA;--border1:#343A40;--border2:#ADB5BD;--border3:#DEE2E6;--border4:#F1F3F5;--primary1:#12B886;--primary2:#20C997;--destructive1:#FF6B6B;--destructive2:#FF8787;--button-text:#FFFFFF;--slight-layer:rgba(0,0,0,0.05);--opaque-layer:rgba(249,249,249,0.85);--editor-footer:#FFFFFF;--prism-bg:#fbfcfd;--prism-default-text:#24292e;--prism-selection-bg:rgba(0,0,0,0.15);--prism-code-block-bg:#fbfcfd;--prism-code-1:#969896;--prism-code-2:#24292e;--prism-code-3:#a626a4;--prism-code-4:#63a35c;--prism-code-5:#0184bc;--prism-code-6:#50a14f;--prism-code-7:#a626a4;--prism-code-8:#005cc5;--prism-code-9:#a626a4;--prism-line-number:#585c63;}/*!sc*/
+body[data-theme='dark']{--bg-page1:#121212;--bg-page2:#121212;--bg-element1:#1E1E1E;--bg-element2:#1E1E1E;--bg-element3:#252525;--bg-element4:#2E2E2E;--bg-element5:#F1F3F5;--bg-element6:#F8F9FA;--bg-element7:#252525;--bg-element8:#0c0c0c;--bg-invert:#FFFFFF;--bg-inline-code:#363636;--bg-tag:#252525;--text1:#ECECEC;--text2:#D9D9D9;--text3:#ACACAC;--text4:#595959;--border1:#E0E0E0;--border2:#A0A0A0;--border3:#4D4D4D;--border4:#2A2A2A;--primary1:#96F2D7;--primary2:#63E6BE;--destructive1:#FFC9C9;--destructive2:#FFA8A8;--button-text:#121212;--slight-layer:rgba(255,255,255,0.1);--opaque-layer:rgba(0,0,0,0.85);--editor-footer:#2E2E2E;--prism-bg:#1E1E1E;--prism-default-text:#e0e6f1;--prism-selection-bg:#383e49;--prism-code-block-bg:#1e1e1e;--prism-code-1:#7c858d;--prism-code-2:#abb2bf;--prism-code-3:#e06c75;--prism-code-4:#d19a66;--prism-code-5:#98c379;--prism-code-6:#56b6c2;--prism-code-7:#c678dd;--prism-code-8:#61afef;--prism-code-9:#c678dd;--prism-line-number:#5c6370;}/*!sc*/
+data-styled.g180[id="sc-global-gYCCRU4"]{content:"sc-global-gYCCRU4,"}/*!sc*/
+</style><link data-chunk="main" rel="preload" as="style" href="https://static.velog.io/static/css/main.e7869632.chunk.css"/><link data-chunk="main" rel="preload" as="style" href="https://static.velog.io/static/css/19.5dbdccff.chunk.css"/><link data-chunk="main" rel="preload" as="script" href="https://static.velog.io/static/js/runtime-main.2df18dd2.js"/><link data-chunk="main" rel="preload" as="script" href="https://static.velog.io/static/js/19.b3888109.chunk.js"/><link data-chunk="main" rel="preload" as="script" href="https://static.velog.io/static/js/main.3f7aa3ac.chunk.js"/><link data-chunk="pages-velog-VelogPage" rel="preload" as="script" href="https://static.velog.io/static/js/pages-velog-VelogPage.48a4909f.chunk.js"/><link data-chunk="PostPage" rel="preload" as="script" href="https://static.velog.io/static/js/0.b35e4a27.chunk.js"/><link data-chunk="PostPage" rel="preload" as="script" href="https://static.velog.io/static/js/22.1b5e7b33.chunk.js"/><link data-chunk="PostPage" rel="preload" as="script" href="https://static.velog.io/static/js/1.e6f9cf36.chunk.js"/><link data-chunk="PostPage" rel="preload" as="script" href="https://static.velog.io/static/js/PostPage.70369b4b.chunk.js"/><link data-chunk="main" rel="stylesheet" href="https://static.velog.io/static/css/19.5dbdccff.chunk.css"/><link data-chunk="main" rel="stylesheet" href="https://static.velog.io/static/css/main.e7869632.chunk.css"/><link rel="shortcut icon" href="https://static.velog.io/favicon.ico"/><link rel="apple-touch-icon" sizes="152x152" href="https://static.velog.io/favicons/apple-icon-152x152.png"/><link rel="icon" sizes="32x32" href="https://static.velog.io/favicons/favicon-32x32.png"/><link rel="icon" sizes="96x96" href="https://static.velog.io/favicons/favicon-96x96.png"/><link rel="icon" sizes="16x16" href="https://static.velog.io/favicons/favicon-16x16.png"/><meta name="viewport" content="width=device-width, initial-scale=1"/><script async="" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9161852896103498" crossorigin="anonymous"></script><script async="" src="https://www.googletagmanager.com/gtag/js?id=UA-125599395-1"></script><script>window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+        
+          gtag('config', 'UA-125599395-1');</script></head><body><div id="root"><div class="__jazzbar false false" style="width:0%"></div><div class="sc-efQSVx sc-cTAqQK hKuDqm"><div class="sc-fKVqWL borNha"><div class="sc-ksdxgE bjBHVb sc-iwjdpV fBIRvV"><div class="sc-ieecCq bfzLNu"><a class="sc-dJjYzT iXFSLX" href="/"><svg width="192" height="192" viewBox="0 0 192 192" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M24 0H168C181.255 0 192 10.7451 192 24V168C192 181.255 181.255 192 168 192H24C10.7451 192 0 181.255 0 168V24C0 10.7451 10.7451 0 24 0ZM49 57.9199V65.48H67L80.6799 142.52L98.5 141.26C116.02 119.06 127.84 102.44 133.96 91.3999C140.2 80.24 143.32 70.9399 143.32 63.5C143.32 59.0601 142 55.7 139.36 53.4199C136.84 51.1399 133.66 50 129.82 50C122.62 50 116.62 53.0601 111.82 59.1799C116.5 62.3 119.68 64.8799 121.36 66.9199C123.16 68.8401 124.06 71.4199 124.06 74.6599C124.06 80.0601 122.44 86.1799 119.2 93.02C116.08 99.8601 112.66 105.92 108.94 111.2C106.54 114.56 103.48 118.7 99.76 123.62L88.0601 57.2C87.1001 52.3999 84.1001 50 79.0601 50C76.78 50 72.3999 50.96 65.9199 52.8799C59.4399 54.6799 53.8 56.3601 49 57.9199Z" fill="currentColor"></path></svg></a><a class="user-logo" href="/@717lumos">LUMOS MAXIMA</a></div><div class="sc-cxpSdN fYCKhW"><a class="sc-bBHxTw efICyG" href="/search?username=717lumos"><svg width="17" height="17" viewBox="0 0 17 17"><path fill-rule="evenodd" d="M13.66 7.36a6.3 6.3 0 1 1-12.598 0 6.3 6.3 0 0 1 12.598 0zm-1.73 5.772a7.36 7.36 0 1 1 1.201-1.201l3.636 3.635c.31.31.31.815 0 1.126l-.075.075a.796.796 0 0 1-1.126 0l-3.636-3.635z" clip-rule="evenodd" fill="currentColor"></path></svg></a><button color="darkGray" class="sc-egiyK gflbJg">로그인</button></div></div></div><div style="margin-top:0;opacity:0" class="sc-iUKqMP eMcrQs"><div class="sc-fKVqWL borNha"><div class="sc-ksdxgE bjBHVb sc-iwjdpV fBIRvV"><div class="sc-ieecCq bfzLNu"><a class="sc-dJjYzT iXFSLX" href="/"><svg width="192" height="192" viewBox="0 0 192 192" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M24 0H168C181.255 0 192 10.7451 192 24V168C192 181.255 181.255 192 168 192H24C10.7451 192 0 181.255 0 168V24C0 10.7451 10.7451 0 24 0ZM49 57.9199V65.48H67L80.6799 142.52L98.5 141.26C116.02 119.06 127.84 102.44 133.96 91.3999C140.2 80.24 143.32 70.9399 143.32 63.5C143.32 59.0601 142 55.7 139.36 53.4199C136.84 51.1399 133.66 50 129.82 50C122.62 50 116.62 53.0601 111.82 59.1799C116.5 62.3 119.68 64.8799 121.36 66.9199C123.16 68.8401 124.06 71.4199 124.06 74.6599C124.06 80.0601 122.44 86.1799 119.2 93.02C116.08 99.8601 112.66 105.92 108.94 111.2C106.54 114.56 103.48 118.7 99.76 123.62L88.0601 57.2C87.1001 52.3999 84.1001 50 79.0601 50C76.78 50 72.3999 50.96 65.9199 52.8799C59.4399 54.6799 53.8 56.3601 49 57.9199Z" fill="currentColor"></path></svg></a><a class="user-logo" href="/@717lumos">LUMOS MAXIMA</a></div><div class="sc-cxpSdN fYCKhW"><a class="sc-bBHxTw efICyG" href="/search?username=717lumos"><svg width="17" height="17" viewBox="0 0 17 17"><path fill-rule="evenodd" d="M13.66 7.36a6.3 6.3 0 1 1-12.598 0 6.3 6.3 0 0 1 12.598 0zm-1.73 5.772a7.36 7.36 0 1 1 1.201-1.201l3.636 3.635c.31.31.31.815 0 1.126l-.075.075a.796.796 0 0 1-1.126 0l-3.636-3.635z" clip-rule="evenodd" fill="currentColor"></path></svg></a><button color="darkGray" class="sc-egiyK gflbJg">로그인</button></div></div></div></div><div class="sc-hiwPVj cFguvd sc-hjGZqJ gsfKnO"><div class="head-wrapper"><h1>[ROS] 패키지 빌드와 노드 작성</h1><div class="sc-gUQvok dDHrzp"><div class="information"><span class="username"><a href="/@717lumos">717lumos</a></span><span class="separator">·</span><span>2021년 10월 7일</span></div><div class="sc-gyElHZ dfOlGt"><button data-testid="like-btn" class="sc-iWBNLc dJakgs"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M18 1l-6 4-6-4-6 5v7l12 10 12-10v-7z"></path></svg><span>4</span></button></div></div><div class="sc-cbTzjv cNVTnR"><a class="sc-bTfYFJ jzqqDG" href="/tags/ROS">ROS</a></div><div class="sc-gIBqdA bJCPVh"><div class="sc-fyrocj gkYvcr"><div class="sc-djWRfJ sc-iWVNaa hSCPhJ"><div data-testid="like" active="false" style="transform:scale(1)" class="sc-jKTccl icTekR"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M18 1l-6 4-6-4-6 5v7l12 10 12-10v-7z"></path></svg></div><div class="sc-bUbRBg cVezZP">4</div><div class="sc-tAExr goNwbY"><div class="positioner"><div style="opacity:0;transform:translate(0px, 0px)" class="sc-dSfdvi cgggzD"><div class="sc-jKTccl icTekR"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M504 256C504 119 393 8 256 8S8 119 8 256c0 123.78 90.69 226.38 209.25 245V327.69h-63V256h63v-54.64c0-62.15 37-96.48 93.67-96.48 27.14 0 55.52 4.84 55.52 4.84v61h-31.28c-30.8 0-40.41 19.12-40.41 38.73V256h68.78l-11 71.69h-57.78V501C413.31 482.38 504 379.78 504 256z"></path></svg></div></div><div style="opacity:0;transform:translate(0px)" class="sc-dSfdvi cgggzD"><div class="sc-jKTccl icTekR"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"></path></svg></div></div><div style="opacity:0;transform:translate(0px, 0px)" class="sc-dSfdvi cgggzD"><div class="sc-jKTccl icTekR"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M21.586 10.461l-10.05 10.075c-1.95 1.949-5.122 1.949-7.071 0s-1.95-5.122 0-7.072l10.628-10.585c1.17-1.17 3.073-1.17 4.243 0 1.169 1.17 1.17 3.072 0 4.242l-8.507 8.464c-.39.39-1.024.39-1.414 0s-.39-1.024 0-1.414l7.093-7.05-1.415-1.414-7.093 7.049c-1.172 1.172-1.171 3.073 0 4.244s3.071 1.171 4.242 0l8.507-8.464c.977-.977 1.464-2.256 1.464-3.536 0-2.769-2.246-4.999-5-4.999-1.28 0-2.559.488-3.536 1.465l-10.627 10.583c-1.366 1.368-2.05 3.159-2.05 4.951 0 3.863 3.13 7 7 7 1.792 0 3.583-.684 4.95-2.05l10.05-10.075-1.414-1.414z" fill="currentColor"></path></svg></div></div></div></div><div><div style="position:relative" class="sc-jKTccl icTekR"><svg width="24" height="24" viewBox="0 0 24 24" class="share"><path fill="currentColor" d="M5 7c2.761 0 5 2.239 5 5s-2.239 5-5 5-5-2.239-5-5 2.239-5 5-5zm11.122 12.065c-.073.301-.122.611-.122.935 0 2.209 1.791 4 4 4s4-1.791 4-4-1.791-4-4-4c-1.165 0-2.204.506-2.935 1.301l-5.488-2.927c-.23.636-.549 1.229-.943 1.764l5.488 2.927zm7.878-15.065c0-2.209-1.791-4-4-4s-4 1.791-4 4c0 .324.049.634.122.935l-5.488 2.927c.395.535.713 1.127.943 1.764l5.488-2.927c.731.795 1.77 1.301 2.935 1.301 2.209 0 4-1.791 4-4z"></path></svg></div></div></div></div></div><div class="sc-jWUzzU kbsxbm"><h2><a href="/@717lumos/series/Study-ROS">ROS</a></h2><svg width="32" height="48" fill="currentColor" viewBox="0 0 32 48" class="series-corner-image"><path fill="currentColor" d="M32 0H0v48h.163l16-16L32 47.836V0z"></path></svg><div class="sc-lkgTHX eZZiTh"><div class="sc-fmBCVi fYjAMj"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"></path></svg>목록 보기</div><div class="sc-eFegNN iQOHos"><div class="series-number">4<!-- -->/<!-- -->10</div><div class="sc-jlRLRk lipOAy"><button class="sc-dUbtfd gQqugj"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path></svg></button><button class="sc-dUbtfd gQqugj"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg></button></div></div></div></div></div><img src="https://velog.velcdn.com/images/717lumos/post/1db9c7f0-55cf-4140-80e0-5c870e0b6da5/%EA%B7%B8%EB%A6%BC1.png" alt="post-thumbnail" class="sc-fIosxK jiCLIY"/></div><div class="sc-hiwPVj cFguvd sc-dkqQuH ezZFpf"><ins class="adsbygoogle" style="display:block;text-align:center" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-9161852896103498" data-ad-slot="6869845586"></ins></div><div class="sc-fmciRz htesZW"><div class="sc-uojGG fHQVzZ"><div class="sc-bilyIR dXLRLL atom-one"><h1 id="-들어가기-전에">👏 들어가기 전에</h1>
+<p>본격적인 실습에 들어갈 것이다. 갖춰진 실습 환경에서 직접 하나하나 따라해보길 바란다.<br />
+본 포스팅에서는 <span style="color:green">Python과 C++ 두 가지 버전</span> 모두를 다루고 있으니, 본인이 원하는 언어의 스크립트로 보면 된다.</p>
+<p>본문에 나오는 개념, 단어들이 생소하다면 앞선 포스팅들을 보면서 따라오자!</p>
+<hr />
+<h1 id="-ros의-빌드-시스템">✅ ROS의 빌드 시스템</h1>
+<p><span style="background-color:#e9eeb6">Catkin(캐킨)</span>은 ROS의 <strong>빌드 시스템</strong>이다.<br />
+<span style="color:green">CMake(Cross Platform Make)를 기본적으로 이용하여, 패키지 폴더에 <code>CMakeList.txt</code>라는 파일에 빌드 환경을 기술해야 한다.</span> ROS에서는 CMake를 ROS에 맞게 수정해 특화된 캐킨 빌드 시스템을 만들었으며, ROS관련 빌드, 패키지 관리, 패키지 간 의존관계 등을 편리하게 사용할 수 있게 되었다.</p>
+<hr />
+<h1 id="-패키지-빌드-과정">🔧 패키지 빌드 과정</h1>
+<ol>
+<li>패키지 생성</li>
+<li>패키지 설정 파일(package.xml) 수정</li>
+<li>빌드 설정 파일(CMakeList.txt) 수정</li>
+<li>메시지 파일 작성</li>
+<li>소스 코드 작성</li>
+<li>빌드 전 처리</li>
+<li>노드 실행</li>
+</ol>
+<hr />
+<h2 id="1-패키지-생성">1. 패키지 생성</h2>
+<p>가장 먼저 패키지를 생성한다. 도시락을 만들기 위해 도시락 통을 준비하는 것과 마찬가지라 보면 된다.</p>
+<p>터미널을 켜고, <code>/catkin_ws/src</code>로 이동한 뒤 명령어를 입력한다. <code>catkin_create_pkg [패키지 이름] [의존성 패키지]</code></p>
+<pre><code class="language-null">catkin_create_pkg test_pkg std_msgs rospy roscpp</code></pre>
+<p><img src="https://velog.velcdn.com/images%2F717lumos%2Fpost%2F71447e17-d42e-4433-a2db-f1318534c7bc%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%2C%202022-01-06%2023-03-46.png" /></p>
+<ul>
+<li>의존생 패키지는 해당 패키지에서 사용할 의존성을 기술한다. 여기서는 <code>std_msgs</code>(주고 받을 메시지 타입 위함), <code>rospy</code>(python 사용 위함), <code>roscpp</code>(C++ 사용 위함)</li>
+<li>의존성 패키지는 여러 개를 동시선언할 수 있고, 추후에 package.xml에서 추가/변경할 수 있다</li>
+<li>위와 같이 사용자가 패키지 작성 시, 캐킨 빌드 시스템에 필요한 <code>CMakeList.txt</code>, <code>package.xml</code>, 관련 폴더를 생성한다.</li>
+<li>패키지 이름에는 공백이 있어선 안 되며, 소문자를 사용하고, 언더바(<code>_</code>)를 사용해 단어를 붙인다</li>
+</ul>
+<p>해당 명령 직후 <code>~/catkin_ws/src/패키지명</code> 폴더 내에 생성되는 파일 및 폴더는 아래와 같다. 추후 사용자의 필요에 따라 <code>/launch</code>, <code>/msg</code> 등의 폴더를 추가적으로 생성할 수 있다. launch는 <a href="https://velog.io/@717lumos/roslaunch%EC%9D%98-%EC%82%AC%EC%9A%A9%EB%B2%95-%EB%B0%8F-XML">추후 이어질 포스팅</a>에서 다룬다.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>폴더, 파일</th><th>설명</th></tr></thead><tbody><tr><td>/include</td><td>헤더 파일</td></tr><tr><td>/src</td><td>코드 소스 파일</td></tr><tr><td>CMakeList.txt</td><td>빌드 설정 파일</td></tr><tr><td>package.xml</td><td>패키지 설정 파일</td></tr></tbody></table>
+<p><img src="https://velog.velcdn.com/images%2F717lumos%2Fpost%2F6dae196a-b02b-4bca-a04c-06ce10f72bcf%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%2C%202022-01-06%2023-04-07.png" /></p>
+<hr />
+<h2 id="2-패키지-설정-파일packagexml-수정">2. 패키지 설정 파일(package.xml) 수정</h2>
+<p><span style="color:green"><code>package.xml</code> 는 패키지의 이름, 저작사, 라이선스, 의존성 패키지 등을 기술하고 있는 파일로, ROS의 필수 설정 파일의 하나</span>이다.</p>
+<p>패키지 폴더에서 <code>package.xml</code>파일을 찾아 연다면 아래와 같은 내용을 볼 수 있을 것이다.</p>
+<p><img src="https://velog.velcdn.com/images%2F717lumos%2Fpost%2F9c14e05e-d9af-4827-932f-ce041c58239b%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%2C%202022-01-06%2022-45-40.png" /></p>
+<p>주 내용은 다음과 같다.</p>
+<ul>
+<li>기본 구조<ul>
+<li><code>&lt;?xml&gt;</code>: 문서 문법을 정의하는 문구. xml 버전을 나타냄</li>
+<li><code>&lt;package&gt;</code>: 해당 태그로 감싼 부분이 ROS 패키지 설정 부분임</li>
+</ul></li>
+<li>패키지 정보<ul>
+<li><code>&lt;name&gt;</code>: 패키지의 이름. 패키지 생성시 입력한 이름이 적용되며, 사용자의 임의 변경이 가능함</li>
+<li><code>&lt;version&gt;</code>: 패키지 버전으로, 자유로운 지정이 가능하다,</li>
+<li><code>&lt;description&gt;</code>: 패키지에 대한 설명으로, 2-3문장으로 입력한다.</li>
+<li><code>&lt;maintainer&gt;</code>: 패키지 관리자의 이름과 메일 주소(태그의 옵션 email을 이용)를 입력한다.</li>
+<li><code>&lt;license&gt;</code>: 라이선스를 기재한다.(e.g. GPL, BSD, ASL)</li>
+<li><code>&lt;url&gt;</code>: 패키지를 설명하는 웹페이지, 버그 관리, 저장소 등의 주소</li>
+<li><code>&lt;author&gt;</code>: 패키지 개발에 참여한 개발자의 이름과 이메일 주소를 적는다. 여러 명의 개발자의 경우 바로 다음줄에 해당 태그를 추가하며 입력한다.</li>
+</ul></li>
+<li>의존 패키지(Dependency)<ul>
+<li><code>&lt;buildtool_depend&gt;</code>: 빌드 시스템의 의존성이며, Catkin 빌드 시스템을 이용한다면 <code>catkin</code>을 입력한다.</li>
+<li><code>&lt;build_depend&gt;</code>: 패키지를 빌드할 때 의존하는 패키지 이름을 입력한다.</li>
+<li><code>&lt;run_depend&gt;</code>: 패키지를 실행할 때 의존하는 패키지 이름을 입력한다.</li>
+<li><code>&lt;test_depend&gt;</code>: 패키지를 테스트할 때 의존하는 패키지 이름을 입력한다.</li>
+</ul></li>
+<li>메타패키지(Metapacakge)<ul>
+<li><code>&lt;export&gt;</code>: ROS에서 명시하지 않은 태그명을 사용할 때 주로 쓰인다.</li>
+<li><code>&lt;metapackage&gt;</code>: export 태그 안에서 사용하는 공식적인 태그 중 하나로, 현재 패키지가 메타패키지일 경우 선언한다.</li>
+</ul></li>
+</ul>
+<p>해당 내용을 맞게 바꾸어준다. 주석과 당장 필요 없는 부분을 지운다. 패키지 생성 당시 의존성으로 <code>std_msgs</code>, <code>rospy</code>, <code>roscpp</code>를 입력해주었으므로 자동적으로 <code>&lt;build_depend&gt;</code>, <code>&lt;build_export_depend&gt;</code>, <code>&lt;exec_depend&gt;</code>가 채워져 있다. <span style="color:green">만약 패키지 생성 당시 명령어 옵션으로 추가하지 못했거나 추후 추가한다하면 해당 의존성 패키지를 이 파일에 입력해주면 된다.</span></p>
+<p>아래 코드는 필자의 예시이며, 이메일 주소 등은 본인의 것으로 바꿔보자. 이메일 주소, 라이선스 등은 패키지를 공개/배포할 경우 필요하며, 그렇지 않다면 굳이 바꿀 필요는 없다.</p>
+<pre><code class="language-html"><span class="token prolog">&lt;?xml version="1.0"?&gt;</span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>package</span> <span class="token attr-name">format</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>2<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>name</span><span class="token punctuation">&gt;</span></span>my_example_pkg<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>name</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>version</span><span class="token punctuation">&gt;</span></span>0.0.0<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>version</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>description</span><span class="token punctuation">&gt;</span></span>The my_example_pkg package<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>description</span><span class="token punctuation">&gt;</span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>maintainer</span> <span class="token attr-name">email</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>717lumos@gmail.com<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Han EunGi<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>maintainer</span><span class="token punctuation">&gt;</span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>license</span><span class="token punctuation">&gt;</span></span>BSD<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>license</span><span class="token punctuation">&gt;</span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>url</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>website<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>https://github.com/EunGiHan<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>url</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>url</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>website<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>https://velog.io/@717lumos<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>url</span><span class="token punctuation">&gt;</span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>author</span> <span class="token attr-name">email</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>717lumos@gmail.com<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Han EunGi<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>author</span><span class="token punctuation">&gt;</span></span> --&gt;
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>buildtool_depend</span><span class="token punctuation">&gt;</span></span>catkin<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>buildtool_depend</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>build_depend</span><span class="token punctuation">&gt;</span></span>roscpp<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>build_depend</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>build_depend</span><span class="token punctuation">&gt;</span></span>rospy<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>build_depend</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>build_depend</span><span class="token punctuation">&gt;</span></span>std_msgs<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>build_depend</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>build_export_depend</span><span class="token punctuation">&gt;</span></span>roscpp<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>build_export_depend</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>build_export_depend</span><span class="token punctuation">&gt;</span></span>rospy<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>build_export_depend</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>build_export_depend</span><span class="token punctuation">&gt;</span></span>std_msgs<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>build_export_depend</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>exec_depend</span><span class="token punctuation">&gt;</span></span>roscpp<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>exec_depend</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>exec_depend</span><span class="token punctuation">&gt;</span></span>rospy<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>exec_depend</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>exec_depend</span><span class="token punctuation">&gt;</span></span>std_msgs<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>exec_depend</span><span class="token punctuation">&gt;</span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>export</span><span class="token punctuation">&gt;</span></span>
+
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>export</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>package</span><span class="token punctuation">&gt;</span></span></code></pre>
+<hr />
+<h2 id="3-빌드-설정-파일cmakelisttxt-수정">3. 빌드 설정 파일(CMakeList.txt) 수정</h2>
+<p><span style="color:green"><code>CMakeList.txt</code> 는 빌드 환경을 기술하고 있는 파일로, 실행 파일 생성과 의존성 패키지 우선 빌드, 링크 생성 등을 설정할 수 있다.</span></p>
+<p>처음 보이는 CMakeList.txt 파일은 아래와 같다. 매우 긴 주석이 있으며, 패키지 생성 당시 파라미터로 넣었던 의존성 패키지에 따른 내용이 들어가 있다.</p>
+<p><img src="https://velog.velcdn.com/images%2F717lumos%2Fpost%2F85473243-30e2-463c-a68f-ec8138a996d9%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%2C%202022-01-06%2022-47-38.png" /></p>
+<p>코드의 주석을 일부는 삭제하고 일부는 풀어 각각이 의미하는 바를 아래에 적어두었다. 지금 바로 외울 필요는 없다. 필요한 경우 찾아서 추가하는 식으로 진행하는 것이 좋다. <del>속 편하다는 쪽이 가까울 듯</del></p>
+<pre><code class="language-cs"><span class="token preprocessor property"># 운영체제에 설치된 cmake의 최소 요구 버전</span>
+<span class="token function">cmake_minimum_required</span><span class="token punctuation">(</span><span class="token class-name">VERSION</span> <span class="token number">3.0</span><span class="token number">.2</span><span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># 패키지의 이름으로, package.xml에서 입력한 패키지 이름을 그대로 사용</span>
+<span class="token function">project</span><span class="token punctuation">(</span>test_pkg<span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># 캐킨 빌드할 시 요구되는 구성 요소 패키지. 사용자가 만든 패키지가 의존하는 다른 패키지를 먼저 설치하는 옵션</span>
+<span class="token function">find_package</span><span class="token punctuation">(</span>catkin <span class="token class-name">REQUIRED</span> <span class="token class-name">COMPONENTS</span>
+  roscpp
+  rospy
+  std_msgs
+<span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># ROS 이외의 패키지를 사용하는 예: Boost를 사용할 때 system 패키지를 설치하도록 함</span>
+<span class="token function">find_package</span><span class="token punctuation">(</span><span class="token class-name">Boost</span> <span class="token class-name">REQUIRED</span> <span class="token class-name">COMPONENTS</span> system<span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># 파이썬을 이용하기 위해 rospy를 사용할 때 설정하는 옵션. 파이썬 설치 프로세스인 setup.py를 부르는 역할</span>
+<span class="token function">catkin_python_setup</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># 메시지 파일을 추가</span>
+<span class="token preprocessor property"># FILES: 현재 패키지 폴더의 msg 폴더 안의 .msg 파일들을 참조해 헤더 파일(.h)를 자동으로 생성한다는 의미</span>
+<span class="token preprocessor property"># 만약 새 메시지를 만든다면 msg 폴더를 만든 뒤 그 안에 있는 메시지 파일 이름을 입력함. 여기에서는 MyMessage1.msg 등이 그 예.</span>
+<span class="token function">add_message_files</span><span class="token punctuation">(</span>
+  <span class="token class-name">FILES</span> 
+  <span class="token class-name">MyMessage1<span class="token punctuation">.</span>msg</span>
+  MyMessage2<span class="token punctuation">.</span>msg
+<span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># 사용하는 서비스 파일을 추가. 방식은 메시지 파일과 같으며, 사용하려면 srv 폴더를 만든 뒤 해당 파일 이름을 입력해둬야 한다.</span>
+<span class="token function">add_service_files</span><span class="token punctuation">(</span>
+  <span class="token class-name">FILES</span>
+  MyService<span class="token punctuation">.</span>srv
+<span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># 사용하는 서비스 파일을 추가. 방식은 메시지, 서비스 파일과 같다.</span>
+<span class="token function">add_action_files</span><span class="token punctuation">(</span>
+  <span class="token class-name">FILES</span>
+  <span class="token class-name">Action1<span class="token punctuation">.</span>action</span>
+  Action2<span class="token punctuation">.</span>action
+<span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># 의존하는 메시지를 설정</span>
+<span class="token preprocessor property"># DEPENDENCIES: 아래에 해당하는 메시지 패키지를 사용한다는 의미</span>
+<span class="token preprocessor property"># std_msgs, sensor_msgs가 그 예시</span>
+<span class="token function">generate_messages</span><span class="token punctuation">(</span>
+  std_msgs 
+  sensor_msgs
+<span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># 캐킨 빌드 옵션</span>
+<span class="token preprocessor property">## INCLUDE: 뒤에 설정한 패키지 내부 폴더인 include의 헤더 파일을 사용함</span>
+<span class="token preprocessor property">## LIBRARIES: 뒤에 설정한 패키지의 라이브러리를 사용함</span>
+<span class="token preprocessor property">## CATKIN_DEPENDS: 의존하는 패키지 지정</span>
+<span class="token preprocessor property">## DEPENDS: 시스템 의존 패키지</span>
+<span class="token function">catkin_package</span><span class="token punctuation">(</span>
+<span class="token preprocessor property">#  INCLUDE_DIRS include</span>
+<span class="token preprocessor property">#  LIBRARIES test_pkg</span>
+<span class="token preprocessor property">#  CATKIN_DEPENDS roscpp rospy std_msgs</span>
+<span class="token preprocessor property">#  DEPENDS system_lib</span>
+<span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># include 폴더 지정</span>
+<span class="token function">include_directories</span><span class="token punctuation">(</span>
+  $<span class="token punctuation">{</span>catkin_INCLUDE_DIRS<span class="token punctuation">}</span> # 각 패키지 내의 include 폴더를 의미<span class="token punctuation">.</span> 이 안의 헤더파일을 이용할 것<span class="token punctuation">.</span> 
+  <span class="token preprocessor property"># 사용자가 추가할 때는 이 밑의 공간 이용</span>
+<span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># 빌드 후 생성할 라이브러리. C++을 사용할 경우!</span>
+<span class="token function">add_library</span><span class="token punctuation">(</span>$<span class="token punctuation">{</span>PROJECT_NAME<span class="token punctuation">}</span>
+  src<span class="token operator">/</span>$<span class="token punctuation">{</span>PROJECT_NAME<span class="token punctuation">}</span><span class="token operator">/</span>test_pkg<span class="token punctuation">.</span>cpp
+<span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># 해당 라이브러리 및 실행파일을 빌드하기 전, 생성해야 할 의존성이 있는 메시지와 dynamic reconfigure이 있다면 우선으로 수행하도록 함</span>
+<span class="token function">add_dependencies</span><span class="token punctuation">(</span>$<span class="token punctuation">{</span>PROJECT_NAME<span class="token punctuation">}</span> $<span class="token punctuation">{</span>$<span class="token punctuation">{</span>PROJECT_NAME<span class="token punctuation">}</span>_EXPORTED_TARGETS<span class="token punctuation">}</span> $<span class="token punctuation">{</span>catkin_EXPORTED_TARGETS<span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># 빌드 후 생성할 실행파일에 대한 옵션 지정</span>
+<span class="token preprocessor property">## `__실행 파일 이름__` `__참조할 파일__` 순서대로 기재</span>
+<span class="token preprocessor property">## 복수 개의 참조 .cpp 파일이 있을 경우 한 괄호 뒤에 연속적으로 기재</span>
+<span class="token preprocessor property">## 생성할 실행파일이 2개 이상일 경우 add_executable 항목을 추가함</span>
+<span class="token function">add_executable</span><span class="token punctuation">(</span>$<span class="token punctuation">{</span>PROJECT_NAME<span class="token punctuation">}</span>_node src<span class="token operator">/</span>test_pkg_node<span class="token punctuation">.</span>cpp<span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># 지정 실행 파일을 생성하기 전, 링크해야 하는 라이브러리와 실행파일을 링크함</span>
+<span class="token function">target_link_libraries</span><span class="token punctuation">(</span>$<span class="token punctuation">{</span>PROJECT_NAME<span class="token punctuation">}</span>_node
+  $<span class="token punctuation">{</span>catkin_LIBRARIES<span class="token punctuation">}</span>
+<span class="token punctuation">)</span></code></pre>
+<hr />
+<h2 id="4-메시지-파일-작성">4. 메시지 파일 작성</h2>
+<p>새로운 메시지 파일(<code>.msg</code>)를 만들고 이를 사용해 노드를 이용한 통신을 해보자. 커스텀 메시지를 만드는 자세한 내용은 <a href="https://velog.io/@717lumos/ROS-msg%EB%A9%94%EC%8B%9C%EC%A7%80-%EB%A7%8C%EB%93%A4%EA%B8%B0">추후 이어질 포스팅</a>에서 다루게 될 것이나, 오늘은 패키지를 어떻게 수정하는 가를 볼 것이므로 따라만 와 보자.</p>
+<ul>
+<li>우선, 패키지 폴더 내 msg 폴더(<code>~/test_pkg/msg</code>)를 만든다.</li>
+<li>텍스트 편집기 혹은 VS Code 등을 열어 아래 내용을 입력한다.</li>
+</ul>
+<pre><code class="language-null">time stamp
+int32 data</code></pre>
+<ul>
+<li>이 파일을 msg 폴더에 메시지 파일(<code>test_msg.msg</code>)로 저장한다. 확장자를 반드시 <code>.msg</code>까지 입력해 저장해야 한다.</li>
+</ul>
+<p><img src="https://velog.velcdn.com/images%2F717lumos%2Fpost%2F52762d99-9078-49cb-a196-5c22cb87ded1%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%2C%202022-01-06%2023-07-11.png" /></p>
+<p><img src="https://velog.velcdn.com/images%2F717lumos%2Fpost%2F979a0dc6-64ca-4563-a3bd-9dce7515b113%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%2C%202022-01-06%2023-07-06.png" /></p>
+<blockquote>
+<p>❗️ <span style="background-color:yellow">메시지 타입의 대표적 예</span><br />
+메시지 기본 타입: <code>time</code>, <code>int32</code>, <code>bool</code>, <code>int8</code>, <code>int16</code>, <code>float32</code>, <code>string</code>, <code>duration</code> 등<br />
+ROS 사용 빈도 많은 메시지를 모아둔 타입: <code>common_msgs</code> 등</p>
+</blockquote>
+<hr />
+<h2 id="5-소스-코드-작성">5. 소스 코드 작성</h2>
+<p>해당 메시지를 이용하여 <span style="color:green">토픽을 송신하는 <strong>Publisher(퍼블리셔) 노드</strong>와 토픽을 수신하는 <strong>Subscribe(서브스크라이버) 노드</strong></span>를 각각 만들어보자.</p>
+<p>필자는 처음 ROS를 공부할 때 python 파일로만 소스 코드를 작성했다. 그러나 C/C++를 바탕으로 한 소스코드가 GitHub 등에 많이 나와있고, 각종 센서나 라이브러리도 그를 기반으로 하는 경우가 많으므로, C++ 코드 역시 공부해두어 나쁠 건 없다고 생각한다.</p>
+<h3 id="c-버전">C++ 버전</h3>
+<ul>
+<li>패키지 폴더 내 src 폴더(<code>~/test_pkg/src</code>)에 퍼블리셔의 .cpp 파일(<code>talker.cpp</code>)을 추가한 뒤 내용을 입력한다. 또는 내용을 입력한 뒤 저장을 <code>/src</code> 폴더에 해도 된다. <del>모로 가도 한양만 가면 된다.</del></li>
+</ul>
+<pre><code class="language-cpp"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">"ros/ros.h"</span>			</span><span class="token comment">// ROS 기본 헤더 파일</span>
+<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">"test_pkg/test_msg.h"</span>		</span><span class="token comment">// 메시지 파일의 헤더. 빌드 후 자동 생성됨</span>
+
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token keyword">int</span> argc<span class="token punctuation">,</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token operator">*</span>argv<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+  ros<span class="token operator">::</span><span class="token function">init</span><span class="token punctuation">(</span>argc<span class="token punctuation">,</span> argv<span class="token punctuation">,</span> <span class="token string">"talker"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>     <span class="token comment">// 노드 이름 초기화</span>
+  ros<span class="token operator">::</span>NodeHandle nh<span class="token punctuation">;</span>                  <span class="token comment">// ROS 시스템과 통신을 위한 노드 핸들</span>
+  
+  <span class="token comment">// 퍼블리셔 선언</span>
+  <span class="token comment">//// test_pkg에 정의된 test_msg 메시지 메시지 파일을 이용함</span>
+  <span class="token comment">//// 만약 표준 메시지를 사용한다면 그에 맞게 사용해야 함. (예) &lt;std_msgs::String&gt;</span>
+  <span class="token comment">//// 토픽 이름: chatter, 큐 사이즈: 100개</span>
+  ros<span class="token operator">::</span>Publisher chatter_pub <span class="token operator">=</span> nh<span class="token punctuation">.</span>advertise<span class="token operator">&lt;</span>test_pkg<span class="token operator">::</span>test_msg<span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="token string">"/chatter"</span><span class="token punctuation">,</span> <span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token comment">// 루프 주기를 10hz로 설정. 1초에 10번 루프를 돌며 메시지를 송신함.</span>
+  ros<span class="token operator">::</span>Rate <span class="token function">loop_rate</span><span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+
+  test_pkg<span class="token operator">::</span>test_msg msg<span class="token punctuation">;</span>		<span class="token comment">// 메시지 변수 선언</span>
+  <span class="token keyword">int</span> count <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>			<span class="token comment">// 코드 내에서 사용할 변수 선언</span>
+
+  <span class="token keyword">while</span> <span class="token punctuation">(</span>ros<span class="token operator">::</span><span class="token function">ok</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>			<span class="token comment">// 종료 전까지 계속 반복 수행함</span>
+  <span class="token punctuation">{</span>
+    msg<span class="token punctuation">.</span>stamp <span class="token operator">=</span> ros<span class="token operator">::</span>Time<span class="token operator">::</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>	<span class="token comment">// 메시지 내 stamp 메시지에 현 시각 입력</span>
+    msg<span class="token punctuation">.</span>data  <span class="token operator">=</span> count<span class="token punctuation">;</span>			<span class="token comment">// 메시지 내 data 메시지에 count 변수값 입력</span>
+
+    <span class="token function">ROS_INFO</span><span class="token punctuation">(</span><span class="token string">"send time(sec) = %d"</span><span class="token punctuation">,</span> msg<span class="token punctuation">.</span>stamp<span class="token punctuation">.</span>sec<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token function">ROS_INFO</span><span class="token punctuation">(</span><span class="token string">"send msg = %d"</span><span class="token punctuation">,</span> msg<span class="token punctuation">.</span>data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    chatter_pub<span class="token punctuation">.</span><span class="token function">publish</span><span class="token punctuation">(</span>msg<span class="token punctuation">)</span><span class="token punctuation">;</span>	<span class="token comment">// 메시지를 퍼블리시함(토픽으로 전송)</span>
+
+    loop_rate<span class="token punctuation">.</span><span class="token function">sleep</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>		<span class="token comment">// 정해준 주기만큼 일시정지(sleep)</span>
+
+    <span class="token operator">++</span>count<span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span></code></pre>
+<ul>
+<li>같은 방법으로 서브스크라이버 .cpp 파일(<code>/listener.cpp</code>) 역시 작성한다.</li>
+</ul>
+<pre><code class="language-cpp"><span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">"ros/ros.h"</span></span>
+<span class="token macro property">#<span class="token directive keyword">include</span> <span class="token string">"test_pkg/test_msg.h"</span> </span>
+
+<span class="token comment">// 메시지 콜백 함수 선언</span>
+<span class="token comment">//// 처리할 메시지를 포인터로서 파라미터로 전달. 포인터의 자료형은 메시지의 타입을 명시</span>
+<span class="token keyword">void</span> <span class="token function">chatterCallback</span><span class="token punctuation">(</span><span class="token keyword">const</span> test_pkg<span class="token operator">::</span>test_msg<span class="token operator">::</span>ConstPtr<span class="token operator">&amp;</span> msg<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+  <span class="token function">ROS_INFO</span><span class="token punctuation">(</span><span class="token string">"recieve time(sec) = %d"</span><span class="token punctuation">,</span> msg<span class="token operator">-&gt;</span>stamp<span class="token punctuation">.</span>sec<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">ROS_INFO</span><span class="token punctuation">(</span><span class="token string">"recieve msg = %d"</span><span class="token punctuation">,</span> msg<span class="token operator">-&gt;</span>data<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">int</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token keyword">int</span> argc<span class="token punctuation">,</span> <span class="token keyword">char</span> <span class="token operator">*</span><span class="token operator">*</span>argv<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+  ros<span class="token operator">::</span><span class="token function">init</span><span class="token punctuation">(</span>argc<span class="token punctuation">,</span> argv<span class="token punctuation">,</span> <span class="token string">"listener"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>		<span class="token comment">// 노드 이름 초기화</span>
+
+  ros<span class="token operator">::</span>NodeHandle nh<span class="token punctuation">;</span>
+
+  <span class="token comment">// 서브스크라이버 선언</span>
+  <span class="token comment">//// 토픽 이름: chatter(publish 노드에서 주는 토픽), 큐 사이즈: 100개</span>
+  <span class="token comment">//// 콜백 함수 이름: chatterCallback(위에서 정의함, 여기서 받은 토픽을 처리함)</span>
+  ros<span class="token operator">::</span>Subscriber sub <span class="token operator">=</span> nh<span class="token punctuation">.</span><span class="token function">subscribe</span><span class="token punctuation">(</span><span class="token string">"/chatter"</span><span class="token punctuation">,</span> <span class="token number">100</span><span class="token punctuation">,</span> chatterCallback<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  ros<span class="token operator">::</span><span class="token function">spin</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>		<span class="token comment">// 큐에 요청된 콜백함수를 처리하며, 프로그램 종료시까지 반복함</span>
+
+  <span class="token keyword">return</span> <span class="token number">0</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span></code></pre>
+<h3 id="python-버전">Python 버전</h3>
+<ul>
+<li>패키지 폴더 내 src 폴더(<code>~/test_pkg/src</code>)에 퍼블리셔의 .py 파일(<code>talker_py.py</code>)을 추가한 뒤 내용을 입력한다.</li>
+</ul>
+<pre><code class="language-python"><span class="token comment">#!/usr/bin/env python	# 파이썬을 쓴다면 반드시 달아주자</span>
+<span class="token comment">#-*- coding:utf-8 -*-	# 한글 주석을 달기 위해 사용한다.</span>
+
+<span class="token keyword">import</span> rospy				<span class="token comment"># ROS 라이브러리</span>
+<span class="token keyword">from</span> test_pkg<span class="token punctuation">.</span>msg <span class="token keyword">import</span> test_msg	<span class="token comment"># 패키지의 메시지 파일</span>
+
+<span class="token keyword">def</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># 퍼블리시 노드 초기화</span>
+    <span class="token comment">## 노드 이름 talker</span>
+    rospy<span class="token punctuation">.</span>init_node<span class="token punctuation">(</span><span class="token string">'talker'</span><span class="token punctuation">,</span> anonymous<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+    
+    <span class="token comment"># 퍼블리셔 변수</span>
+    <span class="token comment">## 퍼블리시 토픽 이름 chatter, 메시지 타입 test_msg</span>
+    pub <span class="token operator">=</span> rospy<span class="token punctuation">.</span>Publisher<span class="token punctuation">(</span><span class="token string">'chatter'</span><span class="token punctuation">,</span> test_msg<span class="token punctuation">,</span> queue_size<span class="token operator">=</span><span class="token number">10</span><span class="token punctuation">)</span>
+    
+    <span class="token comment"># 10헤르츠마다 반복(변수=rate)</span>
+    rate <span class="token operator">=</span> rospy<span class="token punctuation">.</span>Rate<span class="token punctuation">(</span><span class="token number">10</span><span class="token punctuation">)</span> <span class="token comment"># 10hz</span>
+
+    msg <span class="token operator">=</span> test_msg<span class="token punctuation">(</span><span class="token punctuation">)</span>	<span class="token comment"># 메시지 변수 선언</span>
+    count <span class="token operator">=</span> <span class="token number">0</span>		<span class="token comment"># 코드에서 사용할 변수 선언</span>
+
+    <span class="token comment"># 중단되거나 사용자가 강제종료(ctrl+C) 전까지 계속 실행</span>
+    <span class="token keyword">while</span> <span class="token keyword">not</span> rospy<span class="token punctuation">.</span>is_shutdown<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        msg<span class="token punctuation">.</span>stamp <span class="token operator">=</span> rospy<span class="token punctuation">.</span>Time<span class="token punctuation">.</span>now<span class="token punctuation">(</span><span class="token punctuation">)</span>	<span class="token comment">#현재 시각 담음</span>
+        msg<span class="token punctuation">.</span>data <span class="token operator">=</span> count		<span class="token comment"># count 변수 값 담음</span>
+
+        <span class="token comment"># 터미널에 출력</span>
+        rospy<span class="token punctuation">.</span>loginfo<span class="token punctuation">(</span><span class="token string">"send time(sec) = %d"</span><span class="token punctuation">,</span> msg<span class="token punctuation">.</span>stamp<span class="token punctuation">.</span>secs<span class="token punctuation">)</span>
+        rospy<span class="token punctuation">.</span>loginfo<span class="token punctuation">(</span><span class="token string">"send msg = %d"</span><span class="token punctuation">,</span> msg<span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+        
+        <span class="token comment"># 메시지를 퍼블리시</span>
+        pub<span class="token punctuation">.</span>publish<span class="token punctuation">(</span>msg<span class="token punctuation">)</span>
+        
+        <span class="token comment"># 정해둔 주기(hz)만큼 일시중단</span>
+        rate<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+        count <span class="token operator">+=</span> <span class="token number">1</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    <span class="token keyword">try</span><span class="token punctuation">:</span>
+        main<span class="token punctuation">(</span><span class="token punctuation">)</span>
+    <span class="token keyword">except</span> rospy<span class="token punctuation">.</span>ROSInterruptException<span class="token punctuation">:</span>
+        <span class="token keyword">pass</span></code></pre>
+<ul>
+<li>패키지 폴더 내 src 폴더(<code>~/test_pkg/src</code>)에 서브스크라이버의 .py 파일(<code>listener_py.py</code>)을 추가한 뒤 내용을 입력한다.</li>
+</ul>
+<pre><code class="language-python"><span class="token comment">#!/usr/bin/env python</span>
+<span class="token comment">#-*- coding:utf-8 -*- </span>
+
+<span class="token keyword">import</span> rospy
+<span class="token keyword">from</span> test_pkg<span class="token punctuation">.</span>msg <span class="token keyword">import</span> test_msg
+
+<span class="token comment"># 퍼블리셔 노드로부터 토픽을 받아들이는 콜백 함수</span>
+<span class="token keyword">def</span> <span class="token function">callback</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># 받은 내용(data)를 터미널에 출력</span>
+    rospy<span class="token punctuation">.</span>loginfo<span class="token punctuation">(</span><span class="token string">"recieve time(sec) = %d"</span><span class="token punctuation">,</span> data<span class="token punctuation">.</span>stamp<span class="token punctuation">.</span>secs<span class="token punctuation">)</span>
+    rospy<span class="token punctuation">.</span>loginfo<span class="token punctuation">(</span><span class="token string">"recieve msg = %d"</span><span class="token punctuation">,</span> data<span class="token punctuation">.</span>data<span class="token punctuation">)</span>
+    
+<span class="token keyword">def</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token comment"># 노드 초기화. 이름은 listener</span>
+    rospy<span class="token punctuation">.</span>init_node<span class="token punctuation">(</span><span class="token string">'listener'</span><span class="token punctuation">,</span> anonymous<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+
+    <span class="token comment"># 특정 토픽(chatter)를 callback이라는 이름의 함수로 받아들이며, 메시지 타입은 test_msg</span>
+    rospy<span class="token punctuation">.</span>Subscriber<span class="token punctuation">(</span><span class="token string">"chatter"</span><span class="token punctuation">,</span> test_msg<span class="token punctuation">,</span> callback<span class="token punctuation">)</span>
+
+    rospy<span class="token punctuation">.</span>spin<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    main<span class="token punctuation">(</span><span class="token punctuation">)</span></code></pre>
+<hr />
+<h2 id="6-빌드-전-처리">6. 빌드 전 처리</h2>
+<h3 id="c-버전-1">C++ 버전</h3>
+<ul>
+<li><code>package.xml</code> 파일 속 다음 부분을 추가한다.</li>
+</ul>
+<pre><code class="language-html">  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>build_depend</span><span class="token punctuation">&gt;</span></span>message_generation<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>build_depend</span><span class="token punctuation">&gt;</span></span>
+  <span class="token comment">&lt;!--&lt;run_depend&gt;message_runtime&lt;/run_depend&gt;--&gt;</span>
+      <span class="token comment">&lt;!--빌드 시 &lt;exec_depend&gt;가 에러 난다면 &lt;run_depend&gt;로--&gt;</span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>exec_depend</span><span class="token punctuation">&gt;</span></span>message_runtime<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>exec_depend</span><span class="token punctuation">&gt;</span></span></code></pre>
+<blockquote>
+<p>만약 다른 패키지의 메시지 파일을 쓴다면 <code>&lt;build_depend&gt;메시지 파일이 있는 패키지 이름&lt;/build_depend&gt;</code>, <code>&lt;run_depend&gt;메시지 파일이 있는 패키지 이름&lt;/run_depend&gt;</code>도 추가해야 한다.</p>
+</blockquote>
+<ul>
+<li><code>CMakeList.txt</code> 파일 속 다음 부분을 수정한다.</li>
+</ul>
+<pre><code class="language-cs"><span class="token preprocessor property">### 1. find_package에 [essage_generation] 추가</span>
+<span class="token function">find_package</span><span class="token punctuation">(</span>catkin <span class="token class-name">REQUIRED</span> <span class="token class-name">COMPONENTS</span>
+  roscpp
+  rospy
+  std_msgs
+  message_generation
+<span class="token punctuation">)</span>
+
+<span class="token preprocessor property">### 2. add_message_files의 주석 풀고, 예시문은 지운 뒤 만들어둔 메시지 파일 이름으로 변경</span>
+<span class="token function">add_message_files</span><span class="token punctuation">(</span>
+  <span class="token class-name">FILES</span>
+  test_msg<span class="token punctuation">.</span>msg
+<span class="token punctuation">)</span>
+
+<span class="token preprocessor property">### 3. generate_messages 주석 풀기</span>
+<span class="token function">generate_messages</span><span class="token punctuation">(</span>
+  <span class="token class-name">DEPENDENCIES</span>
+  std_msgs
+<span class="token punctuation">)</span>
+
+<span class="token preprocessor property">### 4. catkin_package 주석 풀기 &amp; [message_runtime]추가</span>
+<span class="token function">catkin_package</span><span class="token punctuation">(</span>
+  <span class="token class-name">CATKIN_DEPENDS</span> roscpp rospy std_msgs message_runtime
+<span class="token punctuation">)</span>
+
+<span class="token preprocessor property">### 5. include_directories 주석 풀기</span>
+<span class="token function">include_directories</span><span class="token punctuation">(</span>
+  include
+  $<span class="token punctuation">{</span>catkin_INCLUDE_DIRS<span class="token punctuation">}</span>
+<span class="token punctuation">)</span>
+
+<span class="token preprocessor property">### 6. add_executable 추가. src폴더에 있는 talker.cpp, listener.cpp를 talker, listener이라는 실행파일로 한다는 이야기.</span>
+<span class="token function">add_executable</span><span class="token punctuation">(</span>talker src<span class="token operator">/</span>talker<span class="token punctuation">.</span>cpp<span class="token punctuation">)</span>
+<span class="token function">target_link_libraries</span><span class="token punctuation">(</span>talker
+  $<span class="token punctuation">{</span>catkin_LIBRARIES<span class="token punctuation">}</span>
+<span class="token punctuation">)</span>
+<span class="token function">add_executable</span><span class="token punctuation">(</span>listener src<span class="token operator">/</span>listener<span class="token punctuation">.</span>cpp<span class="token punctuation">)</span>
+<span class="token function">target_link_libraries</span><span class="token punctuation">(</span>listener
+  $<span class="token punctuation">{</span>catkin_LIBRARIES<span class="token punctuation">}</span>
+<span class="token punctuation">)</span></code></pre>
+<ul>
+<li>수정 사항을 포함해 패키지를 빌드한다.</li>
+</ul>
+<pre><code class="language-python">$ catkin_make		<span class="token comment">#예약어를 설정해놓았다면 cm</span></code></pre>
+<p>빌드한 결과물의 생성 위치와 내용은 다음과 같다.</p>
+<ul>
+<li><code>~/catkin_ws/build</code>: 캐킨 빌드에서 사용된 설정 내용</li>
+<li><code>~/catkin_ws/devel/lib/test_pkg</code>: 실행 파일</li>
+<li><code>~/catkin_ws/devel/include/test_pkg</code>: 메시지 파일로부터 자동 생성된 메시지 헤더 파일</li>
+</ul>
+<h3 id="python-버전-1">Python 버전</h3>
+<ul>
+<li><code>package.xml</code> 파일 속 다음 부분을 추가한다.</li>
+</ul>
+<pre><code class="language-html">  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>build_depend</span><span class="token punctuation">&gt;</span></span>message_generation<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>build_depend</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>exec_depend</span><span class="token punctuation">&gt;</span></span>message_runtime<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>exec_depend</span><span class="token punctuation">&gt;</span></span></code></pre>
+<ul>
+<li><code>CMakeList.txt</code> 파일 속 다음 부분을 주석을 풀거나 수정한다.</li>
+</ul>
+<pre><code class="language-cs"><span class="token preprocessor property"># message_generation을 추가한다.</span>
+<span class="token function">find_package</span><span class="token punctuation">(</span>catkin <span class="token class-name">REQUIRED</span> <span class="token class-name">COMPONENTS</span>
+  roscpp
+  rospy
+  std_msgs
+  message_generation
+<span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># add_message_files의 주석을 풀고 수정한다.</span>
+<span class="token function">add_message_files</span><span class="token punctuation">(</span>
+  <span class="token class-name">FILES</span>
+  test_msg<span class="token punctuation">.</span>msg
+<span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># generate_messages의 주석을 푼다.</span>
+<span class="token function">generate_messages</span><span class="token punctuation">(</span>
+  <span class="token class-name">DEPENDENCIES</span>
+  std_msgs
+<span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># LIBRARIES, CATKIN_DEPENDS의 주석을 풀고, message_runtime을 추가한다.</span>
+<span class="token function">catkin_package</span><span class="token punctuation">(</span>
+<span class="token preprocessor property">#  INCLUDE_DIRS include</span>
+  <span class="token class-name">LIBRARIES</span> test_pkg
+  <span class="token class-name">CATKIN_DEPENDS</span> roscpp rospy std_msgs message_runtime
+<span class="token preprocessor property">#  DEPENDS system_lib</span>
+<span class="token punctuation">)</span>
+
+<span class="token preprocessor property"># 주석을 풀고 스크립트 이름을 입력한다. talker_py.py, listener.py를 파이썬으로 사용한다는 이야기</span>
+<span class="token function">catkin_install_python</span><span class="token punctuation">(</span><span class="token class-name">PROGRAMS</span>
+  src<span class="token operator">/</span>talker_py<span class="token punctuation">.</span>py
+  src<span class="token operator">/</span>listener_py<span class="token punctuation">.</span>py
+  DESTINATION $<span class="token punctuation">{</span>CATKIN_PACKAGE_BIN_DESTINATION<span class="token punctuation">}</span>
+<span class="token punctuation">)</span></code></pre>
+<ul>
+<li>수정 사항을 포함해 패키지를 빌드한다.</li>
+</ul>
+<pre><code class="language-null">$ catkin_make		#예약어를 설정해놓았다면 cm</code></pre>
+<ul>
+<li>파이썬 스크립트 두 개 각각에 대해 권한을 허용한다.</li>
+</ul>
+<pre><code class="language-null">$ chmod +x talker_py.py
+$ chmod +x listener_py.py</code></pre>
+<hr />
+<h2 id="7-노드-실행">7. 노드 실행</h2>
+<p>한 터미널에 <code>roscore</code>를 실행해두고 다른 터미널 각각에 다음의 명령어를 실행한다. subscribe를 먼저 켜는 것이 낫다.</p>
+<pre><code class="language-python">$ rosrun test_pkg listener
+	<span class="token comment">#python이라면 $ rosrun test_pkg listener_py.py</span>
+
+$ rosrun test_pkg talker
+	<span class="token comment">#python이라면 $ rosrun test_pkg talker_py.py</span></code></pre>
+<p><img src="https://velog.velcdn.com/images%2F717lumos%2Fpost%2F3f87a207-3b90-4865-a309-b68497b85335%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%2C%202022-01-07%2001-01-13.png" /></p>
+<p>현재 퍼블리시 중인 토픽의 목록을 확인하려면 <code>rostopic list</code>를, 특정 토픽의 내용(메시지)를 확인하려면 <code>rostopic echo /토픽 이름</code>을 다른 터미널 창에 입력하면 된다.<br />
+또한 통신 상태를 확인하려면, <code>rqt_graph</code> 명령어를 수행해 시각화가 가능하다</p>
+<p><img src="https://velog.velcdn.com/images%2F717lumos%2Fpost%2F3e5b5b3b-e6fc-4e3c-8e9a-816eb44b278e%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%2C%202022-01-07%2000-36-37.png" /></p>
+<hr />
+<h1 id="참고-문헌">참고 문헌</h1>
+<ul>
+<li><a href="http://wiki.ros.org/catkin/CMakeLists.txt/">CMakeLists, "ROS Wiki"</a></li>
+<li><a href="http://wiki.ros.org/ROS/Tutorials/CreatingMsgAndSrv#Creating_a_msg">Creating Msg And Srv, "ROS Wiki"</a></li>
+<li><a href="http://wiki.ros.org/ROS/Tutorials/WritingPublisherSubscriber%28c%2B%2B%29#roscpp_tutorials.2FTutorials.2FWritingPublisherSubscriber.Building_your_nodes">WritingPublisherSubscriber(C++), "ROS Wiki"</a></li>
+<li><a href="http://wiki.ros.org/ROS/Tutorials/WritingPublisherSubscriber%28python%29">Writing Publisher Subscriber(python), "ROS Wiki"</a></li>
+<li>표윤석, 조한철, 정려운, 임태훈. ROS 로봇 프로그래밍. 루비페이퍼</li>
+</ul></div></div></div><div class="sc-hiwPVj cFguvd sc-cVAmsi djbDSV"><div class="sc-ehCJOs EUNkM"><div class="sc-lcepkR jKJFef"><a href="/@717lumos"><img src="https://velog.velcdn.com/images/717lumos/profile/1de84f68-0e58-4a01-811b-806a65873b5d/image.jpg" alt="profile"/></a><div class="sc-gGCDDS blFlll"><div class="name"><a href="/@717lumos">한은기</a></div><div class="description">🏫Inha Univ. Naval Architecture and Ocean Engineering &amp; Computer Engineering (Undergraduate) / 🚢Autonomous Vehicles, 💡Machine Learning</div></div></div><div class="sc-clIzBv ksTJra"></div><div class="sc-faUpoM ecAFug"><a href="https://github.com/EunGiHan" target="_blank" rel="noopener noreferrer" data-testid="github"><svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><mask id="github" width="20" height="20" x="0" y="0" maskUnits="userSpaceOnUse"><path fill="#ffffff" fill-rule="evenodd" d="M6.69 15.944c0 .08-.093.145-.21.145-.133.012-.226-.053-.226-.145 0-.081.093-.146.21-.146.12-.012.226.053.226.146zm-1.255-.182c-.028.08.053.173.174.198.105.04.226 0 .25-.081.024-.08-.053-.173-.174-.21-.104-.028-.221.012-.25.093zm1.783-.068c-.117.028-.198.104-.186.197.012.08.117.133.238.105.117-.028.198-.105.186-.186-.012-.076-.121-.129-.238-.116zM9.87.242C4.278.242 0 4.488 0 10.08c0 4.471 2.815 8.298 6.835 9.645.516.093.697-.226.697-.488 0-.25-.012-1.63-.012-2.476 0 0-2.822.605-3.415-1.202 0 0-.46-1.173-1.121-1.475 0 0-.924-.633.064-.621 0 0 1.004.08 1.557 1.04.883 1.557 2.363 1.109 2.94.843.092-.645.354-1.093.645-1.36-2.255-.25-4.529-.576-4.529-4.455 0-1.109.307-1.665.952-2.375-.105-.262-.448-1.342.105-2.738C5.56 4.157 7.5 5.51 7.5 5.51a9.474 9.474 0 0 1 2.532-.344c.86 0 1.726.117 2.533.343 0 0 1.939-1.355 2.782-1.089.552 1.4.21 2.476.105 2.738.645.714 1.04 1.27 1.04 2.375 0 3.891-2.375 4.202-4.63 4.456.372.319.686.923.686 1.87 0 1.36-.012 3.041-.012 3.372 0 .262.186.58.698.488C17.266 18.379 20 14.552 20 10.08 20 4.488 15.464.24 9.871.24zM3.919 14.149c-.052.04-.04.133.029.21.064.064.157.093.21.04.052-.04.04-.133-.029-.21-.064-.064-.157-.092-.21-.04zm-.435-.326c-.028.052.012.117.093.157.064.04.145.028.173-.028.028-.053-.012-.117-.093-.158-.08-.024-.145-.012-.173.029zm1.306 1.435c-.064.053-.04.174.053.25.092.093.21.105.262.04.052-.052.028-.173-.053-.25-.088-.092-.21-.104-.262-.04zm-.46-.593c-.064.04-.064.146 0 .238.065.093.174.133.226.093.065-.053.065-.157 0-.25-.056-.093-.16-.133-.225-.08z" clip-rule="evenodd"></path></mask><g mask="url(#github)"><path fill="currentColor" d="M0 0h20v20H0z"></path></g></svg></a><a href="mailto:winterbloooom@gmail.com"><svg width="32" height="32" fill="none" viewBox="0 0 32 32" data-testid="email"><path fill="currentColor" d="M16 16.871L1.019 5H30.98L16 16.871zm0 3.146L1 8.131V27h30V8.131L16 20.017z"></path></svg></a></div></div></div><div class="sc-hiwPVj cFguvd sc-bSqaIl ljzUGV"><div class="sc-jvvksu gaMjeC"><a class="sc-jivBlf hXdGSC" href="/@717lumos/ROS-Linux-ROS-주요-명령어"><div class="sc-dkQkyq hLgkiL"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"></path></svg></div><div class="sc-hkgtus dSzcTT"><div class="description">이전<!-- --> 포스트</div><h3>[ROS] Linux, ROS 주요 명령어</h3></div></a></div><div class="sc-jvvksu gaMjeC"><a class="sc-jivBlf fUgawR" href="/@717lumos/roslaunch의-사용법-및-XML"><div class="sc-dkQkyq iTucXk"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"></path></svg></div><div class="sc-hkgtus kRplDU"><div class="description">다음<!-- --> 포스트</div><h3>[ROS] roslaunch의 사용법 및 XML</h3></div></a></div></div><div class="sc-hiwPVj cFguvd sc-dkqQuH ezZFpf"><ins class="adsbygoogle" style="display:block;text-align:center" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-9161852896103498" data-ad-slot="6869845586"></ins></div><div class="sc-hiwPVj cFguvd sc-eXlEPa idIUOf"><h4>0<!-- -->개의 댓글</h4><div class="sc-iFMAIt"><div class="sc-iqVWFU krngTE"><textarea placeholder="댓글을 작성하세요" class="sc-eWfVMQ jhMJlT" style="height:0"></textarea><div class="buttons-wrapper"><button color="teal" class="sc-jrQzAO hSMJOX">댓글 <!-- -->작성</button></div></div><div class="sc-cvZCdy kUmPrc"><div class="sc-kmQMED"></div></div></div></div></div><div class="Toastify"></div></div><script>window.__APOLLO_STATE__={"$ROOT_QUERY.velog_config({\"username\":\"717lumos\"})":{"title":"LUMOS MAXIMA","logo_image":null,"__typename":"VelogConfig"},"ROOT_QUERY":{"velog_config({\"username\":\"717lumos\"})":{"type":"id","generated":true,"id":"$ROOT_QUERY.velog_config({\"username\":\"717lumos\"})","typename":"VelogConfig"},"auth":null,"post({\"url_slug\":\"ROS-패키지-빌드와-노드-작성\",\"username\":\"717lumos\"})":{"type":"id","generated":false,"id":"Post:7dbf8427-a0c6-437f-9653-2154ccbcc6c6","typename":"Post"}},"Post:7dbf8427-a0c6-437f-9653-2154ccbcc6c6":{"id":"7dbf8427-a0c6-437f-9653-2154ccbcc6c6","title":"[ROS] 패키지 빌드와 노드 작성","released_at":"2021-10-07T05:58:43.420Z","updated_at":"2023-03-03T06:49:40.383Z","tags":{"type":"json","json":["ROS"]},"body":"# 👏 들어가기 전에\n본격적인 실습에 들어갈 것이다. 갖춰진 실습 환경에서 직접 하나하나 따라해보길 바란다.\n본 포스팅에서는 \u003cspan style=\"color: green; font-weight:bold\">Python과 C++ 두 가지 버전\u003c/span> 모두를 다루고 있으니, 본인이 원하는 언어의 스크립트로 보면 된다.\n\n본문에 나오는 개념, 단어들이 생소하다면 앞선 포스팅들을 보면서 따라오자!\n\n- - -\n\n# ✅ ROS의 빌드 시스템\n\u003cspan style=\"background-color: #e9eeb6; font-weight:bold\">Catkin(캐킨)\u003c/span>은 ROS의 **빌드 시스템**이다.\n\u003cspan style=\"color: green; font-weight:bold\">CMake(Cross Platform Make)를 기본적으로 이용하여, 패키지 폴더에 `CMakeList.txt`라는 파일에 빌드 환경을 기술해야 한다.\u003c/span> ROS에서는 CMake를 ROS에 맞게 수정해 특화된 캐킨 빌드 시스템을 만들었으며, ROS관련 빌드, 패키지 관리, 패키지 간 의존관계 등을 편리하게 사용할 수 있게 되었다.\n\n- - -\n\n# 🔧 패키지 빌드 과정\n1. 패키지 생성\n2. 패키지 설정 파일(package.xml) 수정\n3. 빌드 설정 파일(CMakeList.txt) 수정\n4. 메시지 파일 작성\n5. 소스 코드 작성\n6. 빌드 전 처리\n7. 노드 실행\n\n- - -\n\n## 1. 패키지 생성\n가장 먼저 패키지를 생성한다. 도시락을 만들기 위해 도시락 통을 준비하는 것과 마찬가지라 보면 된다.\n\n터미널을 켜고, `/catkin_ws/src`로 이동한 뒤 명령어를 입력한다. `catkin_create_pkg [패키지 이름] [의존성 패키지]`\n```\ncatkin_create_pkg test_pkg std_msgs rospy roscpp\n```\n\n![](https://images.velog.io/images/717lumos/post/71447e17-d42e-4433-a2db-f1318534c7bc/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7,%202022-01-06%2023-03-46.png)\n\n* 의존생 패키지는 해당 패키지에서 사용할 의존성을 기술한다. 여기서는 `std_msgs`(주고 받을 메시지 타입 위함), `rospy`(python 사용 위함), `roscpp`(C++ 사용 위함)\n* 의존성 패키지는 여러 개를 동시선언할 수 있고, 추후에 package.xml에서 추가/변경할 수 있다\n* 위와 같이 사용자가 패키지 작성 시, 캐킨 빌드 시스템에 필요한 `CMakeList.txt`, `package.xml`, 관련 폴더를 생성한다.\n* 패키지 이름에는 공백이 있어선 안 되며, 소문자를 사용하고, 언더바(`_`)를 사용해 단어를 붙인다\n\n해당 명령 직후 `~/catkin_ws/src/패키지명` 폴더 내에 생성되는 파일 및 폴더는 아래와 같다. 추후 사용자의 필요에 따라 `/launch`, `/msg` 등의 폴더를 추가적으로 생성할 수 있다. launch는 [추후 이어질 포스팅](https://velog.io/@717lumos/roslaunch%EC%9D%98-%EC%82%AC%EC%9A%A9%EB%B2%95-%EB%B0%8F-XML)에서 다룬다.\n\n\n| 폴더, 파일 | 설명 |\n|:----------|:----------|\n| /include | 헤더 파일 |\n| /src | 코드 소스 파일 |\n| CMakeList.txt | 빌드 설정 파일 |\n| package.xml | 패키지 설정 파일 |\n\n![](https://images.velog.io/images/717lumos/post/6dae196a-b02b-4bca-a04c-06ce10f72bcf/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7,%202022-01-06%2023-04-07.png)\n- - -\n\n## 2. 패키지 설정 파일(package.xml) 수정\n\u003cspan style=\"color: green; font-weight:bold\">`package.xml` 는 패키지의 이름, 저작사, 라이선스, 의존성 패키지 등을 기술하고 있는 파일로, ROS의 필수 설정 파일의 하나\u003c/span>이다.\n\n패키지 폴더에서 `package.xml`파일을 찾아 연다면 아래와 같은 내용을 볼 수 있을 것이다.\n\n![](https://images.velog.io/images/717lumos/post/9c14e05e-d9af-4827-932f-ce041c58239b/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7,%202022-01-06%2022-45-40.png)\n\n주 내용은 다음과 같다.\n* 기본 구조\n  * `\u003c?xml>`: 문서 문법을 정의하는 문구. xml 버전을 나타냄\n  * `\u003cpackage>`: 해당 태그로 감싼 부분이 ROS 패키지 설정 부분임\n* 패키지 정보\n  * `\u003cname>`: 패키지의 이름. 패키지 생성시 입력한 이름이 적용되며, 사용자의 임의 변경이 가능함\n  * `\u003cversion>`: 패키지 버전으로, 자유로운 지정이 가능하다,\n  * `\u003cdescription>`: 패키지에 대한 설명으로, 2-3문장으로 입력한다.\n  * `\u003cmaintainer>`: 패키지 관리자의 이름과 메일 주소(태그의 옵션 email을 이용)를 입력한다.\n  * `\u003clicense>`: 라이선스를 기재한다.(e.g. GPL, BSD, ASL)\n  * `\u003curl>`: 패키지를 설명하는 웹페이지, 버그 관리, 저장소 등의 주소\n  * `\u003cauthor>`: 패키지 개발에 참여한 개발자의 이름과 이메일 주소를 적는다. 여러 명의 개발자의 경우 바로 다음줄에 해당 태그를 추가하며 입력한다.\n* 의존 패키지(Dependency)\n  * `\u003cbuildtool_depend>`: 빌드 시스템의 의존성이며, Catkin 빌드 시스템을 이용한다면 `catkin`을 입력한다.\n  * `\u003cbuild_depend>`: 패키지를 빌드할 때 의존하는 패키지 이름을 입력한다.\n  * `\u003crun_depend>`: 패키지를 실행할 때 의존하는 패키지 이름을 입력한다.\n  * `\u003ctest_depend>`: 패키지를 테스트할 때 의존하는 패키지 이름을 입력한다.\n* 메타패키지(Metapacakge)\n  * `\u003cexport>`: ROS에서 명시하지 않은 태그명을 사용할 때 주로 쓰인다.\n  * `\u003cmetapackage>`: export 태그 안에서 사용하는 공식적인 태그 중 하나로, 현재 패키지가 메타패키지일 경우 선언한다.\n  \n해당 내용을 맞게 바꾸어준다. 주석과 당장 필요 없는 부분을 지운다. 패키지 생성 당시 의존성으로 `std_msgs`, `rospy`, `roscpp`를 입력해주었으므로 자동적으로 `\u003cbuild_depend>`, `\u003cbuild_export_depend>`, `\u003cexec_depend>`가 채워져 있다. \u003cspan style=\"color: green; font-weight:bold\">만약 패키지 생성 당시 명령어 옵션으로 추가하지 못했거나 추후 추가한다하면 해당 의존성 패키지를 이 파일에 입력해주면 된다.\u003c/span>\n\n아래 코드는 필자의 예시이며, 이메일 주소 등은 본인의 것으로 바꿔보자. 이메일 주소, 라이선스 등은 패키지를 공개/배포할 경우 필요하며, 그렇지 않다면 굳이 바꿀 필요는 없다.\n\n\n```html\n\u003c?xml version=\"1.0\"?>\n\u003cpackage format=\"2\">\n  \u003cname>my_example_pkg\u003c/name>\n  \u003cversion>0.0.0\u003c/version>\n  \u003cdescription>The my_example_pkg package\u003c/description>\n\n  \u003cmaintainer email=\"717lumos@gmail.com\">Han EunGi\u003c/maintainer>\n\n  \u003clicense>BSD\u003c/license>\n\n  \u003curl type=\"website\">https://github.com/EunGiHan\u003c/url>\n  \u003curl type=\"website\">https://velog.io/@717lumos\u003c/url>\n\n  \u003cauthor email=\"717lumos@gmail.com\">Han EunGi\u003c/author> -->\n\n  \u003cbuildtool_depend>catkin\u003c/buildtool_depend>\n  \u003cbuild_depend>roscpp\u003c/build_depend>\n  \u003cbuild_depend>rospy\u003c/build_depend>\n  \u003cbuild_depend>std_msgs\u003c/build_depend>\n  \u003cbuild_export_depend>roscpp\u003c/build_export_depend>\n  \u003cbuild_export_depend>rospy\u003c/build_export_depend>\n  \u003cbuild_export_depend>std_msgs\u003c/build_export_depend>\n  \u003cexec_depend>roscpp\u003c/exec_depend>\n  \u003cexec_depend>rospy\u003c/exec_depend>\n  \u003cexec_depend>std_msgs\u003c/exec_depend>\n\n  \u003cexport>\n\n  \u003c/export>\n\u003c/package>\n```\n  \n- - -\n\n## 3. 빌드 설정 파일(CMakeList.txt) 수정\n\u003cspan style=\"color: green; font-weight:bold\">`CMakeList.txt` 는 빌드 환경을 기술하고 있는 파일로, 실행 파일 생성과 의존성 패키지 우선 빌드, 링크 생성 등을 설정할 수 있다.\u003c/span>\n\n처음 보이는 CMakeList.txt 파일은 아래와 같다. 매우 긴 주석이 있으며, 패키지 생성 당시 파라미터로 넣었던 의존성 패키지에 따른 내용이 들어가 있다.\n\n![](https://images.velog.io/images/717lumos/post/85473243-30e2-463c-a68f-ec8138a996d9/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7,%202022-01-06%2022-47-38.png)\n\n코드의 주석을 일부는 삭제하고 일부는 풀어 각각이 의미하는 바를 아래에 적어두었다. 지금 바로 외울 필요는 없다. 필요한 경우 찾아서 추가하는 식으로 진행하는 것이 좋다. ~~속 편하다는 쪽이 가까울 듯~~\n\n```cs\n# 운영체제에 설치된 cmake의 최소 요구 버전\ncmake_minimum_required(VERSION 3.0.2)\n\n# 패키지의 이름으로, package.xml에서 입력한 패키지 이름을 그대로 사용\nproject(test_pkg)\n\n# 캐킨 빌드할 시 요구되는 구성 요소 패키지. 사용자가 만든 패키지가 의존하는 다른 패키지를 먼저 설치하는 옵션\nfind_package(catkin REQUIRED COMPONENTS\n  roscpp\n  rospy\n  std_msgs\n)\n\n# ROS 이외의 패키지를 사용하는 예: Boost를 사용할 때 system 패키지를 설치하도록 함\nfind_package(Boost REQUIRED COMPONENTS system)\n\n# 파이썬을 이용하기 위해 rospy를 사용할 때 설정하는 옵션. 파이썬 설치 프로세스인 setup.py를 부르는 역할\ncatkin_python_setup()\n\n# 메시지 파일을 추가\n# FILES: 현재 패키지 폴더의 msg 폴더 안의 .msg 파일들을 참조해 헤더 파일(.h)를 자동으로 생성한다는 의미\n# 만약 새 메시지를 만든다면 msg 폴더를 만든 뒤 그 안에 있는 메시지 파일 이름을 입력함. 여기에서는 MyMessage1.msg 등이 그 예.\nadd_message_files(\n  FILES \n  MyMessage1.msg\n  MyMessage2.msg\n)\n\n# 사용하는 서비스 파일을 추가. 방식은 메시지 파일과 같으며, 사용하려면 srv 폴더를 만든 뒤 해당 파일 이름을 입력해둬야 한다.\nadd_service_files(\n  FILES\n  MyService.srv\n)\n\n# 사용하는 서비스 파일을 추가. 방식은 메시지, 서비스 파일과 같다.\nadd_action_files(\n  FILES\n  Action1.action\n  Action2.action\n)\n\n# 의존하는 메시지를 설정\n# DEPENDENCIES: 아래에 해당하는 메시지 패키지를 사용한다는 의미\n# std_msgs, sensor_msgs가 그 예시\ngenerate_messages(\n  std_msgs \n  sensor_msgs\n)\n\n# 캐킨 빌드 옵션\n## INCLUDE: 뒤에 설정한 패키지 내부 폴더인 include의 헤더 파일을 사용함\n## LIBRARIES: 뒤에 설정한 패키지의 라이브러리를 사용함\n## CATKIN_DEPENDS: 의존하는 패키지 지정\n## DEPENDS: 시스템 의존 패키지\ncatkin_package(\n#  INCLUDE_DIRS include\n#  LIBRARIES test_pkg\n#  CATKIN_DEPENDS roscpp rospy std_msgs\n#  DEPENDS system_lib\n)\n\n# include 폴더 지정\ninclude_directories(\n  ${catkin_INCLUDE_DIRS} # 각 패키지 내의 include 폴더를 의미. 이 안의 헤더파일을 이용할 것. \n  # 사용자가 추가할 때는 이 밑의 공간 이용\n)\n\n# 빌드 후 생성할 라이브러리. C++을 사용할 경우!\nadd_library(${PROJECT_NAME}\n  src/${PROJECT_NAME}/test_pkg.cpp\n)\n\n# 해당 라이브러리 및 실행파일을 빌드하기 전, 생성해야 할 의존성이 있는 메시지와 dynamic reconfigure이 있다면 우선으로 수행하도록 함\nadd_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})\n\n# 빌드 후 생성할 실행파일에 대한 옵션 지정\n## `__실행 파일 이름__` `__참조할 파일__` 순서대로 기재\n## 복수 개의 참조 .cpp 파일이 있을 경우 한 괄호 뒤에 연속적으로 기재\n## 생성할 실행파일이 2개 이상일 경우 add_executable 항목을 추가함\nadd_executable(${PROJECT_NAME}_node src/test_pkg_node.cpp)\n\n# 지정 실행 파일을 생성하기 전, 링크해야 하는 라이브러리와 실행파일을 링크함\ntarget_link_libraries(${PROJECT_NAME}_node\n  ${catkin_LIBRARIES}\n)\n```\n\n- - -\n\n## 4. 메시지 파일 작성\n새로운 메시지 파일(`.msg`)를 만들고 이를 사용해 노드를 이용한 통신을 해보자. 커스텀 메시지를 만드는 자세한 내용은 [추후 이어질 포스팅](https://velog.io/@717lumos/ROS-msg%EB%A9%94%EC%8B%9C%EC%A7%80-%EB%A7%8C%EB%93%A4%EA%B8%B0)에서 다루게 될 것이나, 오늘은 패키지를 어떻게 수정하는 가를 볼 것이므로 따라만 와 보자.\n\n* 우선, 패키지 폴더 내 msg 폴더(`~/test_pkg/msg`)를 만든다.\n* 텍스트 편집기 혹은 VS Code 등을 열어 아래 내용을 입력한다.\n\n```\ntime stamp\nint32 data\n```\n\n* 이 파일을 msg 폴더에 메시지 파일(`test_msg.msg`)로 저장한다. 확장자를 반드시 `.msg`까지 입력해 저장해야 한다.\n\n![](https://images.velog.io/images/717lumos/post/52762d99-9078-49cb-a196-5c22cb87ded1/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7,%202022-01-06%2023-07-11.png)\n\n![](https://images.velog.io/images/717lumos/post/979a0dc6-64ca-4563-a3bd-9dce7515b113/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7,%202022-01-06%2023-07-06.png)\n\n> ❗️ \u003cspan style=\"background-color: yellow; font-weight:bold\">메시지 타입의 대표적 예\u003c/span>\n메시지 기본 타입: `time`, `int32`, `bool`, `int8`, `int16`, `float32`, `string`, `duration` 등\nROS 사용 빈도 많은 메시지를 모아둔 타입: `common_msgs` 등\n\n\n- - -\n\n## 5. 소스 코드 작성\n해당 메시지를 이용하여 \u003cspan style=\"color: green; font-weight:bold\">토픽을 송신하는 **Publisher(퍼블리셔) 노드**와 토픽을 수신하는 **Subscribe(서브스크라이버) 노드**\u003c/span>를 각각 만들어보자.\n\n필자는 처음 ROS를 공부할 때 python 파일로만 소스 코드를 작성했다. 그러나 C/C++를 바탕으로 한 소스코드가 GitHub 등에 많이 나와있고, 각종 센서나 라이브러리도 그를 기반으로 하는 경우가 많으므로, C++ 코드 역시 공부해두어 나쁠 건 없다고 생각한다.\n\n### C++ 버전\n* 패키지 폴더 내 src 폴더(`~/test_pkg/src`)에 퍼블리셔의 .cpp 파일(`talker.cpp`)을 추가한 뒤 내용을 입력한다. 또는 내용을 입력한 뒤 저장을 `/src` 폴더에 해도 된다. ~~모로 가도 한양만 가면 된다.~~\n```cpp\n#include \"ros/ros.h\"\t\t\t// ROS 기본 헤더 파일\n#include \"test_pkg/test_msg.h\"\t\t// 메시지 파일의 헤더. 빌드 후 자동 생성됨\n\nint main(int argc, char **argv)\n{\n  ros::init(argc, argv, \"talker\");     // 노드 이름 초기화\n  ros::NodeHandle nh;                  // ROS 시스템과 통신을 위한 노드 핸들\n  \n  // 퍼블리셔 선언\n  //// test_pkg에 정의된 test_msg 메시지 메시지 파일을 이용함\n  //// 만약 표준 메시지를 사용한다면 그에 맞게 사용해야 함. (예) \u003cstd_msgs::String>\n  //// 토픽 이름: chatter, 큐 사이즈: 100개\n  ros::Publisher chatter_pub = nh.advertise\u003ctest_pkg::test_msg>(\"/chatter\", 100);\n\n  // 루프 주기를 10hz로 설정. 1초에 10번 루프를 돌며 메시지를 송신함.\n  ros::Rate loop_rate(10);\n\n\n  test_pkg::test_msg msg;\t\t// 메시지 변수 선언\n  int count = 0;\t\t\t// 코드 내에서 사용할 변수 선언\n\n  while (ros::ok())\t\t\t// 종료 전까지 계속 반복 수행함\n  {\n    msg.stamp = ros::Time::now();\t// 메시지 내 stamp 메시지에 현 시각 입력\n    msg.data  = count;\t\t\t// 메시지 내 data 메시지에 count 변수값 입력\n\n    ROS_INFO(\"send time(sec) = %d\", msg.stamp.sec);\n    ROS_INFO(\"send msg = %d\", msg.data);\n\n    chatter_pub.publish(msg);\t// 메시지를 퍼블리시함(토픽으로 전송)\n\n    loop_rate.sleep();\t\t// 정해준 주기만큼 일시정지(sleep)\n\n    ++count;\n  }\n\n  return 0;\n}\n```\n\n* 같은 방법으로 서브스크라이버 .cpp 파일(`/listener.cpp`) 역시 작성한다.\n```cpp\n#include \"ros/ros.h\"\n#include \"test_pkg/test_msg.h\" \n\n// 메시지 콜백 함수 선언\n//// 처리할 메시지를 포인터로서 파라미터로 전달. 포인터의 자료형은 메시지의 타입을 명시\nvoid chatterCallback(const test_pkg::test_msg::ConstPtr& msg)\n{\n  ROS_INFO(\"recieve time(sec) = %d\", msg->stamp.sec);\n  ROS_INFO(\"recieve msg = %d\", msg->data);\n}\n\nint main(int argc, char **argv)\n{\n  ros::init(argc, argv, \"listener\");\t\t// 노드 이름 초기화\n\n  ros::NodeHandle nh;\n\n  // 서브스크라이버 선언\n  //// 토픽 이름: chatter(publish 노드에서 주는 토픽), 큐 사이즈: 100개\n  //// 콜백 함수 이름: chatterCallback(위에서 정의함, 여기서 받은 토픽을 처리함)\n  ros::Subscriber sub = nh.subscribe(\"/chatter\", 100, chatterCallback);\n\n  ros::spin();\t\t// 큐에 요청된 콜백함수를 처리하며, 프로그램 종료시까지 반복함\n\n  return 0;\n}\n```\n\n### Python 버전\n* 패키지 폴더 내 src 폴더(`~/test_pkg/src`)에 퍼블리셔의 .py 파일(`talker_py.py`)을 추가한 뒤 내용을 입력한다.\n\n```python\n#!/usr/bin/env python\t# 파이썬을 쓴다면 반드시 달아주자\n#-*- coding:utf-8 -*-\t# 한글 주석을 달기 위해 사용한다.\n\nimport rospy\t\t\t\t# ROS 라이브러리\nfrom test_pkg.msg import test_msg\t# 패키지의 메시지 파일\n\ndef main():\n    # 퍼블리시 노드 초기화\n    ## 노드 이름 talker\n    rospy.init_node('talker', anonymous=True)\n    \n    # 퍼블리셔 변수\n    ## 퍼블리시 토픽 이름 chatter, 메시지 타입 test_msg\n    pub = rospy.Publisher('chatter', test_msg, queue_size=10)\n    \n    # 10헤르츠마다 반복(변수=rate)\n    rate = rospy.Rate(10) # 10hz\n\n    msg = test_msg()\t# 메시지 변수 선언\n    count = 0\t\t# 코드에서 사용할 변수 선언\n\n    # 중단되거나 사용자가 강제종료(ctrl+C) 전까지 계속 실행\n    while not rospy.is_shutdown():\n        msg.stamp = rospy.Time.now()\t#현재 시각 담음\n        msg.data = count\t\t# count 변수 값 담음\n\n        # 터미널에 출력\n        rospy.loginfo(\"send time(sec) = %d\", msg.stamp.secs)\n        rospy.loginfo(\"send msg = %d\", msg.data)\n        \n        # 메시지를 퍼블리시\n        pub.publish(msg)\n        \n        # 정해둔 주기(hz)만큼 일시중단\n        rate.sleep()\n\n        count += 1\n\nif __name__ == '__main__':\n    try:\n        main()\n    except rospy.ROSInterruptException:\n        pass\n```\n\n* 패키지 폴더 내 src 폴더(`~/test_pkg/src`)에 서브스크라이버의 .py 파일(`listener_py.py`)을 추가한 뒤 내용을 입력한다.\n\n```python\n#!/usr/bin/env python\n#-*- coding:utf-8 -*- \n\nimport rospy\nfrom test_pkg.msg import test_msg\n\n# 퍼블리셔 노드로부터 토픽을 받아들이는 콜백 함수\ndef callback(data):\n    # 받은 내용(data)를 터미널에 출력\n    rospy.loginfo(\"recieve time(sec) = %d\", data.stamp.secs)\n    rospy.loginfo(\"recieve msg = %d\", data.data)\n    \ndef main():\n    # 노드 초기화. 이름은 listener\n    rospy.init_node('listener', anonymous=True)\n\n    # 특정 토픽(chatter)를 callback이라는 이름의 함수로 받아들이며, 메시지 타입은 test_msg\n    rospy.Subscriber(\"chatter\", test_msg, callback)\n\n    rospy.spin()\n\nif __name__ == '__main__':\n    main()\n```\n- - -\n\n## 6. 빌드 전 처리\n### C++ 버전\n* `package.xml` 파일 속 다음 부분을 추가한다.\n```html\n  \u003cbuild_depend>message_generation\u003c/build_depend>\n  \u003c!--\u003crun_depend>message_runtime\u003c/run_depend>-->\n      \u003c!--빌드 시 \u003cexec_depend>가 에러 난다면 \u003crun_depend>로-->\n  \u003cexec_depend>message_runtime\u003c/exec_depend>\n```\n> 만약 다른 패키지의 메시지 파일을 쓴다면 `\u003cbuild_depend>메시지 파일이 있는 패키지 이름\u003c/build_depend>`, `\u003crun_depend>메시지 파일이 있는 패키지 이름\u003c/run_depend>`도 추가해야 한다.\n\n* `CMakeList.txt` 파일 속 다음 부분을 수정한다.\n```cs\n### 1. find_package에 [essage_generation] 추가\nfind_package(catkin REQUIRED COMPONENTS\n  roscpp\n  rospy\n  std_msgs\n  message_generation\n)\n\n### 2. add_message_files의 주석 풀고, 예시문은 지운 뒤 만들어둔 메시지 파일 이름으로 변경\nadd_message_files(\n  FILES\n  test_msg.msg\n)\n\n### 3. generate_messages 주석 풀기\ngenerate_messages(\n  DEPENDENCIES\n  std_msgs\n)\n\n### 4. catkin_package 주석 풀기 & [message_runtime]추가\ncatkin_package(\n  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime\n)\n\n### 5. include_directories 주석 풀기\ninclude_directories(\n  include\n  ${catkin_INCLUDE_DIRS}\n)\n\n### 6. add_executable 추가. src폴더에 있는 talker.cpp, listener.cpp를 talker, listener이라는 실행파일로 한다는 이야기.\nadd_executable(talker src/talker.cpp)\ntarget_link_libraries(talker\n  ${catkin_LIBRARIES}\n)\nadd_executable(listener src/listener.cpp)\ntarget_link_libraries(listener\n  ${catkin_LIBRARIES}\n)\n```\n\n* 수정 사항을 포함해 패키지를 빌드한다.\n\n```python\n$ catkin_make\t\t#예약어를 설정해놓았다면 cm\n```\n\n빌드한 결과물의 생성 위치와 내용은 다음과 같다.\n- `~/catkin_ws/build`: 캐킨 빌드에서 사용된 설정 내용\n- `~/catkin_ws/devel/lib/test_pkg`: 실행 파일\n- `~/catkin_ws/devel/include/test_pkg`: 메시지 파일로부터 자동 생성된 메시지 헤더 파일\n\n### Python 버전\n* `package.xml` 파일 속 다음 부분을 추가한다.\n```html\n  \u003cbuild_depend>message_generation\u003c/build_depend>\n  \u003cexec_depend>message_runtime\u003c/exec_depend>\n```\n\n* `CMakeList.txt` 파일 속 다음 부분을 주석을 풀거나 수정한다.\n```cs\n# message_generation을 추가한다.\nfind_package(catkin REQUIRED COMPONENTS\n  roscpp\n  rospy\n  std_msgs\n  message_generation\n)\n\n# add_message_files의 주석을 풀고 수정한다.\nadd_message_files(\n  FILES\n  test_msg.msg\n)\n\n# generate_messages의 주석을 푼다.\ngenerate_messages(\n  DEPENDENCIES\n  std_msgs\n)\n\n# LIBRARIES, CATKIN_DEPENDS의 주석을 풀고, message_runtime을 추가한다.\ncatkin_package(\n#  INCLUDE_DIRS include\n  LIBRARIES test_pkg\n  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime\n#  DEPENDS system_lib\n)\n\n# 주석을 풀고 스크립트 이름을 입력한다. talker_py.py, listener.py를 파이썬으로 사용한다는 이야기\ncatkin_install_python(PROGRAMS\n  src/talker_py.py\n  src/listener_py.py\n  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}\n)\n```\n* 수정 사항을 포함해 패키지를 빌드한다.\n\n```\n$ catkin_make\t\t#예약어를 설정해놓았다면 cm\n```\n* 파이썬 스크립트 두 개 각각에 대해 권한을 허용한다.\n```\n$ chmod +x talker_py.py\n$ chmod +x listener_py.py\n```\n\n- - -\n\n## 7. 노드 실행\n한 터미널에 `roscore`를 실행해두고 다른 터미널 각각에 다음의 명령어를 실행한다. subscribe를 먼저 켜는 것이 낫다.\n```python\n$ rosrun test_pkg listener\n\t#python이라면 $ rosrun test_pkg listener_py.py\n\n$ rosrun test_pkg talker\n\t#python이라면 $ rosrun test_pkg talker_py.py\n```\n\n![](https://images.velog.io/images/717lumos/post/3f87a207-3b90-4865-a309-b68497b85335/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7,%202022-01-07%2001-01-13.png)\n\n현재 퍼블리시 중인 토픽의 목록을 확인하려면 `rostopic list`를, 특정 토픽의 내용(메시지)를 확인하려면 `rostopic echo /토픽 이름`을 다른 터미널 창에 입력하면 된다.\n또한 통신 상태를 확인하려면, `rqt_graph` 명령어를 수행해 시각화가 가능하다\n\n![](https://images.velog.io/images/717lumos/post/3e5b5b3b-e6fc-4e3c-8e9a-816eb44b278e/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7,%202022-01-07%2000-36-37.png)\n- - -\n\n# 참고 문헌\n* [CMakeLists, \"ROS Wiki\"](\u003chttp://wiki.ros.org/catkin/CMakeLists.txt/>)\n* [Creating Msg And Srv, \"ROS Wiki\"](http://wiki.ros.org/ROS/Tutorials/CreatingMsgAndSrv#Creating_a_msg)\n* [WritingPublisherSubscriber(C++), \"ROS Wiki\"](http://wiki.ros.org/ROS/Tutorials/WritingPublisherSubscriber%28c%2B%2B%29#roscpp_tutorials.2FTutorials.2FWritingPublisherSubscriber.Building_your_nodes)\n* [Writing Publisher Subscriber(python), \"ROS Wiki\"](http://wiki.ros.org/ROS/Tutorials/WritingPublisherSubscriber%28python%29)\n* 표윤석, 조한철, 정려운, 임태훈. ROS 로봇 프로그래밍. 루비페이퍼","short_description":"ROS에서의 패키지 빌드와 노드 작성, 실행 과정","is_markdown":true,"is_private":false,"is_temp":false,"thumbnail":"https://images.velog.io/images/717lumos/post/1db9c7f0-55cf-4140-80e0-5c870e0b6da5/그림1.png","comments_count":0,"url_slug":"ROS-패키지-빌드와-노드-작성","likes":4,"liked":false,"user":{"type":"id","generated":false,"id":"User:43a2f4b3-b036-4683-82ab-c72439605e3c","typename":"User"},"comments":[],"__typename":"Post","series":{"type":"id","generated":false,"id":"Series:ef018c82-52c5-4d85-9d9b-2f83b7414060","typename":"Series"},"linked_posts":{"type":"id","generated":true,"id":"$Post:7dbf8427-a0c6-437f-9653-2154ccbcc6c6.linked_posts","typename":"LinkedPosts"}},"User:43a2f4b3-b036-4683-82ab-c72439605e3c":{"id":"43a2f4b3-b036-4683-82ab-c72439605e3c","username":"717lumos","profile":{"type":"id","generated":false,"id":"UserProfile:64c37720-3930-4236-a635-0df127e2796c","typename":"UserProfile"},"velog_config":{"type":"id","generated":true,"id":"$User:43a2f4b3-b036-4683-82ab-c72439605e3c.velog_config","typename":"VelogConfig"},"__typename":"User"},"UserProfile:64c37720-3930-4236-a635-0df127e2796c":{"id":"64c37720-3930-4236-a635-0df127e2796c","display_name":"한은기","thumbnail":"https://velog.velcdn.com/images/717lumos/profile/1de84f68-0e58-4a01-811b-806a65873b5d/image.jpg","short_bio":"🏫Inha Univ. Naval Architecture and Ocean Engineering & Computer Engineering (Undergraduate) / 🚢Autonomous Vehicles, 💡Machine Learning","profile_links":{"type":"json","json":{"email":"winterbloooom@gmail.com","github":"EunGiHan"}},"__typename":"UserProfile"},"$User:43a2f4b3-b036-4683-82ab-c72439605e3c.velog_config":{"title":"LUMOS MAXIMA","__typename":"VelogConfig"},"Series:ef018c82-52c5-4d85-9d9b-2f83b7414060":{"id":"ef018c82-52c5-4d85-9d9b-2f83b7414060","name":"ROS","url_slug":"Study-ROS","series_posts":[{"type":"id","generated":false,"id":"SeriesPost:233e1ed7-2107-4c1d-8eff-c06f93e44ede","typename":"SeriesPost"},{"type":"id","generated":false,"id":"SeriesPost:468f0f64-6524-4f50-be62-f91501ba7b6f","typename":"SeriesPost"},{"type":"id","generated":false,"id":"SeriesPost:303ae3ae-2b66-4d45-ba2a-767415aefd77","typename":"SeriesPost"},{"type":"id","generated":false,"id":"SeriesPost:ef2c5e91-74ef-4652-95cb-9d15d4b0f050","typename":"SeriesPost"},{"type":"id","generated":false,"id":"SeriesPost:6a5916b8-fecc-4bc3-ac9f-e6317487336a","typename":"SeriesPost"},{"type":"id","generated":false,"id":"SeriesPost:3658ca5b-a115-47e4-a6a3-4de2bda831bf","typename":"SeriesPost"},{"type":"id","generated":false,"id":"SeriesPost:fddcaed7-a0c7-49af-be9b-f04b9c84145f","typename":"SeriesPost"},{"type":"id","generated":false,"id":"SeriesPost:c82e81a9-7505-4c90-9dd6-580b83989609","typename":"SeriesPost"},{"type":"id","generated":false,"id":"SeriesPost:a426f193-edc6-4f97-8561-39aeee289cf5","typename":"SeriesPost"},{"type":"id","generated":false,"id":"SeriesPost:d24eb627-670e-4295-a55d-1a8ef174f897","typename":"SeriesPost"}],"__typename":"Series"},"SeriesPost:233e1ed7-2107-4c1d-8eff-c06f93e44ede":{"id":"233e1ed7-2107-4c1d-8eff-c06f93e44ede","post":{"type":"id","generated":false,"id":"Post:d8b7b57b-fcc8-4330-99c2-92f81d36da59","typename":"Post"},"__typename":"SeriesPost"},"Post:d8b7b57b-fcc8-4330-99c2-92f81d36da59":{"id":"d8b7b57b-fcc8-4330-99c2-92f81d36da59","title":"[ROS] ROS 기본 개념","url_slug":"ROS-ROS-기본-개념","user":{"type":"id","generated":false,"id":"User:43a2f4b3-b036-4683-82ab-c72439605e3c","typename":"User"},"__typename":"Post"},"SeriesPost:468f0f64-6524-4f50-be62-f91501ba7b6f":{"id":"468f0f64-6524-4f50-be62-f91501ba7b6f","post":{"type":"id","generated":false,"id":"Post:cbf37f28-919a-4b15-8e63-898dffcbb9e6","typename":"Post"},"__typename":"SeriesPost"},"Post:cbf37f28-919a-4b15-8e63-898dffcbb9e6":{"id":"cbf37f28-919a-4b15-8e63-898dffcbb9e6","title":"[ROS] ROS설치 (Ubuntu18.04, ROS melodic)","url_slug":"ROS-ROS설치-Ubuntu18.04-ROS-melodic","user":{"type":"id","generated":false,"id":"User:43a2f4b3-b036-4683-82ab-c72439605e3c","typename":"User"},"__typename":"Post"},"SeriesPost:303ae3ae-2b66-4d45-ba2a-767415aefd77":{"id":"303ae3ae-2b66-4d45-ba2a-767415aefd77","post":{"type":"id","generated":false,"id":"Post:fd6f554d-0ca7-4fff-a6fc-8eec8a53eaed","typename":"Post"},"__typename":"SeriesPost"},"Post:fd6f554d-0ca7-4fff-a6fc-8eec8a53eaed":{"id":"fd6f554d-0ca7-4fff-a6fc-8eec8a53eaed","title":"[ROS] Linux, ROS 주요 명령어","url_slug":"ROS-Linux-ROS-주요-명령어","user":{"type":"id","generated":false,"id":"User:43a2f4b3-b036-4683-82ab-c72439605e3c","typename":"User"},"__typename":"Post"},"SeriesPost:ef2c5e91-74ef-4652-95cb-9d15d4b0f050":{"id":"ef2c5e91-74ef-4652-95cb-9d15d4b0f050","post":{"type":"id","generated":false,"id":"Post:7dbf8427-a0c6-437f-9653-2154ccbcc6c6","typename":"Post"},"__typename":"SeriesPost"},"SeriesPost:6a5916b8-fecc-4bc3-ac9f-e6317487336a":{"id":"6a5916b8-fecc-4bc3-ac9f-e6317487336a","post":{"type":"id","generated":false,"id":"Post:b1e9ec43-a49e-4015-8930-c57abacfcbc3","typename":"Post"},"__typename":"SeriesPost"},"Post:b1e9ec43-a49e-4015-8930-c57abacfcbc3":{"id":"b1e9ec43-a49e-4015-8930-c57abacfcbc3","title":"[ROS] roslaunch의 사용법 및 XML","url_slug":"roslaunch의-사용법-및-XML","user":{"type":"id","generated":false,"id":"User:43a2f4b3-b036-4683-82ab-c72439605e3c","typename":"User"},"__typename":"Post"},"SeriesPost:3658ca5b-a115-47e4-a6a3-4de2bda831bf":{"id":"3658ca5b-a115-47e4-a6a3-4de2bda831bf","post":{"type":"id","generated":false,"id":"Post:14c21776-68d7-47b9-9207-3e98b1c4269e","typename":"Post"},"__typename":"SeriesPost"},"Post:14c21776-68d7-47b9-9207-3e98b1c4269e":{"id":"14c21776-68d7-47b9-9207-3e98b1c4269e","title":"[ROS] 커스텀 메시지(custom msg) 만들기(1)","url_slug":"ROS-msg메시지-만들기","user":{"type":"id","generated":false,"id":"User:43a2f4b3-b036-4683-82ab-c72439605e3c","typename":"User"},"__typename":"Post"},"SeriesPost:fddcaed7-a0c7-49af-be9b-f04b9c84145f":{"id":"fddcaed7-a0c7-49af-be9b-f04b9c84145f","post":{"type":"id","generated":false,"id":"Post:cfddd80d-d3d1-4506-ba6c-1c99ded34614","typename":"Post"},"__typename":"SeriesPost"},"Post:cfddd80d-d3d1-4506-ba6c-1c99ded34614":{"id":"cfddd80d-d3d1-4506-ba6c-1c99ded34614","title":"[ROS] 커스텀 메시지(custom msg) 만들기(2)","url_slug":"ROS-커스텀-메시지custom-msg-만들기2","user":{"type":"id","generated":false,"id":"User:43a2f4b3-b036-4683-82ab-c72439605e3c","typename":"User"},"__typename":"Post"},"SeriesPost:c82e81a9-7505-4c90-9dd6-580b83989609":{"id":"c82e81a9-7505-4c90-9dd6-580b83989609","post":{"type":"id","generated":false,"id":"Post:4ee3c2ad-3050-4734-8437-8d94b116cf0a","typename":"Post"},"__typename":"SeriesPost"},"Post:4ee3c2ad-3050-4734-8437-8d94b116cf0a":{"id":"4ee3c2ad-3050-4734-8437-8d94b116cf0a","title":"[ROS] ROS 가동 중 발생할 수 있는 문제와 해결방법","url_slug":"ROS-ROS-가동-중-발생할-수-있는-문제와-해결방법","user":{"type":"id","generated":false,"id":"User:43a2f4b3-b036-4683-82ab-c72439605e3c","typename":"User"},"__typename":"Post"},"SeriesPost:a426f193-edc6-4f97-8561-39aeee289cf5":{"id":"a426f193-edc6-4f97-8561-39aeee289cf5","post":{"type":"id","generated":false,"id":"Post:056f7591-243c-462a-9fe8-4019be25b286","typename":"Post"},"__typename":"SeriesPost"},"Post:056f7591-243c-462a-9fe8-4019be25b286":{"id":"056f7591-243c-462a-9fe8-4019be25b286","title":"[Rviz] Rviz 시각화하기: Marker","url_slug":"Rviz-Rviz-시각화하기-Marker","user":{"type":"id","generated":false,"id":"User:43a2f4b3-b036-4683-82ab-c72439605e3c","typename":"User"},"__typename":"Post"},"SeriesPost:d24eb627-670e-4295-a55d-1a8ef174f897":{"id":"d24eb627-670e-4295-a55d-1a8ef174f897","post":{"type":"id","generated":false,"id":"Post:1245688f-973e-45f1-9130-bece8bb8223a","typename":"Post"},"__typename":"SeriesPost"},"Post:1245688f-973e-45f1-9130-bece8bb8223a":{"id":"1245688f-973e-45f1-9130-bece8bb8223a","title":"[ROS] rosbag 사용하기 : 토픽 녹화 및 재생","url_slug":"ROS-rosbag-사용하기-토픽-녹화-및-재생","user":{"type":"id","generated":false,"id":"User:43a2f4b3-b036-4683-82ab-c72439605e3c","typename":"User"},"__typename":"Post"},"$Post:7dbf8427-a0c6-437f-9653-2154ccbcc6c6.linked_posts":{"previous":{"type":"id","generated":false,"id":"Post:fd6f554d-0ca7-4fff-a6fc-8eec8a53eaed","typename":"Post"},"next":{"type":"id","generated":false,"id":"Post:b1e9ec43-a49e-4015-8930-c57abacfcbc3","typename":"Post"},"__typename":"LinkedPosts"}};</script><script>window.__REDUX_STATE__={"core":{"layer":false,"auth":{"visible":false,"mode":"LOGIN"},"user":null,"popup":{"visible":false,"title":"","message":""}},"write":{"mode":"MARKDOWN","markdown":"","title":"","html":"","tags":[],"publish":false,"textBody":"","defaultDescription":"","description":"","isPrivate":false,"urlSlug":"","thumbnail":null,"editSeries":false,"selectedSeries":null,"postId":null,"isTemp":false,"initialTitle":"","initialBody":""},"header":{"custom":true,"userLogo":{"title":"LUMOS MAXIMA","logo_image":null},"username":"717lumos"},"post":{"id":null},"error":{"errorType":null},"scroll":{"main":0,"user/posts":0},"home":{"timeframe":"week"},"darkMode":{"theme":"default","systemTheme":"not-ready"}};</script><script id="__LOADABLE_REQUIRED_CHUNKS__" type="application/json">[17,0,22,1,3]</script><script id="__LOADABLE_REQUIRED_CHUNKS___ext" type="application/json">{"namedChunks":["pages-velog-VelogPage","PostPage"]}</script><script async="" data-chunk="main" src="https://static.velog.io/static/js/runtime-main.2df18dd2.js"></script><script async="" data-chunk="main" src="https://static.velog.io/static/js/19.b3888109.chunk.js"></script><script async="" data-chunk="main" src="https://static.velog.io/static/js/main.3f7aa3ac.chunk.js"></script><script async="" data-chunk="pages-velog-VelogPage" src="https://static.velog.io/static/js/pages-velog-VelogPage.48a4909f.chunk.js"></script><script async="" data-chunk="PostPage" src="https://static.velog.io/static/js/0.b35e4a27.chunk.js"></script><script async="" data-chunk="PostPage" src="https://static.velog.io/static/js/22.1b5e7b33.chunk.js"></script><script async="" data-chunk="PostPage" src="https://static.velog.io/static/js/1.e6f9cf36.chunk.js"></script><script async="" data-chunk="PostPage" src="https://static.velog.io/static/js/PostPage.70369b4b.chunk.js"></script></body></html>�J566      d��d�5EQ�2d��   �    O^partitionKey=%28https%2Cvelog.io%29,:https://velog.io/@717lumos/ROS-%ED%8C%A8%ED%82%A4%EC%A7%80-%EB%B9%8C%EB%93%9C%EC%99%80-%EB%85%B8%EB%93%9C-%EC%9E%91%EC%84%B1 necko:classified 1 strongly-framed 1 security-info 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 request-method GET response-head HTTP/2 200 OK
+date: Fri, 03 Mar 2023 08:19:59 GMT
+content-type: text/html; charset=utf-8
+content-length: 170939
+X-Firefox-Spdy: h2
+ original-response-headers date: Fri, 03 Mar 2023 08:19:59 GMT
+content-type: text/html; charset=utf-8
+content-length: 170939
+X-Firefox-Spdy: h2
+ ctid 1 uncompressed-len 0 net-response-time-onstart 700 net-response-time-onstop 727  ��

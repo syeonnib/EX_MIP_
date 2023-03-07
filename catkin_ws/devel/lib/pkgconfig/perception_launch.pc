@@ -1,0 +1,8 @@
+prefix=/home/kangsuyeon/catkin_ws/devel
+
+Name: perception_launch
+Description: Description of perception_launch
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

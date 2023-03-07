@@ -1,0 +1,12 @@
+<launch>
+    
+    
+    <node name="can_node"        pkg="socketcan_bridge"      type="socketcan_bridge_node">
+        
+    </node>
+
+    <node name="Steering_node"        pkg="control"      type="eps_control_with_limit.py">
+        
+    </node>
+    
+</launch>

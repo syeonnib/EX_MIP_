@@ -1,0 +1,1109 @@
+/*
+  SortTable
+  version 2
+  7th April 2007
+  Stuart Langridge, http://www.kryogenix.org/code/browser/sorttable/
+  
+  Instructions:
+  Download this file
+  Add <script src="sorttable.js"></script> to your HTML
+  Add class="sortable" to any table you'd like to make sortable
+  Click on the headers to sort
+  
+  Thanks to many, many people for contributions and suggestions.
+  Licenced as X11: http://www.kryogenix.org/code/browser/licence.html
+  This basically means: do what you want with it.
+*/
+
+ 
+var stIsIE = /*@cc_on!@*/false;
+
+sorttable = {
+  init: function() {
+    // quit if this function has already been called
+    if (arguments.callee.done) return;
+    // flag this function so we don't do the same thing twice
+    arguments.callee.done = true;
+    // kill the timer
+    if (_timer) clearInterval(_timer);
+    
+    if (!document.createElement || !document.getElementsByTagName) return;
+    
+    sorttable.DATE_RE = /^(\d\d?)[\/\.-](\d\d?)[\/\.-]((\d\d)?\d\d)$/;
+    
+    forEach(document.getElementsByTagName('table'), function(table) {
+      if (table.className.search(/\bsortable\b/) != -1) {
+        sorttable.makeSortable(table);
+      }
+    });
+    
+  },
+  
+  makeSortable: function(table) {
+    if (table.getElementsByTagName('thead').length == 0) {
+      // table doesn't have a tHead. Since it should have, create one and
+      // put the first table row in it.
+      the = document.createElement('thead');
+      the.appendChild(table.rows[0]);
+      table.insertBefore(the,table.firstChild);
+    }
+    // Safari doesn't support table.tHead, sigh
+    if (table.tHead == null) table.tHead = table.getElementsByTagName('thead')[0];
+    
+    if (table.tHead.rows.length != 1) return; // can't cope with two header rows
+    
+    // Sorttable v1 put rows with a class of "sortbottom" at the bottom (as
+    // "total" rows, for example). This is B&R, since what you're supposed
+    // to do is put them in a tfoot. So, if there are sortbottom rows,
+    // for backwards compatibility, move them to tfoot (creating it if needed).
+    sortbottomrows = [];
+    for (var i=0; i<table.rows.length; i++) {
+      if (table.rows[i].className.search(/\bsortbottom\b/) != -1) {
+        sortbottomrows[sortbottomrows.length] = table.rows[i];
+      }
+    }
+    if (sortbottomrows) {
+      if (table.tFoot == null) {
+        // table doesn't have a tfoot. Create one.
+        tfo = document.createElement('tfoot');
+        table.appendChild(tfo);
+      }
+      for (var i=0; i<sortbottomrows.length; i++) {
+        tfo.appendChild(sortbottomrows[i]);
+      }
+      delete sortbottomrows;
+    }
+    
+    // work through each column and calculate its type
+    headrow = table.tHead.rows[0].cells;
+    for (var i=0; i<headrow.length; i++) {
+      // manually override the type with a sorttable_type attribute
+      if (!headrow[i].className.match(/\bsorttable_nosort\b/)) { // skip this col
+        mtch = headrow[i].className.match(/\bsorttable_([a-z0-9]+)\b/);
+        if (mtch) { override = mtch[1]; }
+	      if (mtch && typeof sorttable["sort_"+override] == 'function') {
+	        headrow[i].sorttable_sortfunction = sorttable["sort_"+override];
+	      } else {
+	        headrow[i].sorttable_sortfunction = sorttable.guessType(table,i);
+	      }
+	      // make it clickable to sort
+	      headrow[i].sorttable_columnindex = i;
+	      headrow[i].sorttable_tbody = table.tBodies[0];
+	      dean_addEvent(headrow[i],"click", function(e) {
+
+          if (this.className.search(/\bsorttable_sorted\b/) != -1) {
+            // if we're already sorted by this column, just 
+            // reverse the table, which is quicker
+            sorttable.reverse(this.sorttable_tbody);
+            this.className = this.className.replace('sorttable_sorted',
+                                                    'sorttable_sorted_reverse');
+            this.removeChild(document.getElementById('sorttable_sortfwdind'));
+            sortrevind = document.createElement('span');
+            sortrevind.id = "sorttable_sortrevind";
+            sortrevind.innerHTML = stIsIE ? '&nbsp<font face="webdings">5</font>' : '&nbsp;&#x25B4;';
+            this.appendChild(sortrevind);
+            return;
+          }
+          if (this.className.search(/\bsorttable_sorted_reverse\b/) != -1) {
+            // if we're already sorted by this column in reverse, just 
+            // re-reverse the table, which is quicker
+            sorttable.reverse(this.sorttable_tbody);
+            this.className = this.className.replace('sorttable_sorted_reverse',
+                                                    'sorttable_sorted');
+            this.removeChild(document.getElementById('sorttable_sortrevind'));
+            sortfwdind = document.createElement('span');
+            sortfwdind.id = "sorttable_sortfwdind";
+            sortfwdind.innerHTML = stIsIE ? '&nbsp<font face="webdings">6</font>' : '&nbsp;&#x25BE;';
+            this.appendChild(sortfwdind);
+            return;
+          }
+          
+          // remove sorttable_sorted classes
+          theadrow = this.parentNode;
+          forEach(theadrow.childNodes, function(cell) {
+            if (cell.nodeType == 1) { // an element
+              cell.className = cell.className.replace('sorttable_sorted_reverse','');
+              cell.className = cell.className.replace('sorttable_sorted','');
+            }
+          });
+          sortfwdind = document.getElementById('sorttable_sortfwdind');
+          if (sortfwdind) { sortfwdind.parentNode.removeChild(sortfwdind); }
+          sortrevind = document.getElementById('sorttable_sortrevind');
+          if (sortrevind) { sortrevind.parentNode.removeChild(sortrevind); }
+          
+          this.className += ' sorttable_sorted';
+          sortfwdind = document.createElement('span');
+          sortfwdind.id = "sorttable_sortfwdind";
+          sortfwdind.innerHTML = stIsIE ? '&nbsp<font face="webdings">6</font>' : '&nbsp;&#x25BE;';
+          this.appendChild(sortfwdind);
+
+	        // build an array to sort. This is a Schwartzian transform thing,
+	        // i.e., we "decorate" each row with the actual sort key,
+	        // sort based on the sort keys, and then put the rows back in order
+	        // which is a lot faster because you only do getInnerText once per row
+	        row_array = [];
+	        col = this.sorttable_columnindex;
+	        rows = this.sorttable_tbody.rows;
+	        for (var j=0; j<rows.length; j++) {
+	          row_array[row_array.length] = [sorttable.getInnerText(rows[j].cells[col]), rows[j]];
+	        }
+	        /* If you want a stable sort, uncomment the following line */
+	        //sorttable.shaker_sort(row_array, this.sorttable_sortfunction);
+	        /* and comment out this one */
+	        row_array.sort(this.sorttable_sortfunction);
+	        
+	        tb = this.sorttable_tbody;
+	        for (var j=0; j<row_array.length; j++) {
+	          tb.appendChild(row_array[j][1]);
+	        }
+	        
+	        delete row_array;
+	      });
+	    }
+    }
+  },
+  
+  guessType: function(table, column) {
+    // guess the type of a column based on its first non-blank row
+    sortfn = sorttable.sort_alpha;
+    for (var i=0; i<table.tBodies[0].rows.length; i++) {
+      text = sorttable.getInnerText(table.tBodies[0].rows[i].cells[column]);
+      if (text != '') {
+        if (text.match(/^-?[£$§]?[\d,.]+%?$/)) {
+          return sorttable.sort_numeric;
+        }
+        // check for a date: dd/mm/yyyy or dd/mm/yy 
+        // can have / or . or - as separator
+        // can be mm/dd as well
+        possdate = text.match(sorttable.DATE_RE)
+        if (possdate) {
+          // looks like a date
+          first = parseInt(possdate[1]);
+          second = parseInt(possdate[2]);
+          if (first > 12) {
+            // definitely dd/mm
+            return sorttable.sort_ddmm;
+          } else if (second > 12) {
+            return sorttable.sort_mmdd;
+          } else {
+            // looks like a date, but we can't tell which, so assume
+            // that it's dd/mm (English imperialism!) and keep looking
+            sortfn = sorttable.sort_ddmm;
+          }
+        }
+      }
+    }
+    return sortfn;
+  },
+  
+  getInnerText: function(node) {
+    // gets the text we want to use for sorting for a cell.
+    // strips leading and trailing whitespace.
+    // this is *not* a generic getInnerText function; it's special to sorttable.
+    // for example, you can override the cell text with a customkey attribute.
+    // it also gets .value for <input> fields.
+    
+    hasInputs = (typeof node.getElementsByTagName == 'function') &&
+                 node.getElementsByTagName('input').length;
+    
+    if (node.getAttribute("sorttable_customkey") != null) {
+      return node.getAttribute("sorttable_customkey");
+    }
+    else if (typeof node.textContent != 'undefined' && !hasInputs) {
+      return node.textContent.replace(/^\s+|\s+$/g, '');
+    }
+    else if (typeof node.innerText != 'undefined' && !hasInputs) {
+      return node.innerText.replace(/^\s+|\s+$/g, '');
+    }
+    else if (typeof node.text != 'undefined' && !hasInputs) {
+      return node.text.replace(/^\s+|\s+$/g, '');
+    }
+    else {
+      switch (node.nodeType) {
+        case 3:
+          if (node.nodeName.toLowerCase() == 'input') {
+            return node.value.replace(/^\s+|\s+$/g, '');
+          }
+        case 4:
+          return node.nodeValue.replace(/^\s+|\s+$/g, '');
+          break;
+        case 1:
+        case 11:
+          var innerText = '';
+          for (var i = 0; i < node.childNodes.length; i++) {
+            innerText += sorttable.getInnerText(node.childNodes[i]);
+          }
+          return innerText.replace(/^\s+|\s+$/g, '');
+          break;
+        default:
+          return '';
+      }
+    }
+  },
+  
+  reverse: function(tbody) {
+    // reverse the rows in a tbody
+    newrows = [];
+    for (var i=0; i<tbody.rows.length; i++) {
+      newrows[newrows.length] = tbody.rows[i];
+    }
+    for (var i=newrows.length-1; i>=0; i--) {
+       tbody.appendChild(newrows[i]);
+    }
+    delete newrows;
+  },
+  
+  /* sort functions
+     each sort function takes two parameters, a and b
+     you are comparing a[0] and b[0] */
+  sort_numeric: function(a,b) {
+    aa = parseFloat(a[0].replace(/[^0-9.-]/g,''));
+    if (isNaN(aa)) aa = 0;
+    bb = parseFloat(b[0].replace(/[^0-9.-]/g,'')); 
+    if (isNaN(bb)) bb = 0;
+    return aa-bb;
+  },
+  sort_alpha: function(a,b) {
+    if (a[0]==b[0]) return 0;
+    if (a[0]<b[0]) return -1;
+    return 1;
+  },
+  sort_ddmm: function(a,b) {
+    mtch = a[0].match(sorttable.DATE_RE);
+    y = mtch[3]; m = mtch[2]; d = mtch[1];
+    if (m.length == 1) m = '0'+m;
+    if (d.length == 1) d = '0'+d;
+    dt1 = y+m+d;
+    mtch = b[0].match(sorttable.DATE_RE);
+    y = mtch[3]; m = mtch[2]; d = mtch[1];
+    if (m.length == 1) m = '0'+m;
+    if (d.length == 1) d = '0'+d;
+    dt2 = y+m+d;
+    if (dt1==dt2) return 0;
+    if (dt1<dt2) return -1;
+    return 1;
+  },
+  sort_mmdd: function(a,b) {
+    mtch = a[0].match(sorttable.DATE_RE);
+    y = mtch[3]; d = mtch[2]; m = mtch[1];
+    if (m.length == 1) m = '0'+m;
+    if (d.length == 1) d = '0'+d;
+    dt1 = y+m+d;
+    mtch = b[0].match(sorttable.DATE_RE);
+    y = mtch[3]; d = mtch[2]; m = mtch[1];
+    if (m.length == 1) m = '0'+m;
+    if (d.length == 1) d = '0'+d;
+    dt2 = y+m+d;
+    if (dt1==dt2) return 0;
+    if (dt1<dt2) return -1;
+    return 1;
+  },
+  
+  shaker_sort: function(list, comp_func) {
+    // A stable sort function to allow multi-level sorting of data
+    // see: http://en.wikipedia.org/wiki/Cocktail_sort
+    // thanks to Joseph Nahmias
+    var b = 0;
+    var t = list.length - 1;
+    var swap = true;
+
+    while(swap) {
+        swap = false;
+        for(var i = b; i < t; ++i) {
+            if ( comp_func(list[i], list[i+1]) > 0 ) {
+                var q = list[i]; list[i] = list[i+1]; list[i+1] = q;
+                swap = true;
+            }
+        } // for
+        t--;
+
+        if (!swap) break;
+
+        for(var i = t; i > b; --i) {
+            if ( comp_func(list[i], list[i-1]) < 0 ) {
+                var q = list[i]; list[i] = list[i-1]; list[i-1] = q;
+                swap = true;
+            }
+        } // for
+        b++;
+
+    } // while(swap)
+  }  
+}
+
+/* ******************************************************************
+   Supporting functions: bundled here to avoid depending on a library
+   ****************************************************************** */
+
+// Dean Edwards/Matthias Miller/John Resig
+
+/* for Mozilla/Opera9 */
+if (document.addEventListener) {
+    document.addEventListener("DOMContentLoaded", sorttable.init, false);
+}
+
+/* for Internet Explorer */
+/*@cc_on @*/
+/*@if (@_win32)
+    document.write("<script id=__ie_onload defer src=javascript:void(0)><\/script>");
+    var script = document.getElementById("__ie_onload");
+    script.onreadystatechange = function() {
+        if (this.readyState == "complete") {
+            sorttable.init(); // call the onload handler
+        }
+    };
+/*@end @*/
+
+/* for Safari */
+if (/WebKit/i.test(navigator.userAgent)) { // sniff
+    var _timer = setInterval(function() {
+        if (/loaded|complete/.test(document.readyState)) {
+            sorttable.init(); // call the onload handler
+        }
+    }, 10);
+}
+
+/* for other browsers */
+window.onload = sorttable.init;
+
+// written by Dean Edwards, 2005
+// with input from Tino Zijdel, Matthias Miller, Diego Perini
+
+// http://dean.edwards.name/weblog/2005/10/add-event/
+
+function dean_addEvent(element, type, handler) {
+	if (element.addEventListener) {
+		element.addEventListener(type, handler, false);
+	} else {
+		// assign each event handler a unique ID
+		if (!handler.$$guid) handler.$$guid = dean_addEvent.guid++;
+		// create a hash table of event types for the element
+		if (!element.events) element.events = {};
+		// create a hash table of event handlers for each element/event pair
+		var handlers = element.events[type];
+		if (!handlers) {
+			handlers = element.events[type] = {};
+			// store the existing event handler (if there is one)
+			if (element["on" + type]) {
+				handlers[0] = element["on" + type];
+			}
+		}
+		// store the event handler in the hash table
+		handlers[handler.$$guid] = handler;
+		// assign a global event handler to do all the work
+		element["on" + type] = handleEvent;
+	}
+};
+// a counter used to create unique IDs
+dean_addEvent.guid = 1;
+
+function removeEvent(element, type, handler) {
+	if (element.removeEventListener) {
+		element.removeEventListener(type, handler, false);
+	} else {
+		// delete the event handler from the hash table
+		if (element.events && element.events[type]) {
+			delete element.events[type][handler.$$guid];
+		}
+	}
+};
+
+function handleEvent(event) {
+	var returnValue = true;
+	// grab the event object (IE uses a global event object)
+	event = event || fixEvent(((this.ownerDocument || this.document || this).parentWindow || window).event);
+	// get a reference to the hash table of event handlers
+	var handlers = this.events[event.type];
+	// execute each event handler
+	for (var i in handlers) {
+		this.$$handleEvent = handlers[i];
+		if (this.$$handleEvent(event) === false) {
+			returnValue = false;
+		}
+	}
+	return returnValue;
+};
+
+function fixEvent(event) {
+	// add W3C standard event methods
+	event.preventDefault = fixEvent.preventDefault;
+	event.stopPropagation = fixEvent.stopPropagation;
+	return event;
+};
+fixEvent.preventDefault = function() {
+	this.returnValue = false;
+};
+fixEvent.stopPropagation = function() {
+  this.cancelBubble = true;
+}
+
+// Dean's forEach: http://dean.edwards.name/base/forEach.js
+/*
+	forEach, version 1.0
+	Copyright 2006, Dean Edwards
+	License: http://www.opensource.org/licenses/mit-license.php
+*/
+
+// array-like enumeration
+if (!Array.forEach) { // mozilla already supports this
+	Array.forEach = function(array, block, context) {
+		for (var i = 0; i < array.length; i++) {
+			block.call(context, array[i], i, array);
+		}
+	};
+}
+
+// generic enumeration
+Function.prototype.forEach = function(object, block, context) {
+	for (var key in object) {
+		if (typeof this.prototype[key] == "undefined") {
+			block.call(context, object[key], key, object);
+		}
+	}
+};
+
+// character enumeration
+String.forEach = function(string, block, context) {
+	Array.forEach(string.split(""), function(chr, index) {
+		block.call(context, chr, index, string);
+	});
+};
+
+// globally resolve forEach enumeration
+var forEach = function(object, block, context) {
+	if (object) {
+		var resolve = Object; // default
+		if (object instanceof Function) {
+			// functions have a "length" property
+			resolve = Function;
+		} else if (object.forEach instanceof Function) {
+			// the object implements a custom forEach method so use that
+			object.forEach(block, context);
+			return;
+		} else if (typeof object == "string") {
+			// the object is a string
+			resolve = String;
+		} else if (typeof object.length == "number") {
+			// the object is array-like
+			resolve = Array;
+		}
+		resolve.forEach(object, block, context);
+	}
+};
+
+        é  xé˜q   20230227191043-8l*   http://wiki.ros.org/custom/js/sorttable.js   B  /*
+  SortTable
+  version 2
+  7th April 2007
+  Stuart Langridge, http://www.kryogenix.org/code/browser/sorttable/
+  
+  Instructions:
+  Download this file
+  Add <script src="sorttable.js"></script> to your HTML
+  Add class="sortable" to any table you'd like to make sortable
+  Click on the headers to sort
+  
+  Thanks to many, many people for contributions and suggestions.
+  Licenced as X11: http://www.kryogenix.org/code/browser/licence.html
+  This basically means: do what you want with it.
+*/
+
+ 
+var stIsIE = /*@cc_on!@*/false;
+
+sorttable = {
+  init: function() {
+    // quit if this function has already been called
+    if (arguments.callee.done) return;
+    // flag this function so we don't do the same thing twice
+    arguments.callee.done = true;
+    // kill the timer
+    if (_timer) clearInterval(_timer);
+    
+    if (!document.createElement || !document.getElementsByTagName) return;
+    
+    sorttable.DATE_RE = /^(\d\d?)[\/\.-](\d\d?)[\/\.-]((\d\d)?\d\d)$/;
+    
+    forEach(document.getElementsByTagName('table'), function(table) {
+      if (table.className.search(/\bsortable\b/) != -1) {
+        sorttable.makeSortable(table);
+      }
+    });
+    
+  },
+  
+  makeSortable: function(table) {
+    if (table.getElementsByTagName('thead').length == 0) {
+      // table doesn't have a tHead. Since it should have, create one and
+      // put the first table row in it.
+      the = document.createElement('thead');
+      the.appendChild(table.rows[0]);
+      table.insertBefore(the,table.firstChild);
+    }
+    // Safari doesn't support table.tHead, sigh
+    if (table.tHead == null) table.tHead = table.getElementsByTagName('thead')[0];
+    
+    if (table.tHead.rows.length != 1) return; // can't cope with two header rows
+    
+    // Sorttable v1 put rows with a class of "sortbottom" at the bottom (as
+    // "total" rows, for example). This is B&R, since what you're supposed
+    // to do is put them in a tfoot. So, if there are sortbottom rows,
+    // for backwards compatibility, move them to tfoot (creating it if needed).
+    sortbottomrows = [];
+    for (var i=0; i<table.rows.length; i++) {
+      if (table.rows[i].className.search(/\bsortbottom\b/) != -1) {
+        sortbottomrows[sortbottomrows.length] = table.rows[i];
+      }
+    }
+    if (sortbottomrows) {
+      if (table.tFoot == null) {
+        // table doesn't have a tfoot. Create one.
+        tfo = document.createElement('tfoot');
+        table.appendChild(tfo);
+      }
+      for (var i=0; i<sortbottomrows.length; i++) {
+        tfo.appendChild(sortbottomrows[i]);
+      }
+      delete sortbottomrows;
+    }
+    
+    // work through each column and calculate its type
+    headrow = table.tHead.rows[0].cells;
+    for (var i=0; i<headrow.length; i++) {
+      // manually override the type with a sorttable_type attribute
+      if (!headrow[i].className.match(/\bsorttable_nosort\b/)) { // skip this col
+        mtch = headrow[i].className.match(/\bsorttable_([a-z0-9]+)\b/);
+        if (mtch) { override = mtch[1]; }
+	      if (mtch && typeof sorttable["sort_"+override] == 'function') {
+	        headrow[i].sorttable_sortfunction = sorttable["sort_"+override];
+	      } else {
+	        headrow[i].sorttable_sortfunction = sorttable.guessType(table,i);
+	      }
+	      // make it clickable to sort
+	      headrow[i].sorttable_columnindex = i;
+	      headrow[i].sorttable_tbody = table.tBodies[0];
+	      dean_addEvent(headrow[i],"click", function(e) {
+
+          if (this.className.search(/\bsorttable_sorted\b/) != -1) {
+            // if we're already sorted by this column, just 
+            // reverse the table, which is quicker
+            sorttable.reverse(this.sorttable_tbody);
+            this.className = this.className.replace('sorttable_sorted',
+                                                    'sorttable_sorted_reverse');
+            this.removeChild(document.getElementById('sorttable_sortfwdind'));
+            sortrevind = document.createElement('span');
+            sortrevind.id = "sorttable_sortrevind";
+            sortrevind.innerHTML = stIsIE ? '&nbsp<font face="webdings">5</font>' : '&nbsp;&#x25B4;';
+            this.appendChild(sortrevind);
+            return;
+          }
+          if (this.className.search(/\bsorttable_sorted_reverse\b/) != -1) {
+            // if we're already sorted by this column in reverse, just 
+            // re-reverse the table, which is quicker
+            sorttable.reverse(this.sorttable_tbody);
+            this.className = this.className.replace('sorttable_sorted_reverse',
+                                                    'sorttable_sorted');
+            this.removeChild(document.getElementById('sorttable_sortrevind'));
+            sortfwdind = document.createElement('span');
+            sortfwdind.id = "sorttable_sortfwdind";
+            sortfwdind.innerHTML = stIsIE ? '&nbsp<font face="webdings">6</font>' : '&nbsp;&#x25BE;';
+            this.appendChild(sortfwdind);
+            return;
+          }
+          
+          // remove sorttable_sorted classes
+          theadrow = this.parentNode;
+          forEach(theadrow.childNodes, function(cell) {
+            if (cell.nodeType == 1) { // an element
+              cell.className = cell.className.replace('sorttable_sorted_reverse','');
+              cell.className = cell.className.replace('sorttable_sorted','');
+            }
+          });
+          sortfwdind = document.getElementById('sorttable_sortfwdind');
+          if (sortfwdind) { sortfwdind.parentNode.removeChild(sortfwdind); }
+          sortrevind = document.getElementById('sorttable_sortrevind');
+          if (sortrevind) { sortrevind.parentNode.removeChild(sortrevind); }
+          
+          this.className += ' sorttable_sorted';
+          sortfwdind = document.createElement('span');
+          sortfwdind.id = "sorttable_sortfwdind";
+          sortfwdind.innerHTML = stIsIE ? '&nbsp<font face="webdings">6</font>' : '&nbsp;&#x25BE;';
+          this.appendChild(sortfwdind);
+
+	        // build an array to sort. This is a Schwartzian transform thing,
+	        // i.e., we "decorate" each row with the actual sort key,
+	        // sort based on the sort keys, and then put the rows back in order
+	        // which is a lot faster because you only do getInnerText once per row
+	        row_array = [];
+	        col = this.sorttable_columnindex;
+	        rows = this.sorttable_tbody.rows;
+	        for (var j=0; j<rows.length; j++) {
+	          row_array[row_array.length] = [sorttable.getInnerText(rows[j].cells[col]), rows[j]];
+	        }
+	        /* If you want a stable sort, uncomment the following line */
+	        //sorttable.shaker_sort(row_array, this.sorttable_sortfunction);
+	        /* and comment out this one */
+	        row_array.sort(this.sorttable_sortfunction);
+	        
+	        tb = this.sorttable_tbody;
+	        for (var j=0; j<row_array.length; j++) {
+	          tb.appendChild(row_array[j][1]);
+	        }
+	        
+	        delete row_array;
+	      });
+	    }
+    }
+  },
+  
+  guessType: function(table, column) {
+    // guess the type of a column based on its first non-blank row
+    sortfn = sorttable.sort_alpha;
+    for (var i=0; i<table.tBodies[0].rows.length; i++) {
+      text = sorttable.getInnerText(table.tBodies[0].rows[i].cells[column]);
+      if (text != '') {
+        if (text.match(/^-?[ÔøΩ$ÔøΩ]?[\d,.]+%?$/)) {
+          return sorttable.sort_numeric;
+        }
+        // check for a date: dd/mm/yyyy or dd/mm/yy 
+        // can have / or . or - as separator
+        // can be mm/dd as well
+        possdate = text.match(sorttable.DATE_RE)
+        if (possdate) {
+          // looks like a date
+          first = parseInt(possdate[1]);
+          second = parseInt(possdate[2]);
+          if (first > 12) {
+            // definitely dd/mm
+            return sorttable.sort_ddmm;
+          } else if (second > 12) {
+            return sorttable.sort_mmdd;
+          } else {
+            // looks like a date, but we can't tell which, so assume
+            // that it's dd/mm (English imperialism!) and keep looking
+            sortfn = sorttable.sort_ddmm;
+          }
+        }
+      }
+    }
+    return sortfn;
+  },
+  
+  getInnerText: function(node) {
+    // gets the text we want to use for sorting for a cell.
+    // strips leading and trailing whitespace.
+    // this is *not* a generic getInnerText function; it's special to sorttable.
+    // for example, you can override the cell text with a customkey attribute.
+    // it also gets .value for <input> fields.
+    
+    hasInputs = (typeof node.getElementsByTagName == 'function') &&
+                 node.getElementsByTagName('input').length;
+    
+    if (node.getAttribute("sorttable_customkey") != null) {
+      return node.getAttribute("sorttable_customkey");
+    }
+    else if (typeof node.textContent != 'undefined' && !hasInputs) {
+      return node.textContent.replace(/^\s+|\s+$/g, '');
+    }
+    else if (typeof node.innerText != 'undefined' && !hasInputs) {
+      return node.innerText.replace(/^\s+|\s+$/g, '');
+    }
+    else if (typeof node.text != 'undefined' && !hasInputs) {
+      return node.text.replace(/^\s+|\s+$/g, '');
+    }
+    else {
+      switch (node.nodeType) {
+        case 3:
+          if (node.nodeName.toLowerCase() == 'input') {
+            return node.value.replace(/^\s+|\s+$/g, '');
+          }
+        case 4:
+          return node.nodeValue.replace(/^\s+|\s+$/g, '');
+          break;
+        case 1:
+        case 11:
+          var innerText = '';
+          for (var i = 0; i < node.childNodes.length; i++) {
+            innerText += sorttable.getInnerText(node.childNodes[i]);
+          }
+          return innerText.replace(/^\s+|\s+$/g, '');
+          break;
+        default:
+          return '';
+      }
+    }
+  },
+  
+  reverse: function(tbody) {
+    // reverse the rows in a tbody
+    newrows = [];
+    for (var i=0; i<tbody.rows.length; i++) {
+      newrows[newrows.length] = tbody.rows[i];
+    }
+    for (var i=newrows.length-1; i>=0; i--) {
+       tbody.appendChild(newrows[i]);
+    }
+    delete newrows;
+  },
+  
+  /* sort functions
+     each sort function takes two parameters, a and b
+     you are comparing a[0] and b[0] */
+  sort_numeric: function(a,b) {
+    aa = parseFloat(a[0].replace(/[^0-9.-]/g,''));
+    if (isNaN(aa)) aa = 0;
+    bb = parseFloat(b[0].replace(/[^0-9.-]/g,'')); 
+    if (isNaN(bb)) bb = 0;
+    return aa-bb;
+  },
+  sort_alpha: function(a,b) {
+    if (a[0]==b[0]) return 0;
+    if (a[0]<b[0]) return -1;
+    return 1;
+  },
+  sort_ddmm: function(a,b) {
+    mtch = a[0].match(sorttable.DATE_RE);
+    y = mtch[3]; m = mtch[2]; d = mtch[1];
+    if (m.length == 1) m = '0'+m;
+    if (d.length == 1) d = '0'+d;
+    dt1 = y+m+d;
+    mtch = b[0].match(sorttable.DATE_RE);
+    y = mtch[3]; m = mtch[2]; d = mtch[1];
+    if (m.length == 1) m = '0'+m;
+    if (d.length == 1) d = '0'+d;
+    dt2 = y+m+d;
+    if (dt1==dt2) return 0;
+    if (dt1<dt2) return -1;
+    return 1;
+  },
+  sort_mmdd: function(a,b) {
+    mtch = a[0].match(sorttable.DATE_RE);
+    y = mtch[3]; d = mtch[2]; m = mtch[1];
+    if (m.length == 1) m = '0'+m;
+    if (d.length == 1) d = '0'+d;
+    dt1 = y+m+d;
+    mtch = b[0].match(sorttable.DATE_RE);
+    y = mtch[3]; d = mtch[2]; m = mtch[1];
+    if (m.length == 1) m = '0'+m;
+    if (d.length == 1) d = '0'+d;
+    dt2 = y+m+d;
+    if (dt1==dt2) return 0;
+    if (dt1<dt2) return -1;
+    return 1;
+  },
+  
+  shaker_sort: function(list, comp_func) {
+    // A stable sort function to allow multi-level sorting of data
+    // see: http://en.wikipedia.org/wiki/Cocktail_sort
+    // thanks to Joseph Nahmias
+    var b = 0;
+    var t = list.length - 1;
+    var swap = true;
+
+    while(swap) {
+        swap = false;
+        for(var i = b; i < t; ++i) {
+            if ( comp_func(list[i], list[i+1]) > 0 ) {
+                var q = list[i]; list[i] = list[i+1]; list[i+1] = q;
+                swap = true;
+            }
+        } // for
+        t--;
+
+        if (!swap) break;
+
+        for(var i = t; i > b; --i) {
+            if ( comp_func(list[i], list[i-1]) < 0 ) {
+                var q = list[i]; list[i] = list[i-1]; list[i-1] = q;
+                swap = true;
+            }
+        } // for
+        b++;
+
+    } // while(swap)
+  }  
+}
+
+/* ******************************************************************
+   Supporting functions: bundled here to avoid depending on a library
+   ****************************************************************** */
+
+// Dean Edwards/Matthias Miller/John Resig
+
+/* for Mozilla/Opera9 */
+if (document.addEventListener) {
+    document.addEventListener("DOMContentLoaded", sorttable.init, false);
+}
+
+/* for Internet Explorer */
+/*@cc_on @*/
+/*@if (@_win32)
+    document.write("<script id=__ie_onload defer src=javascript:void(0)><\/script>");
+    var script = document.getElementById("__ie_onload");
+    script.onreadystatechange = function() {
+        if (this.readyState == "complete") {
+            sorttable.init(); // call the onload handler
+        }
+    };
+/*@end @*/
+
+/* for Safari */
+if (/WebKit/i.test(navigator.userAgent)) { // sniff
+    var _timer = setInterval(function() {
+        if (/loaded|complete/.test(document.readyState)) {
+            sorttable.init(); // call the onload handler
+        }
+    }, 10);
+}
+
+/* for other browsers */
+window.onload = sorttable.init;
+
+// written by Dean Edwards, 2005
+// with input from Tino Zijdel, Matthias Miller, Diego Perini
+
+// http://dean.edwards.name/weblog/2005/10/add-event/
+
+function dean_addEvent(element, type, handler) {
+	if (element.addEventListener) {
+		element.addEventListener(type, handler, false);
+	} else {
+		// assign each event handler a unique ID
+		if (!handler.$$guid) handler.$$guid = dean_addEvent.guid++;
+		// create a hash table of event types for the element
+		if (!element.events) element.events = {};
+		// create a hash table of event handlers for each element/event pair
+		var handlers = element.events[type];
+		if (!handlers) {
+			handlers = element.events[type] = {};
+			// store the existing event handler (if there is one)
+			if (element["on" + type]) {
+				handlers[0] = element["on" + type];
+			}
+		}
+		// store the event handler in the hash table
+		handlers[handler.$$guid] = handler;
+		// assign a global event handler to do all the work
+		element["on" + type] = handleEvent;
+	}
+};
+// a counter used to create unique IDs
+dean_addEvent.guid = 1;
+
+function removeEvent(element, type, handler) {
+	if (element.removeEventListener) {
+		element.removeEventListener(type, handler, false);
+	} else {
+		// delete the event handler from the hash table
+		if (element.events && element.events[type]) {
+			delete element.events[type][handler.$$guid];
+		}
+	}
+};
+
+function handleEvent(event) {
+	var returnValue = true;
+	// grab the event object (IE uses a global event object)
+	event = event || fixEvent(((this.ownerDocument || this.document || this).parentWindow || window).event);
+	// get a reference to the hash table of event handlers
+	var handlers = this.events[event.type];
+	// execute each event handler
+	for (var i in handlers) {
+		this.$$handleEvent = handlers[i];
+		if (this.$$handleEvent(event) === false) {
+			returnValue = false;
+		}
+	}
+	return returnValue;
+};
+
+function fixEvent(event) {
+	// add W3C standard event methods
+	event.preventDefault = fixEvent.preventDefault;
+	event.stopPropagation = fixEvent.stopPropagation;
+	return event;
+};
+fixEvent.preventDefault = function() {
+	this.returnValue = false;
+};
+fixEvent.stopPropagation = function() {
+  this.cancelBubble = true;
+}
+
+// Dean's forEach: http://dean.edwards.name/base/forEach.js
+/*
+	forEach, version 1.0
+	Copyright 2006, Dean Edwards
+	License: http://www.opensource.org/licenses/mit-license.php
+*/
+
+// array-like enumeration
+if (!Array.forEach) { // mozilla already supports this
+	Array.forEach = function(array, block, context) {
+		for (var i = 0; i < array.length; i++) {
+			block.call(context, array[i], i, array);
+		}
+	};
+}
+
+// generic enumeration
+Function.prototype.forEach = function(object, block, context) {
+	for (var key in object) {
+		if (typeof this.prototype[key] == "undefined") {
+			block.call(context, object[key], key, object);
+		}
+	}
+};
+
+// character enumeration
+String.forEach = function(string, block, context) {
+	Array.forEach(string.split(""), function(chr, index) {
+		block.call(context, chr, index, string);
+	});
+};
+
+// globally resolve forEach enumeration
+var forEach = function(object, block, context) {
+	if (object) {
+		var resolve = Object; // default
+		if (object instanceof Function) {
+			// functions have a "length" property
+			resolve = Function;
+		} else if (object.forEach instanceof Function) {
+			// the object implements a custom forEach method so use that
+			object.forEach(block, context);
+			return;
+		} else if (typeof object == "string") {
+			// the object is a string
+			resolve = String;
+		} else if (typeof object.length == "number") {
+			// the object is array-like
+			resolve = Array;
+		}
+		resolve.forEach(object, block, context);
+	}
+};
+
+”ò¿Ÿä   ä         +≥€—      stIsIE     (_Õp	      sorttable      íu`      init   SP•      _timer     bPk      clearInterval      ∏OÄ      document   DC      createElement      XFZ      getElementsByTagName   gö      DATE_RE	    ≥®N+      ^(\d\d?)[\/\.-](\d\d?)[\/\.-]((\d\d)?\d\d)$
+    ∂dî      table      6CY>	      className      *˜∆      \bsortable\b   ¨{•      makeSortable   >°¯Q      thead      ¢À.      the    ≠$~      appendChild    ”Qn$      rows   ÂL…2      insertBefore   ~Xﬂ∫
+      firstChild     W∑aa      tHead      ˙_$f      sortbottomrows     .•íW      \bsortbottom\b     ÿi      tFoot      ≈—†:      tfo    ≈÷Í      tfoot      ˝˝      headrow    g[◊ç      cells      Œ ˙      \bsorttable_nosort\b   zëqï      mtch   ¿Ÿı∞      \bsorttable_([a-z0-9]+)\b      Ø 5O      override    ´yÈ      sort_!      ÃÀCÎ      sorttable_sortfunction"     TøÃU	      guessType#      <Àï      sorttable_columnindex$      ” 1s      sorttable_tbody%    ÎèG      tBodies&    ÖSQ‡      dean_addEvent'      ü™‚X      click(      2&p0      \bsorttable_sorted\b)   ∆e=?      reverse*    Âı      sorttable_sorted+   ™'á      sorttable_sorted_reverse,   ˘˙K      removeChild-    t«£      getElementById.     §Aâ‘      sorttable_sortfwdind/   >âhh
+      sortrevind0     ±4PB      span1   –Œ∞      sorttable_sortrevind2   Q√:	      innerHTML3      ˛ #      &nbsp<font face="webdings">5</font>4    È@—ó      &nbsp;&#x25B4;5     ”N’–      \bsorttable_sorted_reverse\b6   °@i
+      sortfwdind7     ®∆óö#      &nbsp<font face="webdings">6</font>8    sf      &nbsp;&#x25BE;9     ˘ÉÒr      theadrow:   •_œ”
+      parentNode;     ≥ÜBa
+      childNodes<     súÔa      cell=   'JØ(      nodeType>   y1)Ó       sorttable_sorted?      "LÂ√	      row_array@      P{Ò      colA    o%t      getInnerTextB   Ü}ÿ„      sortC   ä"’g      columnD     Ö ‚I      sortfnE     r®<˝
+      sort_alphaF     à3¿µ      textG   ∞‡ô      ^ - ? [ ˝ˇ$ ˝ˇ] ? [ \ d , . ] + % ? $ H     H`¥      sort_numericI   H#ó≈      possdateJ   `~ﬂ      firstK      µOU	      sort_ddmmL      QPôD	      sort_mmddM      &`°›      nodeN    Ì«	      hasInputsO      4>ÙE      getAttributeP   F⁄◊      sorttable_customkeyQ    b»≈e      textContentR    BlªH	      ^\s+|\s+$S      ≠	év	      innerTextT      U5_      nodeNameU   RâDo      toLowerCaseV    ©Èç¿	      nodeValueW      ßèâv      tbodyX      ≈ç8      newrowsY    ‰¥∞Â      [^0-9.-]Z   .Ë1∑      dt1[    un˙      dt2\    fÓº:      shaker_sort]    „Ç»≈      list^   èwU	      comp_func_      VOI≈      swap`    rO      addEventListenera   KjH      DOMContentLoadedb   bôÛ¢      WebKitc     π„+	      navigatord      ìãà	      userAgente      Ïà       setIntervalf    <Ì ˛      loaded|completeg    πUüï
+      readyStateh     ¯2áâ      windowi     áƒ{p      onloadj     ÜáZ`      handlerk    ≤˝†A      $$guidl     DâïÙ      guidm   QÚ(ì      eventsn     AQ
+      handlerso   PA1(      handleEventp    à∆˝Ü      removeEventq    ]¸ç      removeEventListenerr    II∑P      events      ä!'»      returnValuet    ÆÖô      fixEventu   ÑäJ      ownerDocumentv      ›ÓÄ‰      parentWindoww   e!çk      $$handleEventx      B9∫¿      preventDefaulty     ı/F/      stopPropagationz    … E      cancelBubble{   1      array|      ü‡˚Å      block}      π©±”      context~    B¸ø;      key    n¯`      chrÄ    –“M∆      init/<Å     –Õú      makeSortable/<Ç     ´π±j      makeSortable/</<É   6      _timer<Ñ    ]aˆ      fixEvent.preventDefaultÖ    Qu‚      fixEvent.stopPropagationÜ   Íó#      Array.forEachá      ƒ|Ûæ      Function.prototype.forEachà     úJ“      String.forEachâ     …Bñ}      String.forEach/<        =                  Ô%,â                                                                                                                                                                                                                                                   	                  
+                                                                                                                                                                                                          ≥Oåc            P  P&  –p  –o  –t  –ù  `            q   ƒ  j  n               q   ƒ  j              r  s  n  i  o                r                	                
+               
+  Pi `	  `o  `k  `             e `j `	  `o  `k  `             <              
+  C  i              M  S  i               W  Pi `	  `o  `k  `             a  b               a  b               a  b               a  b              ]  ^  b  t  _  i  q                                o                 o               {  |  }  i                 |  }  ~  o                 `|  P}  P               Ÿ                  |  }  y  Ø¬0∞	                              (      5      G      R     R     R     R     R     R     Y     Y     b     f      IÙ$KEÆ˙ö                
+   2        "  A  )  H  E  K  L  \  á&’™ç!´!   ò    ò  °                6        –   ±   ¿   ’±   7   j   :	   j
+   :   j   :   j   :   j   :   j   :   j   :   j   :   j   :   j   :   ¿   ’¥   H   ñ*   ì   ¥   ◊H   ⁄   ¥   H	   t ’ì   i   ◊H    ⁄¥!   H"   p ñ%   ì   ±#   ¥$    j%   
+p ¿#   ’ì    ¥&   ¥   H	   J'   ’¥(   J)   ’¥*   j+   J,   ’¥*   j-   J.   ’¥/   H0   ó   ì-   ¥/   j1   J0   ’ì/   ¥2   H3   j4   J0   ’¥5   j6   J0   ’±0   j7   ¿0   ’°E%`PG`P: J) JÄ  • JÄ  ∆ JÄ  Û JÄ  JÄ 	 JÄ  JÄ  JÄ - ê@Ä T `Pî0 `Pú 	PIÄ e `Pñ 
+P=%`P;000BÄ f PNÄ n`Pï@Ä ã00`PLÄ ò@Ä ®@Ä Ø0`Pê000`Pê@Ä ø `Pî0 `Pï@Ä »`Pï@Ä —`Pê@Ä ÿ%`PKÄ ÌP  8  8  √                        “√   ’∂   H   H   ñ   ì    ûì   ∂   H   J   ’¥   ñ   ì   ¥    ¥   t ’ì
+   ¥   H   ô   ì   ’¥   H   ì   ñ   ì    ûì   ¥   i	   J
+   ’¥    ¥   ◊H   ⁄   p j   t ’°F `Pò `PA F `Pê@ `P/`P+PI `Pñ ö  `PA F
+ `Pê@ `Pó P(ˇˇˇˆPD P   x   x   =                         µ  H   ◊H   ⁄i   p ˇñ   ì   ¥   ◊H   ⁄µ  t ’ì   °0 
+`Pî Pê0 `P/
+PI P   †  p  *                é      “ƒ   ’‘ƒ   ’3ƒ   ’∑   ◊H   ⁄   p H   ñd   ì   ±   ¥   ◊H   ⁄   p ¿   ’¥   ◊H   ⁄∑   H   It ’∑   ◊H	   ⁄¥   ∑   H
+   t ’ì   ∑   H   ñ+   ì   ∑   ∑   ◊H   ⁄   p IJ   ’ì   ∑   H   H   H   ñ   ì    ûì   ±   e    ¿   ’ƒ   ’î"   ∑   ∑   H   H   ñs   ì&   ∑   H   ∑   IH   ◊H   ⁄i   p ˇñ+   ì-   ¥   ¥   H   ∑   H   ∑   IL’ì3   ∑   .'ƒ   ’ïwˇˇˇì5   ¥   ñ∏   ì7   ∑   H   ñ>   ì:   ±   ¥   ◊H   ⁄   p ¿   ’∑   ◊H   ⁄¥   t ’ìB   ƒ   ’îB   ∑   ¥   H   ñ7   ìF   ¥   ◊H   ⁄¥   ∑   It ’∑   .'ƒ   ’ï∏ˇˇˇìM   —   ’ìM   ±   ∑   H   H   IH   ¿   ’ƒ   ’îS   ∑   ¥   H   ñ~  ìW   ¥   ∑   IH   ◊H   ⁄i   p ó>  ì]   ±   ¥   ∑   IH   ◊H   ⁄i   p ¿   ’¥   ñ   ìf   ±   ¥   I¿   ’ìj   ¥   ò#   ìl   ’¥      ¥   %I   ìr   ñ1   ìs   ¥   ∑   I¥      ¥   %IJ   ’ï4   ìz   ¥   ∑   I¥   ◊H   ⁄∑   ∑   p J   ’ìÄ   ¥   ∑   I∑   J   ’¥   ∑   I∑   H    IJ!   ’¥"    ¥   ∑   I#   j$   t ’ìå   ∑   .'ƒ   ’ïq˛ˇˇìé   °ï0 `Pë Pî@ `Pñ P9 `Pò P4 `Põ PI	 `Pñ `Pñ Pê@ `P† `PAz F `Pê0 	 `P'fPü0 
+`P° Pê0 `P¶@ '`Pó@ `P? 
+`Pñ@ `Pñ P9 `Pë PI  `P'fPö0 `Pó PD -`Pó@  `PK$ `P°0 	 `P'fPö@' 
+`Pú P= `P° P9 `P/`Pó0 `Pê ß0 	`P¨00 	`P° .PN0 `Pñ0 `Pù0 `Põ PI% $`Pó@z P    †           é            M          ê  î  ®  à  ﬂ                ¢      “ƒ   ’‘ƒ   ’3ƒ   ’∑   H   ◊H   ⁄i   p ˇñÍ   ì   ¥   ◊H   ⁄∑   H   t ’∑   ∑   H   ◊H   ⁄   	   p J   ’∑   ◊H
+   ⁄¥   ◊H   ⁄   p t ’±   ¥   ◊H   ⁄   p ¿   ’¥      J   ’¥   ¥   ñ   ì      ï   ì      ì   J   ’∑   ◊H   ⁄¥   t ’ ûì    ∑   H   ◊H   ⁄i   p ˇñÍ   ì%   ¥   ◊H   ⁄∑   H   t ’∑   ∑   H   ◊H   ⁄	      p J   ’∑   ◊H
+   ⁄¥   ◊H   ⁄   p t ’±   ¥   ◊H   ⁄   p ¿   ’¥      J   ’¥   ¥   ñ   ì<      ï   ì<      ì<   J   ’∑   ◊H   ⁄¥   t ’ ûì@   ±   ∑   H   ¿   ’¥    ¥   H   j    t ’±   ¥   ◊H   ⁄   p ¿   ’¥   ñ$   ìN   ¥   H   ◊H
+   ⁄¥   t ’ìS   ±   ¥   ◊H   ⁄   p ¿   ’¥   ñ$   ìZ   ¥   H   ◊H
+   ⁄¥   t ’ì_   ∑   ◊H   !   %J   ’±   ¥   ◊H   ⁄   p ¿   ’¥      J   ’¥   ¥   ñ   ìl      ï   ìl      ìl   J   ’∑   ◊H   ⁄¥   t ’±"   e    ¿"   ’±#   ∑   H$   ¿#   ’±%   ∑   H   H%   ¿%   ’ƒ   ’îz   ∑   ¥%   H&   ñl   ì~   ¥"   ¥"   H&   e   ¥   ◊H'   ⁄¥%   ∑   IH(   ¥#   Ip f    ¥%   ∑   If   L’∑   .'ƒ   ’ïÉˇˇˇìè   ¥"   ◊H)   ⁄∑   H*   t ’±+   ∑   H   ¿+   ’ƒ   ’îñ   ∑   ¥"   H&   ñ9   ìö   ¥+   ◊H   ⁄¥"   ∑   IIt ’∑   .'ƒ   ’ï∂ˇˇˇì¢   —"   ’°ï@ `Pñ Pê@ `Pñ 
+P4 `Põ0E ,PI `Pù P#ˇˇˇÎP4 `Pñ P9 `Pê0 `P≥0 `Pë P4 `PAE F `Pñ Pê@ `Pñ 
+P4 `Põ0E ,PI `Pù P#ˇˇˇÎP4 `Pñ P9 `Pê0 `P≥0 `Pë P4 `PAE F 
+`Pï0 
+`Pï PD% 
+`Pñ P9 `P/`Pñ P9 
+`Pñ P9 `P/`Pñ PI* 
+`Pê7 
+`Pñ P9 
+`Pê0 
+`P≥0 
+`Pë PD4 	`Pê0 	`Pï0 	`Pö0  `P'fPö0 `Pî ¢ 
+P("í@7 &`Pó@= 	`Pñ 
+PD? 	`Pï0  `P'fPö0 `Pô PD@ +`Pó@D 	`P6 P    ®         «  Ç          Ñ  O   §   §   d                         µ  H   ñT   ì   µ  µ  H   ◊H   ⁄      p J   ’µ  µ  H   ◊H   ⁄      p J   ’ì   °0 `Pî0 `Pú  P9 `Pú  PN 
+P  t  d  ¨                D      ±   ¥   H   ¿   ’√   ’î   ∂   µ  H   IH   H   ñf  ì
+   ±   ¥   ◊H   ⁄µ  H   IH   ∂   IH	   µ Ip ¿   ’¥   
+   ñ  ì   ¥   ◊H   ⁄i   p ñ   ì   ¥   H   ûì   ±   ¥   ◊H   ⁄¥   H   p ¿   ’¥   ñ§   ì'   ±   ¥    ¥   Ip ¿   ’±   ¥    ¥   Ip ¿   ’¥   ñ   ì6   ¥   H   ûïF   ì8   ¥   ñ   ì;   ¥   H   ûï   ì=   ±   ¥   H   ¿   ’ìA   ∂   .'√   ’ïÄ˛ˇˇìC   ¥   û°@ `Pï0 	 `P&fP£0 `PÆ P9 
+`Pï0 `Pë P= 
+`PJ F `Põ P9 `PO 
+`Pí P9 
+`Pì 	P9 `Pí@ `PJ K `Pí0 `PJ K@ `Pö@ 2`Pï@ `P5 Q   t            Ö  ‰  ‘  Œ                K      ±   µ  H      ò"   ì   ’µ  ◊H   ⁄   p H   ì   ¿   ’µ  ◊H   ⁄   p ñ"   ì   µ  ◊H   ⁄   p ûïV  ì   µ  H   	   ò   ì   ’¥   ì   ñ,   ì   µ  H   ◊H
+   ⁄i      p ûï   ì   µ  H   	   ò   ì   ’¥   ì   ñ,   ì    µ  H   ◊H
+   ⁄i      p ûï™  ì#   µ  H   	   ò   ì'   ’¥   ì)   ñ,   ì*   µ  H   ◊H
+   ⁄i      p ûïT  ì-   µ  H   ◊õ8   ì/   ◊õn   ì0   ◊õà   ì1   ◊õz   ì2   ú   ì2   µ  H   ◊H   ⁄p     ñ'   ì7   µ  H   ◊H
+   ⁄i      p ûì:   µ  H   ◊H
+   ⁄i      p ûï†   ì=      √   ’√  ’î=   ∂  µ  H   H   ñ@   ìA   ∂   ¥   ◊H   ⁄µ  H   ∂  Ip %√   ’∂  .'√  ’ï≠ˇˇˇìI   ∂   ◊H
+   ⁄i      p ûï   ìK      ûìK   °@ `P%ö0/Pì@
+ `P/P? `P/PC+ K `Pö *ï0 `Pô PC+ K `Pö (ï0 `Pô PC+ K `Pö #ï0 `Pô PC+ K0 `P…00 `P/Pì0 `Pô PC+ F0 
+`Pô PC+ A 
+`P:00 `P:  `P&fPú0 `Pù PF" 6`Pï@% 
+`Pï PC+ A& 
+`P:0 
+`PE+ V  ‰         B  X   |  \  Î                       “ƒ   ’‘ƒ   ’3ƒ   ’±   e    ¿   ’ƒ   ’î   ∑   ∑   H   H   ñ=   ì   ¥   ¥   H   ∑   H   ∑   IL’∑   .'ƒ   ’ï≠ˇˇˇì   ¥   H   &ƒ   ’î   ∑   ñ7   ì   ∑   ◊H   ⁄¥   ∑   It ’∑   .(ƒ   ’ï¡ˇˇˇì   —   ’°ï@ `Pê0 	 `P'fPü0 `P°@ '`Pó@ 	 `Pí fPë0 `Pó PD '`Pó@	 `P6 P   |         ,   X          õ   D       π                         ±   ¥    µ  I◊H   ⁄i      p p ¿   ’¥    ¥   p ñ   ì   ±   ¿   ’ì   ±   ¥    µ I◊H   ⁄i      p p ¿   ’¥    ¥   p ñ   ì   ±   ¿   ’ì   ¥   ¥   &û°0 `P° P#ˇˇˇP9 `P+P-`Pë0 `P° P#ˇˇˇP9 `P+P-`Pë0 `P; Q à   à   <                         µ  Iµ Iñ   ì   ûì   µ  Iµ Iñ   ì   ˇûì   û°0 `Pï `PA F `Pï `PB F `P1 Q    §  §                   \       ±   µ  I◊H   ⁄¥   H   p ¿   ’±   ¥   I¿   ’±   ¥   I¿   ’±   ¥   I¿   ’¥   H   ñ    ì   ±   	   ¥   %¿   ’ì   ¥   H   ñ    ì   ±   	   ¥   %¿   ’ì#   ±
+   ¥   ¥   %¥   %¿
+   ’±   µ I◊H   ⁄¥   H   p ¿   ’±   ¥   I¿   ’±   ¥   I¿   ’±   ¥   I¿   ’¥   H   ñ    ìA   ±   	   ¥   %¿   ’ìE   ¥   H   ñ    ìI   ±   	   ¥   %¿   ’ìM   ±   ¥   ¥   %¥   %¿   ’¥
+   ¥   ñ   ìX   ûìX   ¥
+   ¥   ñ   ì\   ˇûì\   û°0 `Põ P9 `Pì `Pì `Pí0 `Pñ `Põ0 `Pñ `Põ0 `Pú0 `Põ P9 `Pì `Pì `Pí0 `Pñ `Põ0 `Pñ `Põ0 `Pú0 `Pï 
+`PA F `Pï 	`PB F `P1 Q  §  §                   \       ±   µ  I◊H   ⁄¥   H   p ¿   ’±   ¥   I¿   ’±   ¥   I¿   ’±   ¥   I¿   ’¥   H   ñ    ì   ±   	   ¥   %¿   ’ì   ¥   H   ñ    ì   ±   	   ¥   %¿   ’ì#   ±
+   ¥   ¥   %¥   %¿
+   ’±   µ I◊H   ⁄¥   H   p ¿   ’±   ¥   I¿   ’±   ¥   I¿   ’±   ¥   I¿   ’¥   H   ñ    ìA   ±   	   ¥   %¿   ’ìE   ¥   H   ñ    ìI   ±   	   ¥   %¿   ’ìM   ±   ¥   ¥   %¥   %¿   ’¥
+   ¥   ñ   ìX   ûìX   ¥
+   ¥   ñ   ì\   ˇûì\   û°0 `Põ P9 `Pì `Pì `Pí0 `Pñ `Põ0 `Pñ `Põ0 `Pú0 `Põ P9 `Pì `Pì `Pí0 `Pñ `Põ0 `Pñ `Põ0 `Pú0 `Pï 
+`PA F `Pï 	`PB F `P1 Q  à  X  ö                (      √   ’µ  H   &√  ’√  ’î   ∂  ño  ì   √  ’∂   √  ’î   ∂  ∂  ñy   ì   µ  µ  ∂  Iµ  ∂  %Ip ñ?   ì   µ  ∂  I√  ’µ  ∂  µ  ∂  %IL’µ  ∂  %∂  L’√  ’ì   ∂  .'√  ’ï}ˇˇˇì   ∂  .(√  ’∂  ó   ì   ï∞   ì   ∂  √  ’î   ∂  ∂   ñy   ì   µ  µ  ∂  Iµ  ∂  &Ip ñ?   ì   µ  ∂  I√  ’µ  ∂  µ  ∂  &IL’µ  ∂  &∂  L’√  ’ì$   ∂  .(√  ’ï}ˇˇˇì&   ∂   .'√   ’ïå˛ˇˇì(   °@ `P6 `P? `PF 
+fP> `P6  `P)fPì0 `Pñ 	P? `P-	`Pì `P? `PK
+ `Pï@ `PK `P.`PJ  `P)fPì0 `Pñ 	P? `P-	`Pì `P? `PK `Pï@ `Pï@ P   à         >   à          ˜   à             y  t   t   9                          i   ◊H   ⁄¥   H   p ñ   ì   ¥   ◊H   ⁄t  ’ì   °0 `Pñ P= `P,
+PI P    ò  ò                  !       µ  H   ñ$   ì   µ  ◊H   ⁄µ µ t ’ïÓ   ì   µ H   ó)   ì   µ ¥   ◊H   .◊‹'J   ’J   ’ì   µ  H   ó   ì   µ  7   J   ’ì   µ  H   µ I√   ’∂   óK   ì   µ  H   µ 7   L√   ’µ     µ %Iñ   ì   ∂   µ     µ %IL’ì   ∂   µ H   µ L’µ     µ %¥	   L’ì!   °0 `Pí0 `Pë P>@ `Pí `P§@ `Pí `Pì@	 `Pë0 `P> `Pñ@ `Pó0 `Pô@ `Pë@ `Pò@P    ¿   ¿   {                         µ  H   ñ$   ì   µ  ◊H   ⁄µ µ t ’ïN   ì   µ  H   ò   ì   ’µ  H   µ Iì   ñ    ì	   µ  H   µ Iµ H   P’ì   °0 `Pí0 `Pë P>@ `PÆ0 `Põ@	P    t  d  ˚         	             ‘√  ’√   ’µ  ôd   ì   ’¥    ∂  H   ô#   ì   ’∂  H   ô   ì   ’∂  ì   H   ô   ì   ’¥   ì	   H   p ì   ¬  ’∂  H   µ  H   I√  ’∂  \î   ]^óO   ì   √  ∂  ∂  ∂  IJ	   ’∂  ◊H	   ⁄µ  p ñ   ì   √   ’ì   ’ïÆˇˇˇì   _∂   û°6 `PF `P‰ PL `Pó@ `Pó ˇˇˇ˜4 `Pì0 `P.P? `PK L `P4Q   t        ò   W   d   d   +                         µ  ¥   H   J   ’µ  ¥   H   J   ’µ  û°@ `Pì0 `Pì0 `P3Q    <   <                           ‘√   ’∂   J   ’°6 `P;P  <   <                           ‘√   ’∂   J   ’°6 `P;P  ∞   †   Y                       √   ’î    ∂   µ  H   ñ:   ì   µ ◊H   ⁄µ µ  ∂   I∂   µ  t ’∂   .'√   ’ï∏ˇˇˇì   °0  `P&fPó0 `Pú PD $`Pï@ P ∞             M   »   ∏   q         
+       
+      ‘√  ’µ  \î   ]^óX   ì   √   ∂  H   ∂   I   ñ*   ì   µ ◊H   ⁄µ µ  ∂   I∂   µ  t ’ì
+   ’ï•ˇˇˇì
+   _°6 `Pñ ˇˇˇı4 `Pü0 `Pú PI LP »         
+   `   `   `   *                         ¥   ◊H   ⁄∑   ◊H   ⁄   p j   t ’°0 `Pù P(ˇˇˇÒPDP   P   P   !                         ∑   ◊H   ⁄∑   µ  µ ∑   t ’°0 `Pú P4 P \  \  ‰                        µ  ñ€   ì   ¥   √   ’µ  ¥    ñ   ì   ¥   √   ’ïç   ì   µ  H   ¥    ñ%   ì
+   µ  ◊H   ⁄µ µ t ’ ûïU   ì   µ     ñ   ì   ¥   √   ’ï-   ì   µ  H      ñ   ì   ¥   √   ’ì   ∂   ◊H   ⁄µ  µ µ t ’ì   °0 `P= `P: `Pì@ `Pî0 `Pò@ `Pê P4 `PAK
+ `Pî@ `Pî0 `Pô@ `PO `Pî PIP  3ıÿ  ``  k  &  l  m     @  @ o    `q  m  k    `t  u    v  h  r  m  ƒ  w    `t  x  y    `  W    P      `3   e                  P  ù   
+    p	  `=    V  +  t   *    `  W    P  )  $  V  *  +  ,    -  .  /    0  1  ç    3  4  2      P6  7  8  9  :  ù   ;    p>  ?  @  #      A    B  !  K   `                          W    P          U    P    P         !  "  #  %  $  &  '    p
+  `D    E  %      F  A    t   U    PH  I    J  X  Ñ  K  L    `N      È     O  P  Q  ˇ  V    Pt   S  	  PF  
+  P=  T  U  „    PV    P;    A    P  `X          `ä W  V    Pt   ˜   À   P  `  `  U      y  m  d    0  Z  [    `  U      y  d  m    0  Z  [    `    `  P´    g        `s    `z    `  1     `g  ˇ  1     `1     `
+  ù   Z  t     p  `  	  ù           
+     `  p  p  p  p       @  p    p    p"    pA    p)  	  pH  
+  pE    pK    pL    p\    `  a    P´  c  d    e    ph  i  &  l  t    px    py  
+  ù     p	  g    p    p  pˇXÑ  8              "            †
+       Ä      † c   %         †
+ 7   ,   Å      † 0      Ç      † à      "      †
+ ù      A      †
+ π      )      †
+ æ   	   H      †
+ «      E      †
+ »      K      †
+ ‘      L      †
+ ‡      \      †
+ ‚      É      †     
+   &      †  
+      p      †     
+   o      †        t      †  È      Ñ      † Î      Ö      † Ì      Ü      †       á      † ˆ      à      † Ù      â      † ¸   	   ù       †
+ ùH©¿      B      B                  1  è  )  è                    Ñ    Ñ  "   <          Ç.¨  >  §  >  *             Ç.e  +  ]  +  \   1            Ì  Á  Â  Á  {   /            X  ∆  P  ∆  ¶               „  &  €  &  «             Ç.&  ,'  &  ,'  Ù               ª'  u(  ≥'  u(                ç(  ‚(  Ö(  ‚(  
+              ˘(  û*  Ò(  û*                µ*  Z,  ≠*  Z,                v,  ó/  n,  ó/  .              3  ê3   3  ê3  g  %             Å4  Æ7  k4  Æ7  v              8  9  7  9  ê             39  ;  9  ;  õ              /;  –;  ;  –;  ´             Ù;  <  Ï;  <  ±  "            :<  \<  2<  \<  ¥  #             |=  Û=  t=  Û=  ¡             4>  ◊>  ,>  ◊>  …  %          Ä?  ê?  ?  ê?  “              P?  å?  H?  å?  ”  )            —?  B  …?  B  Ÿ            5°›/3˚,(é<◊w      'd¬d¬EYë≠d
+Ω˘   O    O^partitionKey=%28http%2Cros.org%29,:http://wiki.ros.org/custom/js/sorttable.js necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 OK
+Last-Modified: Fri, 15 Nov 2013 22:39:46 GMT
+ETag: "4215-4eb3ee00ff7be"
+Accept-Ranges: bytes
+Content-Length: 16917
+Content-Type: application/javascript
+Date: Fri, 03 Mar 2023 05:19:53 GMT
+Server: Apache
+ original-response-headers Date: Wed, 01 Feb 2023 07:15:27 GMT
+Server: Apache
+Last-Modified: Fri, 15 Nov 2013 22:39:46 GMT
+ETag: "4215-4eb3ee00ff7be"
+Accept-Ranges: bytes
+Content-Length: 16917
+Keep-Alive: timeout=5, max=100
+Connection: Keep-Alive
+Content-Type: application/javascript
+ ctid 2 uncompressed-len 0 net-response-time-onstart 329 net-response-time-onstop 479 alt-data 1;16917,javascript/moz-script-bytecode-20230227191043-8l alt-data-from-child 1   –4

@@ -1,0 +1,1262 @@
+/**
+ * Date		:	2014.08.12
+ * name		:	Developwon
+ * subject 	: 	null, undefined 체크
+ * param 	: 	str(변수)
+ * return 	:	boolean	
+ */
+function isDefined(str)	{				
+    var isResult = false;
+    str_temp = str + "";
+    str_temp = str_temp.replace(" ", "");
+    
+    if(str_temp != "undefined" && str_temp != "" && str_temp != "null")
+    {
+        isResult = true;
+    }
+     
+    return isResult;
+}
+/** 
+ * 브라우저 버전체크
+ */
+function fn_getBrowserType(){
+    
+    var _ua = navigator.userAgent;
+    var rv = -1;
+
+    //IE 11,10,9,8
+    var trident = _ua.match(/Trident\/(\d.\d)/i);
+    if( trident != null )
+    {
+        if( trident[1] == "7.0" ) return rv = "IE" + 11;
+        if( trident[1] == "6.0" ) return rv = "IE" + 10;
+        if( trident[1] == "5.0" ) return rv = "IE" + 9;
+        if( trident[1] == "4.0" ) return rv = "IE" + 8;
+    }
+     
+    //IE 7...
+    if( navigator.appName == 'Microsoft Internet Explorer' ) return rv = "IE" + 7;
+     
+    
+    var re = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+    if(re.exec(_ua) != null) rv = parseFloat(RegExp.$1);
+    if( rv == 7 ) return rv = "IE" + 7; 
+    
+     
+    //other
+    var agt = _ua.toLowerCase();
+    if (agt.indexOf("opr") != -1) return 'Opera';
+    if (agt.indexOf("chrome") != -1) return 'Chrome';
+    if (agt.indexOf("firefox") != -1) return 'Firefox'; 
+    if (agt.indexOf("safari") != -1) return 'Safari'; 
+}
+
+/** 
+ * 브라우저 버전체크
+ * return
+ *		- 크롬  : 1
+ *		- 그외  : 0
+ *		- IE    : IE 버전(숫자, 9, 10, 11)
+ */
+function fn_browserCheck() {
+	var iev = 0;
+	var ieold = (/MSIE (\d+\.\d+);/.test(navigator.userAgent));
+	var trident = !!navigator.userAgent.match(/Trident\/7.0/);
+	var rv = navigator.userAgent.indexOf("rv:11.0");
+	var chrome = navigator.userAgent.indexOf("Chrome");
+	
+	if (ieold) iev = new Number(RegExp.$1);
+	if (navigator.appVersion.indexOf("MSIE 10") != -1) iev = 10;
+	if (trident && rv != -1) iev = 11;
+	if (chrome > -1) iev = 1; 
+	
+	return iev;
+}
+
+
+/**
+ * Date		:	2014.09.25
+ * name		:	Developwon
+ * subject 	: 	현재 날짜, 시간, 요일
+ * param 	: 	type, gubun(yyyymmdd)
+ * 		- year		: 오늘의 년도	
+ *		- month		: 오늘의월
+ *		- date		: 오늘의일
+ *		- toDate	: 오늘의 년,월,일 (파라미터 gubun 필요)
+ *		- tomorrow	: 내일날짜
+ *		- yesterday	: 어제날짜
+ *		- hour		: 오늘의 시
+ *		- min		: 오늘의 분
+ *		- sec		: 오늘의 초
+ *		- toTime	: 오늘의 시 : 분 : 초
+ *		- dayKor	: 한국 요일(gubun[인자값]에 출력하고 싶은 날짜를 넣으면 해당요일 출력)
+ *		- dayEn		: 영어 요일(gubun[인자값]에 출력하고 싶은 날짜를 넣으면 해당요일 출력)
+ *
+ * return 	:	String
+ */
+function fn_toDay(type, gubun){
+	var dd = new Date();
+	var tomorrow;
+	var yesterday;
+	var custom;
+	var year = dd.getFullYear();
+	var month = dd.getMonth() + 1;
+	var date = dd.getDate();
+	var yoil = dd.getDay();
+	var hours = dd.getHours();
+	var minutes = dd.getMinutes();
+	var seconds = dd.getSeconds();
+	var str = "";
+	var week;
+	
+	if("tomorrow" == type){
+		tomorrow = new Date(dd.valueOf() + 24 * 60 * 60 * 1000);
+		year = tomorrow.getFullYear();
+		month = tomorrow.getMonth() + 1;
+		date = tomorrow.getDate();
+		yoil = tomorrow.getDay();
+		type = "toDate";
+	} else if("yesterday" == type){
+		yesterday = new Date(dd.valueOf() - 24 * 60 * 60 * 1000);
+		year = yesterday.getFullYear();
+		month = yesterday.getMonth() + 1;
+		date = yesterday.getDate();
+		yoil = yesterday.getDay();
+		type = "toDate";
+	} else if("dayKor" == type || "dayEn" == type){
+		if(isDefined(gubun)){
+			custom = new Date(gubun.substr(0, 4), gubun.substr(4, 2) - 1, gubun.substr(6, 2));
+			yoil = custom.getDay();
+		}
+	}
+	
+	if(10 > month){
+		month = "0" + month;
+	}
+	
+	if(10 > date){
+		date = "0" + date;
+	}
+	
+	if(10 > hours) {
+		hours = "0" + hours;
+	}
+	
+	if(10 > minutes) {
+		minutes = "0" + minutes;
+	}
+	
+	if(10 > seconds) {
+		seconds = "0" + seconds;
+	}
+	
+	switch (type) {
+	case "year" 	: 
+		str = year;
+		break;
+	case "month" 	: 
+		str = month;
+		break;
+	case "date" 	: 
+		str = date;
+		break;
+	case "toDate"	: 
+		str = year + gubun + month + gubun + date;
+		break;
+	case "hour"		: 
+		str = hours;
+		break;
+	case "min" 		: 
+		str = minutes;
+		break;
+	case "sec" 		: 
+		str = seconds;
+		break;
+	case "toTime" 	: 
+		str = hours + ":" + minutes + ":" + seconds;
+		break;
+	case "dayKor"		: 
+		week = new Array("일", "월", "화", "수", "목", "금", "토");
+		str = week[yoil];
+		break;
+	case "dayEn" 		: 
+		week = new Array("su", "mo", "tu", "we", "th", "fr", "sa");
+		str = week[yoil];
+		break;
+	default			:		
+		alert("function fn_toDay에서 인자값이 비어있거나 모자릅니다.");
+		break;
+	}
+	
+	return str ;
+}
+
+
+function popScrollChk(x, y, maxX, maxY){
+	if(x < maxX && y < maxY){
+		return true;
+	} else if(x > maxX || y > maxY){
+		return false;
+	}
+}
+
+/** 
+ * 자동 팝업크기조절<br>
+ */
+function fn_autoResize() {
+	// 현제 body의 넓이, 폭을 구한다.			
+	// 강제 리사이징후 처리한다. 
+	//window.resizeTo(10, 10);
+	
+	var thisHeight = 10;
+	var thisWidth = 10;
+	
+	var maxThisX = screen.width - 50;
+	var maxThisY = screen.height - 50;
+	
+	var marginHeight = 0;
+	var marginWidth = 0;
+
+	var browser = fn_browserCheck();
+	
+	if (browser < 8 || browser > 8) {
+		// 크롬, 사파리, IE9 이상
+		thisHeight = parseInt(document.body.scrollHeight);
+		thisWidth = parseInt(document.body.scrollWidth);
+		
+		marginWidth = (window.outerWidth - window.innerWidth);
+		marginHeight = (window.outerHeight - window.innerHeight);
+		
+		if (!popScrollChk(thisWidth + marginWidth, thisHeight + marginHeight, maxThisX, maxThisY)) {
+			window.document.body.scroll = "yes";
+			thisHeight = maxThisY - 10;
+			if (window.outerWidth != thisWidth + marginWidth) {
+				marginWidth += 17;
+			}
+		}
+	} else {
+		// IE8
+		var windowWidth = $(window).outerWidth();
+		
+		thisWidth = $(document).outerWidth();
+		thisHeight = $(document).outerHeight();
+		
+		window.resizeTo(thisWidth, thisHeight);
+		
+		marginWidth = thisWidth - $(window).width();
+		marginHeight = thisHeight - $(window).height();
+		
+		thisHeight = parseInt(document.body.scrollHeight);
+		thisWidth = parseInt(document.body.scrollWidth);
+		
+		if (!popScrollChk(thisWidth + marginWidth, thisHeight + marginHeight, maxThisX, maxThisY)) {
+			window.document.body.scroll = "yes";
+			thisHeight = maxThisY - 10;
+			
+			if (windowWidth < $(window).outerWidth()) {
+				marginWidth += 17;
+			} else {
+				thisWidth = windowWidth;
+			}
+		}
+	}
+	window.resizeTo(thisWidth + marginWidth, thisHeight + marginHeight);
+	window.moveTo(10,10);
+	return false;
+}
+
+/**
+ * Date		:	2014.08.12
+ * name 	:	Developwon
+ * subject	:	트리불러오기
+ * param 	:	paramData(URL과 같이 넘길 파라미터[분기값])
+ * param 	:	areaId(트리가 구성될 ID)
+ */
+function jstreeLoad(paramData, areaId){
+	$.ajax({
+		type : "post",
+		url : "/treeCmn.face",
+		data : { m : paramData },
+		dataType :"json",
+		success : function(json){
+			//트리구성
+			jstreeMake(json, areaId);
+		},
+		error : function(e){
+			alert(JSON.stringify(e));
+		},
+		async : false
+	});
+}
+
+
+/**
+ * Date		:	2014.08.13
+ * name 	:	Developwon
+ * subject	:	jsonObject을 String으로 변환
+ * param 	:	obj(jsonObject)
+ */
+function jsonToStr(obj) {
+
+	obj.toJSON = function(key)
+	 {
+	    var replacement = new Object();
+	    for (var val in this)
+	    {
+	        if (typeof (this[val]) === 'string')
+	            replacement[val] = this[val].toUpperCase();
+	        else
+	            replacement[val] = this[val]
+	    }
+	    return replacement;
+	};
+
+	var jsonText = JSON.stringify(obj);
+	alert(jsonText);
+	
+}
+
+
+/**
+ * Date		:	2014.08.19
+ * name 	:	Developwon
+ * subject	:	공통 팝업(파라미터 및 속성다르게)
+ * param 	:	url, param, popName, attr
+ */
+function cmn_Pop(url, param, popName, attr) {
+	var cmn_win;
+	
+	cmn_win = window.open(url + param, popName, attr);
+	cmn_win.moveTo(10, 10);
+	cmn_win.focus();
+}
+
+/**
+ * Date		:	2014.09.15
+ * name 	:	Developwon
+ * subject	:	트리에서 등록된 카테고리가 없을 때
+ * param 	:	
+ */
+function rootChange(){
+	var rootName = "";
+	
+	rootName = $(".aciTreeLevel0 div[aria-level=1] span .aciTreeText").text();
+	
+	if("undefined" == rootName){
+		$(".aciTreeLevel0 div[aria-level=1] span .aciTreeText").text("등록된 카테고리가 없습니다.");
+	}
+}
+
+/**
+ * Date		:	2014.09.15
+ * name 	:	Developwon
+ * subject	:	공통트리
+ * param 	:	divId, url, sortable
+ */
+function fn_treeAjax(divId, ajaxUrl, sortable){
+	$("#"+divId).aciTree({
+	    ajax: {
+	        url		: ajaxUrl,
+	        cache	: false
+	    },
+	    sortable: sortable
+	});
+}
+
+
+/**
+ * Date		:	2014.12.08
+ * name 	:	Developwon
+ * subject	:	트리초기화
+ * param 	:	
+ * 		- tApi 	: 
+ * 		- tTree : 
+ * 		- tUrl 	: 
+ * 		- tSort : 
+ * 		- ui 	: 
+ * 		- skip 	: 
+ */
+function fn_initTree(tApi, tTree, tUrl, tSort, tChk, ui, skip){
+	tApi = tTree.aciTree({
+		autoInit: false,
+		ajax: {
+			url		: tUrl,
+			async	: false,
+			cache	: false
+		},
+	 	sortable: tSort,
+	 	checkbox: tChk,
+	 	checkboxClick: true, 
+	 	checkboxChain: true
+	}).aciTree('api');
+	
+	tApi.init({
+		uid: (ui == 'ui') ? 'ui' : 'user-defined',
+		success: function() {
+			if (!skip) {
+				//alert('트리 초기화 성공');
+			}
+		},
+		fail: function() {
+			alert('트리 초기화 실패 !');
+		}
+	});
+}
+
+function destoryTree(tTree){
+	tTree.aciTree('api').destroy({
+        uid: 'user-defined',
+        success: function() {
+            //alert('트리 제거 성공입니다.');
+        },
+        fail: function() {
+            alert('트리 제거 오류입니다.');
+        }
+    });
+}
+
+/**
+ * Date		:	2014.09.19
+ * name 	:	Developwon
+ * subject	:	공통달력
+ * param 	:	id
+ */
+function fn_datepickerCmn(id){
+	$.datepicker.regional['ko']={
+			dateFormat: 'yy.mm.dd', 
+			showOn : 'button',
+			buttonImage : getContextPath() + '/seoultech/images/sub/cal_s.gif',
+			buttonImageOnly : true,
+			monthNames: ['1월','2월','3월','4월','5월','6월', '7월','8월','9월','10월','11월','12월'],
+			monthNamesShort : ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], 
+			dayNames: ['일','월','화','수','목','금','토'],
+			dayNamesMin: ['일','월','화','수','목','금','토'],
+			changeMonth: true, // 월 변경 가능
+			changeYear: true, // 년 변경 가능
+			closeText:'닫기',
+			currentText:'오늘',
+			showButtonPanel: true,
+			showMonthAfterYear: true}; //년 뒤에 월 표시
+			$.datepicker.setDefaults($.datepicker.regional['ko']);
+	$("#"+id).datepicker()
+}
+
+/**
+ * Date		:	2014.09.19
+ * name 	:	Developwon
+ * subject	:	공통달력
+ * param 	:	id
+ */
+function fn_datepickerCmn2(id){
+	$.datepicker.regional['ko']={
+			dateFormat: 'yy.mm.dd', 
+			showOn : 'button',
+			buttonImage : getContextPath() + '/images/sub/cal_s.gif',
+			buttonImageOnly : true,
+			monthNames: ['1월','2월','3월','4월','5월','6월', '7월','8월','9월','10월','11월','12월'],
+			monthNamesShort : ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'], 
+			dayNames: ['일','월','화','수','목','금','토'],
+			dayNamesMin: ['일','월','화','수','목','금','토'],
+			changeMonth: true, // 월 변경 가능
+			changeYear: true, // 년 변경 가능
+			closeText:'닫기',
+			currentText:'오늘',
+			showButtonPanel: true,
+			showMonthAfterYear: true}; //년 뒤에 월 표시
+			$.datepicker.setDefaults($.datepicker.regional['ko']);
+	$("#"+id).datepicker()
+}
+
+function getContextPath(){
+    var oset = location.href.indexOf(location.host) + location.host.length;
+    var ctxPath = location.href.substring(oset, location.href.indexOf('/', oset + 1));
+    
+    return ctxPath;
+}
+
+/**
+ * Datepicker 오늘 클릭시 금일 입력
+ */
+try {
+	jQuery.datepicker._gotoToday = function(id) {
+        var target = jQuery(id);
+        var inst = this._getInst(target[0]);
+        if (this._get(inst, 'gotoCurrent') && inst.currentDay) {
+                inst.selectedDay = inst.currentDay;
+                inst.drawMonth = inst.selectedMonth = inst.currentMonth;
+                inst.drawYear = inst.selectedYear = inst.currentYear;
+        }
+        else {
+                var date = new Date();
+                inst.selectedDay = date.getDate();
+                inst.drawMonth = inst.selectedMonth = date.getMonth();
+                inst.drawYear = inst.selectedYear = date.getFullYear();
+                this._setDateDatepicker(target, date);
+                this._selectDate(id, this._getDateDatepicker(target));
+        }
+        this._notifyChange(inst);
+        this._adjustDate(target);
+        
+        this._setDateDatepicker(target, date);
+		this._selectDate(id, this._getDateDatepicker(target));
+    }
+} catch (e) {
+	
+}
+
+/**
+ * Date		:	2014.10.21
+ * name		:	Developwon
+ * subject 	: 	자원관리 (check값) 
+ * param 	: 	val, id, type
+ * 		- val 	: 체크될 값
+ * 		- id	: id(getElementById) 및 name(getElementsByName)
+ *		- type	: kor(사용유무 한글변환), edit(id+val에 맞는 element 체크), select(id에 맞는 element찾고 val맞는 selected한다), 
+ *				  allTrueCheck(name(id)에 맞는 element 전체체크), allFalseCheck(name(id)에 맞는 element 전체체크 해제), trueChecked(배열에서 맞는 값만 체크),
+ *				  valueOneTrueAllFalse(val값과 같은값 true나머지 false)
+ *
+ * return 	:	String
+ */
+function fn_checked(val, id, type){
+	var g = document.getElementById(id);
+	var gc;
+	var i;
+	
+	if("kor" == type){
+		if("Y" == val){
+			document.getElementById(id).innerHTML = "사용";
+		} else if("N" == val){
+			document.getElementById(id).innerHTML = "사용안함";
+		}
+	} else if("edit" == type){
+		document.getElementById(id+val).checked = true;
+	} else if("select" == type){
+		for (i = 0; i < g.length; i++){
+			if(g.options[i].text == val){
+				document.getElementById(id).selectedIndex = i;
+			}
+		}
+	} else if("allTrueCheck" == type){
+		gc = document.getElementsByName(id);
+		
+		for(i = 0; i < gc.length; i++){
+			gc[i].checked == false ? gc[i].checked = true : gc[i].checked = true; 
+		}
+	} else if("allFalseCheck" == type){
+		gc = document.getElementsByName(id);
+		
+		for(i = 0; i < gc.length; i++){
+			gc[i].checked == true ? gc[i].checked = false : gc[i].checked = false; 
+		}
+	} else if("trueChecked" == type){
+		var strArr;
+		
+		gc = document.getElementsByName(id);
+		
+		if(isDefined(val)){
+			strArr = val.split(",");
+			
+			for(i = 0; i < gc.length; i++){
+				for(var y = 0; y < strArr.length; y++){
+					if(gc[i].value == strArr[y]){
+						gc[i].checked = true;
+					}
+				}
+			}
+		}
+	} else if("valueOneTrueAllFalse" == type){
+		gc = document.getElementsByName(id);
+		
+		for (var i = 0 ; i < gc.length ; i++) {
+			if (gc[i].value == val){
+				gc[i].checked = true;
+			} else {  
+				gc[i].checked = false;
+			}
+		}
+	}
+}
+
+/**
+ * Date		:	2014.10.21
+ * name		:	Developwon
+ * subject 	: 	자원 관리(시간 셀렉트 박스[사용가능시간넣기])
+ * param 	: 	usefrom, useto, selectVal, id, type
+ * 		- usefrom 	: ~ 부터(00 ~ 24)
+ * 		- useto		: ~ 까지(00 ~ 24)
+ *		- selectVal	: selected할 값
+ *		- id		: option을 넣을 element id
+ *		- type		: F(현재시간부터), T(현재시간+1까지), S(selected할 값)
+ *
+ * return 	:	String
+ */
+function fn_useTimeSelect(usefrom, useto, selectVal, id, type){
+	var timeChk = new Boolean();
+	var from = parseInt(usefrom);
+	var to = parseInt(useto);
+	var strHtml = "";
+	var num = "";
+	var hour;
+	
+	if("F" == type){
+		hour = fn_toDay("hour", "");
+	} else if("T" == type){
+		hour = fn_toDay("hour", "") + 1;
+	} else if("S" == type){
+		hour = selectVal;
+	}
+	
+	if(hour < 10){
+		hour = "0" + hour;
+	} else {
+		hour = "" + hour;
+	}
+	
+	clearEl(document.getElementById(id));
+	
+	for(var j = from; j <= to; j++){
+		if(j == parseInt(hour)){
+			timeChk = true;
+			break;
+		}
+	}
+	
+	for(var i = from; i <= to; i++){
+		var oOption = document.createElement("OPTION");
+		
+		if(i < 10){
+			num = "0" + i;
+		} else {
+			num = i + "";
+		}
+		
+		oOption.value = num;
+		oOption.text = num;
+		if(hour == num && timeChk == true){
+			oOption.selected = true;
+		} else {
+			if(useFrom == num && timeChk == false && type == "F"){
+				oOption.selected = true;
+			} else if (useto == num && timeChk == false && type == "T"){
+				oOption.selected = true;
+			}
+		}
+		
+		document.getElementById(id).add(oOption);
+	}
+}
+
+/**
+ * Date		:	2014.11.30
+ * name		:	Developwon
+ * subject 	: 	자식태그 제거
+ * param 	: 	element
+ *
+ * return 	:	
+ */
+function clearEl(el) {
+	
+	if(isDefined(el)){
+		while (el.hasChildNodes()) {
+	        el.removeChild(el.firstChild);
+	    }
+	}
+}
+
+/**
+ * Date		:	2014.10.21
+ * name		:	Developwon
+ * subject 	: 	자원 관리(반복요일 한글로 변환)
+ * param 	: 	val, type
+ * 		- val 	: 변환할 값 (mo 또는 mo,tu,sa, ....)
+ *		- type	: A(단일), S(배열)
+ *
+ * return 	:	String
+ */
+function fn_dayChangeRepeat(val, type){
+	if(isDefined(val)){
+		var returnStr = "";
+		
+		if("A" == type){
+			switch (val){
+			case "mo"	:
+				returnStr = "월";
+				break;
+			case "tu"	:
+				returnStr = "화";
+				break;
+			case "we"	:
+				returnStr = "수";
+				break;
+			case "th"	:
+				returnStr = "목";
+				break;
+			case "fr"	:
+				returnStr = "금";
+				break;
+			case "sa"	:
+				returnStr = "토";
+				break;
+			case "su"	:
+				returnStr = "일";
+				break;
+			default		:
+				returnStr = "";
+				break;
+			}
+			
+			return returnStr;
+		} else if("S" == type){
+			var strArr;
+			
+			strArr = val.split(",");
+			for(var i = 0; i < strArr.length; i++){
+				
+				switch (strArr[i]) {
+				case "mo" 	:
+					returnStr += " 월,"
+					break;
+				case "tu" 	:
+					returnStr += " 화,"
+					break;
+				case "we" 	:
+					returnStr += " 수,"
+					break;
+				case "th" 	:
+					returnStr += " 목,"
+					break;
+				case "fr" 	:
+					returnStr += " 금,"
+					break;
+				case "sa" 	:
+					returnStr += " 토,"
+					break;
+				case "su" 	:
+					returnStr += " 일,"
+					break;
+				default 	:
+					returnStr += " ,"
+					break;
+				}
+			}
+			
+			returnStr = returnStr.substring(0, returnStr.length - 1);
+			return returnStr;
+		}
+	}
+}
+
+//자원 관리(textarea 글자수 제한)
+function fn_chkLength(aro_name,ari_max){ // aro_name-객체, ari_max - 제한 길이수
+	var ls_str= aro_name.value;
+	var li_str_len = ls_str.length;
+	var li_max= ari_max;
+	var i= 0;
+	var li_byte= 0;
+	var li_len= 0;
+	var ls_one_char = "";
+	var ls_str2= "";
+
+	for(i=0; i< li_str_len; i++) {
+		ls_one_char = ls_str.charAt(i);
+	if (escape(ls_one_char).length > 4) 
+		li_byte += 2;
+	else 
+		li_byte++;
+	if (li_byte <= li_max) li_len = i + 1;
+
+	}
+
+	if(li_byte > li_max) {
+		alert("한글 " +ari_max + "글자를 초과 입력할수 없습니다. 초과된 내용은 자동으로 삭제 됩니다.");
+		ls_str2 = ls_str.substr(0, li_len);
+		aro_name.value = ls_str2;
+	}
+	aro_name.focus();
+}
+
+/**
+ * Date		:	2014.10.21
+ * name		:	Developwon
+ * subject 	: 	년, 월, 일 덧셈뺄셈
+ * param 	: 	sDate, num, type
+ * 		- sDate	: 피연산자(yyyy.mm.dd, yyyy-mm-dd 등등)
+ * 		- num 	: 덧셈, 뺄셈할 숫자 (string경우 int형으로 변환)
+ *		- type	: Y(년), M(월), D(day)
+ *
+ * return 	:	String(yyyymmdd)
+ */
+function fn_dateCalculate(sDate, num, type, gubun) {
+    var fdc;
+	var yy = parseInt(sDate.substr(0, 4), 10);
+    var mm = parseInt(sDate.substr(5, 2), 10);
+    var dd = parseInt(sDate.substr(8), 10);
+    
+    if("D" == type){
+    	fdc = new Date(yy, mm - 1, dd + num);
+    } else if("M" == type){
+    	fdc = new Date(yy, (mm + num) - 1, dd);
+    } else if("Y" == type){
+    	fdc = new Date(yy + num, mm - 1, dd);
+    }
+ 
+    yy = fdc.getFullYear();
+    mm = fdc.getMonth() + 1; mm = (mm < 10) ? '0' + mm : mm;
+    dd = fdc.getDate(); dd = (dd < 10) ? '0' + dd : dd;
+    
+    if(!isDefined(gubun)){
+    	gubun = '';
+    }
+    
+    return yy + gubun +  mm  + gubun + dd;
+}
+
+/**
+ * Date		:	2014.10.26
+ * name		:	Developwon
+ * subject 	: 	두 날짜의 차 구하기
+ * param 	: 	sDate, eDate, type
+ * 		- sDate	: 시작날짜(yyyyMMdd)
+ * 		- eDate : 종료날짜(yyyyMMdd)
+ *		- type	: M(월수), D(일수)
+ *
+ * return 	:	(두 날짜의 차)
+ */
+function fn_dateGap(sDate, eDate, type){
+	var strSDate = new Date(sDate.substring(0,4), sDate.substring(4,6) - 1, sDate.substring(6,8));  
+	var strEDate = new Date(eDate.substring(0,4), eDate.substring(4,6) - 1, eDate.substring(6,8)); 
+	var returnGap = 0;
+	
+	 if(type == "D") {					//일수 차이
+		 returnGap = (strEDate.getTime() - strSDate.getTime()) / (1000 * 60 * 60 * 24);
+	 } else if(type == "M"){			//개월 차이
+		//년도가 같으면 단순히 월을 마이너스 한다.  
+	 	// => 20090301-20090201 의 경우 아래 else의 로직으로는 정상적인 1이 리턴되지 않는다.  
+		if(eDate.substring(0,4) == sDate.substring(0,4)) {  
+			returnGap = eDate.substring(4,6) * 1 - sDate.substring(4,6) * 1;  
+		} else {  
+			returnGap = Math.floor((strEDate.getTime() - strSDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25 / 12));  
+		} 
+	 }
+	 
+	 return returnGap;
+}
+
+/**
+ * Date		:	2014.11.11
+ * name		:	Developwon
+ * subject 	: 	번호 입력시 자동으로 ' - ' 표시 입력
+ * param 	: 	obj
+ */
+function autoPhoneNum(obj){
+	var str = "";
+    var RegNotNum  = /[^0-9]/g; 
+    var RegPhonNum = ""; 
+    var DataForm   = "";
+    
+    str = obj.value;
+ 
+    if( !isDefined(str) ) return ""; 
+     
+    str = str.replace(RegNotNum,''); 
+     
+    if( str.length < 4 ) return str; 
+
+    if( str.length > 3 && str.length < 7 ) { 
+        DataForm = "$1-$2"; 
+        RegPhonNum = /([0-9]{3})([0-9]+)/; 
+    } else if(str.length >= 7 && str.length < 11 ) { 
+        DataForm = "$1-$2-$3"; 
+        RegPhonNum = /([0-9]{3})([0-9]{3})([0-9]+)/; 
+    } else { 
+		DataForm = "$1-$2-$3"; 
+		RegPhonNum = /([0-9]{3})([0-9]{4})([0-9]+)/; 
+	} 
+
+    while( RegPhonNum.test(str) ) {  
+        str = str.replace(RegPhonNum, DataForm);  
+    } 
+    
+    obj.value = str;
+} 
+
+/**
+ * Date		:	2015.01.24
+ * name		:	Developwon
+ * subject 	: 	숫자만입력
+ * param 	: 	Element 
+ * return	:	
+ */
+function fn_onlyNumber(obj){
+	var str = "";
+	var RegNotNum = /[^0-9]/g;
+	
+	str = obj.value;
+	str = str.replace(RegNotNum, '');
+	obj.value = str;
+}
+
+/**
+ * Date		:	2014.11.12
+ * name		:	Developwon
+ * subject 	: 	checkbox가 ture, false인 값만을 가져와 리턴한다.(ex: 1,2,3,4 ....)
+ * param 	: 	Element Name
+ * param 	: 	String 구분자
+ * param 	: 	String true, false
+ * return	:	string
+ */
+function fn_trueValue(name, delimiter, bool){
+	var rtnStr = "";
+	var tv = document.getElementsByName(name);
+	
+	if(0 < tv.length){
+		for(var i = 0; i < tv.length; i++){
+			if("true" == bool){
+				if(tv[i].checked == true){
+					rtnStr += tv[i].value + delimiter;
+				}
+			} else if("false" == bool){
+				if(tv[i].checked == false){
+					rtnStr += tv[i].value + delimiter;
+				}
+			}
+		}
+
+		rtnStr = rtnStr.substring(0, rtnStr.length - 1);
+	}
+	
+	return rtnStr;
+}
+
+/**
+ * Date		:	2014.11.13
+ * name		:	Developwon
+ * subject 	: 	하나의 체크박스가 change될때 param으로 받은 Element name의 checkbox 체크
+ * param 	: 	obj, name
+ * 		- obj 	: 해당 체크박스(하나의 체크박스)
+ * 		- name	: 전체 체크 대상(Elemnet name)
+ *
+ * return 	:
+ */
+function fn_allChkBox(obj, name){
+	if(obj.checked == true){
+		fn_checked("", name, "allTrueCheck");		
+	} else if(obj.checked == false){
+		fn_checked("", name, "allFalseCheck");
+	}
+}
+
+/**
+ * Date		:	2014.11.27
+ * name		:	Developwon
+ * subject 	: 	현재달로부터 첫번째, 마지막 날 구하기
+ * param 	: 	type
+ * 		- type 	: 0(마지막날), 1(첫번째날)
+ * return 	: string
+ */
+function fn_monthFLDay(type, gubun){
+	var fl = new Date();
+	var rtnStr = "";
+	var mon;
+	
+	if(type == 0){
+		mon = new Date(fl.getFullYear(), fl.getMonth() + 1, type);
+	} else {
+		mon = new Date(fl.getFullYear(), fl.getMonth(), type);
+	}
+	
+	
+	var yy = mon.getFullYear();
+    var mm = mon.getMonth() + 1; 
+        mm = (mm < 10) ? '0' + mm : mm;
+    var dd = mon.getDate(); 
+        dd = (dd < 10) ? '0' + dd : dd;
+    
+    if(!isDefined(gubun)){
+    	gubun = '';
+    }
+	
+	rtnStr = yy + gubun + mm + gubun + dd;
+	
+	return rtnStr;
+}
+
+/**
+ * Date		:	2015.01.31
+ * name		:	Developwon
+ * subject 	: 	현재시간을 기준으로 해당년도 첫날, 마지막날
+ * param 	: 	type
+ * 		- type 	: 0(마지막날), 1(첫번째날)
+ * return 	: string
+ */
+function fn_yearFLDay(type, gubun){
+	var fl = new Date();
+	var rtnStr = "";
+	
+	var yy = fl.getFullYear();
+	var mm;
+	var dd;
+	
+	if(type == 0){
+		mm = "12";
+		dd = "31";
+	} else {
+		mm = "01";
+		dd = "01";
+	}
+    
+    if(!isDefined(gubun)){
+    	gubun = "";
+    }
+	
+	rtnStr = yy + gubun + mm + gubun + dd;
+	
+	return rtnStr;
+}
+
+/**
+ * Date		:	2014.12.02
+ * name		:	Developwon
+ * subject 	: 	상위 페이지의 id값이 잇는지 여부
+ * param 	: 	id
+ * 		- id 	: 확인할 ID 값
+ * return 	: boolean(ture:있음, false: 없음)
+ */
+function parentIframeChk(id){
+	var chk = false;
+	var parentVal;
+	
+	if(isDefined(parent.document.getElementById(id))){
+		chk = true;
+	} else {
+		return chk;
+	}
+	
+	return chk;
+}
+
+/**
+ * Date		:	2014.12.02
+ * name		:	Developwon
+ * subject 	: 	상위 페이지의 iframe size 조절
+ * param 	: 	id
+ * param 	: 	size
+ * 		- id 	: 상위 ID 값
+ *		- size	: 크기 값
+ * return 	: 
+ */
+function parentIframeHeight(id, size){
+	$("#" + id, parent.document).attr("style", "height: " + size + "px;");
+}
+
+/**
+ * Date		:	2014.12.02
+ * name		:	Developwon
+ * subject 	: 	현재 페이지의 세로 크기 구하기
+ * return 	: 
+ */
+function getDocHeight() {
+    var doc = document;
+    var b = fn_getBrowserType();
+    
+    /*
+    console.log("=======================================================================");
+    console.log("browser >> " + b);
+    console.log("doc.body.scrollHeight >> " + doc.body.scrollHeight);
+    console.log("doc.documentElement.scrollHeight >> " + doc.documentElement.scrollHeight);
+    console.log("doc.body.offsetHeight >> " + doc.body.offsetHeight);
+    console.log("doc.documentElement.offsetHeight >> " + doc.documentElement.offsetHeight);
+    console.log("doc.body.clientHeight >> " + doc.body.clientHeight);
+    console.log("doc.documentElement.clientHeight >> " + doc.documentElement.clientHeight);
+    console.log("doc.body.scrollHeight >> " + doc.body.scrollHeight);
+    console.log("=======================================================================");
+    */
+    //8, 9, 
+    if(b == "IE11" || b == "Firefox" || b == "IE10" || b == "IE9" || b == "IE8"){
+    	//return doc.body.scrollHeight + 150;
+    	return doc.body.scrollHeight;
+    } else if(b == "Chrome" || b == "Safari" || b == "Opera" || b == "IE7"){
+    	return doc.documentElement.scrollHeight;
+    } else {
+    	return doc.body.scrollHeight;
+    }
+    
+   /* 
+   	var totalHeight = 0;
+
+    if( browser.msie ){ //IE
+       var scrollHeight = document.documentElement.scrollHeight;
+       var browserHeight = document.documentElement.clientHeight;
+    
+       totalHeight = scrollHeight < browserHeight ? browserHeight : scrollHeight;
+   
+    } else if ( browser.safari ){ //Chrome || Safari
+       totalHeight = document.body.scrollHeight;
+    
+    } else if ( browser.firefox ){ // Firefox || NS
+       var bodyHeight = document.body.clientHeight;
+   
+       totalHeight = window.innerHeight < bodyHeight ? bodyHeight : window.innerHeight;
+   
+     } else if ( browser.opera ){ // Opera
+       var bodyHeight = document.body.clientHeight;
+   
+       totalHeight = window.innerHeight < bodyHeight ? bodyHeight : window.innerHeight;
+   
+     }
+    */
+    
+    /*
+     * 최대값 구해서 리턴
+    return Math.max(
+		Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight),
+		Math.max(doc.body.offsetHeight, doc.documentElement.offsetHeight),
+		Math.max(doc.body.clientHeight, doc.documentElement.clientHeight)
+    );
+    */
+}
+
+/**
+ * Date		:	2014.12.30
+ * name		:	Developwon
+ * subject 	: 	텍스트 최대크기
+ * param 	: 	Element
+ * return 	:   
+ */
+function fn_maxText(obj){
+	var stringByteLength;
+	var max;
+	var content;
+	
+	max = obj.maxLength;
+	content = obj.value;
+	
+	stringByteLength = (function(s, b, i, c) {					//문자열 byte로 변환
+		for (b = i = 0; c = s.charCodeAt(i++); b += c >> 11? 3:c >> 7 ? 2:1){
+			if(b >= max){
+				alert("글자를 초과 입력할수 없습니다.(최대값:"+max+"/현재값:"+b+")");
+				obj.value = content.substr(0, i);
+				obj.focus();
+				break;
+			}
+		}
+		return b
+	})(content);
+}
+
+/**
+ * Date		:	2015.01.24
+ * name		:	Developwon
+ * subject 	: 	텍스트 최대크기2(maxlength가 지원되지않는 태그이용)
+ * param 	: 	Element
+ * param 	: 	Integer(최대값)
+ * return 	:   
+ */
+function fn_maxText(obj, max){
+	var stringByteLength;
+	var content;
+	
+	content = obj.value;
+	
+	stringByteLength = (function(s, b, i, c) {					//문자열 byte로 변환
+		for (b = i = 0; c = s.charCodeAt(i++); b += c >> 11? 3:c >> 7 ? 2:1){
+			if(b >= max){
+				alert("글자를 초과 입력할수 없습니다.(최대값:"+max+"/현재값:"+b+")");
+				obj.value = content.substr(0, i);
+				obj.focus();
+				break;
+			}
+		}
+		return b
+	})(content);
+}
+
+/**
+ * Date		:	2015.01.20
+ * name		:	Developwon
+ * subject 	: 	팝업창 리사이즈
+ * param 	: 	Integer(가로크기)
+ * param 	: 	Integer(세로크기)
+ * return 	:   
+ */
+function fn_windowResize(width, height) {
+	var w = parseInt(width);
+	var h = parseInt(height);
+	var b = fn_getBrowserType();
+	
+	var thisHeight = 10;
+	var thisWidth = 10;
+	var maxThisX = screen.width - 50;
+	var maxThisY = screen.height - 50;
+	var marginHeight = 0;
+	var marginWidth = 0;
+	
+	if(b == "Opera"){
+		w += 20;
+    	h += 80;
+    } else {
+    	w += 10;
+    	h += 70;
+    }
+	
+	if(b != "IE8" || b != "IE7") {
+		marginWidth = (window.outerWidth - window.innerWidth);
+		marginHeight = (window.outerHeight - window.innerHeight);
+	} else {
+		var windowWidth = $(window).outerWidth();
+		
+		marginWidth = w - $(window).width();
+		marginHeight = h - $(window).height();
+	}
+	
+	if (!popScrollChk(w + marginWidth, h + marginHeight, maxThisX, maxThisY)) {
+		window.document.body.scroll = "yes";
+	}
+	
+	window.resizeTo(w, h);
+	moveTo(10,10);
+}
+
+function fn_checkSecondAuth(url){
+	// 1. 2차인증 진행여부 확인
+	var secondCheck = '<c:out value="${secondYn}" />'
+	var ipband = '<c:out value="${ipband}" />'
+	var frm = document.forms.secondAuthForm;
+
+	//if(ipband == "Y" || secondCheck == "Y"){ 운영반영시 적용되어야할 if문
+	if(secondCheck == "Y"){
+		window.open(url);
+	}else{
+		// 2차인증에 등록되어있는 사용자인지 확인한다. 확인 후 등록되어있는 사용자는 인증번호 발송페이지로, 등록되어있지 않은 사용자는 등록 페이지로 이동한다.
+//		frm.action = "../../../../../../../secondAuth/ideatech/authentication.jsp";
+//		frm.submit();
+		window.open('../../../../../../../secondAuth/ideatech/authentication.jsp?popYn='+url, 'secondAuthPopup', "toolbar=yes, scrollbars=yes, resizable=yes, top=300, left=300, width=600, height=740");
+	}
+}
+
+function fn_checkAuthConfrim(data){
+	if (confirm("교직원이 외부에서 통합정보시스템에 접속하기 위해서는 2차 인증이 필요합니다.\n2차 인증을 진행하시겠습니까? ")) {
+		fn_checkSecondAuth(data);
+   }
+}
+function fn_checkAuthConfrim3(data){
+	if (confirm("교직원이 외부에서 통합정보시스템에 접속하기 위해서는 2차 인증이 필요합니다.\n2차 인증을 진행하시겠습니까? ")) {
+		fn_checkSecondAuth(data);
+   }	
+}
+
+
+�wS��      c�Nc�NE6MZc�U�   u    O^partitionKey=%28https%2Cseoultech.ac.kr%29,:https://portal.seoultech.ac.kr/seoultech/javascript/common_seoultech.js necko:classified 1 strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 OK
+ETag: W/"32572-1662093276000"
+Last-Modified: Fri, 02 Sep 2022 04:34:36 GMT
+Content-Length: 32572
+Date: Wed, 01 Feb 2023 07:57:02 GMT
+Content-Type: text/javascript;charset=UTF-8
+ original-response-headers ETag: W/"32572-1662093276000"
+Connection: keep-alive
+Last-Modified: Fri, 02 Sep 2022 04:34:36 GMT
+Content-Length: 32572
+Date: Wed, 01 Feb 2023 07:57:02 GMT
+Content-Type: text/javascript;charset=UTF-8
+ ctid 2 uncompressed-len 0 net-response-time-onstart 88 net-response-time-onstop 90   <

@@ -1,0 +1,9 @@
+lidar_cluster_topic_name: /obstaclemod/pc1
+
+end_point_topic_name: /planning/end_point
+
+allow_angle_error: 0.5 # degree
+
+node_rate: 50   # [Herz]
+
+path_length: 5 # [m]

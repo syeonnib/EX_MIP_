@@ -1,0 +1,8 @@
+<launch>
+	<node pkg="point_cloud_converter" name="point_cloud_converter" type="point_cloud_converter_node" >
+		
+		<remap from="points2_in" to="/obstacle_detector/cloud_clusters"/>
+		<remap from="points_out" to="/obstaclemod/pc1" />
+		
+	</node>
+</launch>

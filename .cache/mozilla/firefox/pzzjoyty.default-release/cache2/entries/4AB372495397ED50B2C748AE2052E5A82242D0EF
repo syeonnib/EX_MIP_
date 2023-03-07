@@ -1,0 +1,5299 @@
+define([ 'app', 'text!app/disk/disk-template.html', 'i18n!app/disk/nls/disk-i18n', 'app/disk/disk-models', 'chartjs',
+		'marionette' ], function(app, template, i18n) {
+
+	app.module('disk', function(disk, app, Backbone, Marionette, $, _) {
+
+		disk.$template = $(template);
+
+		function isPopup() {
+			try {
+				if (window.opener && window.opener.location.pathname != window.location.pathname)
+					return true;
+				if (/.*\/popup\/.*/.test(window.location.pathname))
+					return true;
+				else
+					return false;
+			} catch (error) {
+				if (/.*\/popup\/.*/.test(window.location.pathname))
+					return true;
+				else
+					return false;
+			}
+		}
+
+		disk.SidebarView = Backbone.Marionette.Layout.extend({
+			template : function(data) {
+				var html, compiledTemplate = disk.SidebarView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#sidebar-template').html();
+					compiledTemplate = _.template(html);
+					disk.SidebarView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			regions : {
+				myDriveRegion : {
+					selector : 'div.mc-svc_menu_area div.mc-section_my:first',
+					regionType : Backbone.Marionette.Region.extend({
+						open : function(view) {
+							this.$el.empty().append(view.$el.children());
+						},
+					})
+				},
+				shareRegion : {
+					selector : 'div.mc-svc_menu_area div.mc-section_my.shr',
+					regionType : Backbone.Marionette.Region.extend({
+						open : function(view) {
+							this.$el.empty().append(view.$el.children());
+						},
+					})
+				},
+			},
+			initialize : function(options) {
+				// initialize
+			},
+			onRender : function() {
+				var $upload = this.$el.find('div.mc-btn_workset > a.mc-btn_quick');
+				$upload.click(disk.uploadFilesHandler);
+				var $toolRegion = this.$el.find('div.mc-svc_menu_area > div.mc-list_menu');
+				var $importantFiles = $toolRegion.find('> ul > li > a.mc-bu1');
+				$importantFiles.click(function(event) {
+					location.hash = '#disk/files?search.starred=true&_=' + (new Date()).getTime();
+					return false;
+				});
+				var $recentFiles = $toolRegion.find('> ul > li > a.mc-bu2');
+				$recentFiles.click(function(event) {
+					var hash = '#disk/files?search.recent=true';
+					var date = new Date(), now = new Date();
+					date.setDate(now.getDate() - 7);
+					hash += '&search.dateFrom=' + $.format.date(date, 'yyyyMMdd');
+					hash += '&search.dateTo=' + $.format.date(now, 'yyyyMMdd');
+					location.hash = hash + '&_=' + (new Date()).getTime();
+					return false;
+				});
+				// My Drive
+				var myDriveFoldersView = new disk.MyDriveFoldersView({
+					model : disk.myDriveModel,
+					collection : disk.myDriveModel.folders
+				});
+				this.myDriveRegion.show(myDriveFoldersView);
+				// Share Region
+				var shareRegionView = new disk.ShareRegionView({});
+				this.shareRegion.show(shareRegionView);
+				// Drag & Drop
+				this.$el.on('dragenter', function(event) {
+					var dataTransfer = event.originalEvent.dataTransfer;
+					var types = dataTransfer.types;
+					if (types) {
+						if ((types.contains && types.contains("Files"))
+								|| (types.indexOf && types.indexOf("Files") !== -1)) {
+							// event.preventDefault();
+							// disk.droppableView.$el.show();
+						}
+					}
+				});
+				this.$el.on('dragover', function(event) {
+					event.preventDefault() && event.stopPropagation();
+					return false;
+				});
+				this.$el.on('dragleave', function(event) {
+					event.preventDefault() && event.stopPropagation();
+					// disk.droppableView.$el.hide();
+					return false;
+				});
+				this.$el.on('drop', function(event) {
+					event.preventDefault() && event.stopPropagation();
+					// disk.droppableView.$el.hide();
+					var isAllFiles = true;
+					var dataTransfer = event.originalEvent.dataTransfer;
+					if (!dataTransfer) {
+						return;
+					}
+					if (dataTransfer.items) {
+						$.each(dataTransfer.items, function(index, item) {
+							var entry = item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
+							if (entry && !entry.isFile) {
+								isAllFiles = false;
+							}
+						});
+					}
+					if (!isAllFiles)
+						return;
+					var files = dataTransfer.files;
+					return false;
+				});
+			},
+			onShow : function() {
+				var $sidebarRegion = this.$el.parent();
+				var sidebarWidth = $sidebarRegion.width(), contentLeft;
+				$sidebarRegion.resizable().resizable('destroy');
+				$sidebarRegion.resizable({
+					handles : 'e',
+					resize : function(event, ui) {
+						var diff = sidebarWidth - $(this).width();
+						var $contentRegion = disk.controller.contentLayout.$el;
+						if (!contentLeft)
+							contentLeft = $contentRegion.position().left;
+						$contentRegion.css('left', contentLeft - diff);
+					},
+				});
+				$sidebarRegion.css('position', 'absolute');
+				$sidebarRegion.off('resize').on('resize', function(event) {
+					event.stopPropagation();
+				});
+			},
+			onClose : function() {
+				var $sidebarRegion = this.$el.parent();
+				$sidebarRegion.resizable('destroy');
+				$sidebarRegion.css({
+					'width' : '',
+					'position' : '',
+				});
+			},
+		}); // disk.SidebarView
+
+		disk.MyDriveFolderItemView = Backbone.Marionette.CompositeView.extend({
+			tagName : 'li',
+			className : 'fold_folder',
+			template : function(data) {
+				var html, compiledTemplate = disk.MyDriveFolderItemView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#my-drive-folder-item-template').html();
+					compiledTemplate = _.template(html);
+					disk.MyDriveFolderItemView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					folder : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function() {
+				// this.model == disk.FileModel
+				this.collection = this.model.folders;
+				this.listenTo(app.vent, 'toggle:folder-selection', function(id) {
+					if (this.model.id === id)
+						this.$el.children('div.reverse-area').addClass('click');
+					else
+						this.$el.children('div.reverse-area').removeClass('click');
+				});
+				this.listenTo(this.model, 'select:folder', function() {
+					app.vent.trigger('toggle:folder-selection', this.model.id);
+					var $parents = this.$el.parents('li.fold_folder');
+					$parents.removeClass('fold_folder').addClass('spread_folder');
+					$parents.children('ul.child_folder').show();
+				});
+				this.listenTo(this.model, 'expand:folder', function() {
+					this.$el.removeClass('fold_folder').addClass('spread_folder');
+					var $list = this.$el.children('ul.child_folder');
+					$list.slideDown();
+				});
+				this.listenTo(this.model, 'rename:folder', this.rename);
+			},
+			onRender : function() {
+				var self = this;
+				var $list = this.$el.children('ul.child_folder');
+				var paths = this.model.get('path').split('/');
+				$list.addClass('depth' + (paths.length - 1));
+				this.$el.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var model = self.model, folderModel = disk.folderModel;
+					app.vent.trigger('toggle:folder-selection', model.id);
+					var pathname = model.get('path') + '/' + model.get('name');
+					var folderPathname = folderModel.get('path') + '/' + folderModel.get('name');
+					var $this = $(this);
+					if ($this.hasClass('fold_folder')) {
+						if (self.collection.size() === 0) {
+							model.files.once('sync', function() {
+								$this.removeClass('fold_folder').addClass('spread_folder');
+								$list.slideDown();
+							});
+						} else {
+							$this.removeClass('fold_folder').addClass('spread_folder');
+							$list.slideDown();
+						}
+					} else if ($this.hasClass('spread_folder')) {
+						if (folderPathname.indexOf(pathname + '/') === -1) {
+							$this.removeClass('spread_folder').addClass('fold_folder');
+							$list.slideUp();
+						}
+					}
+					app.$hidablesListener.trigger('hide.all');
+					var now = Date.now ? Date.now() : (new Date()).getTime();
+					location.hash = '#disk/files?id=' + model.id + '&_=' + now;
+					return false;
+				});
+				this.$el.data('folder-id', this.model.id);
+				this.$el.draggable({
+					cursor : 'default',
+					cursorAt : {
+						top : -5,
+						left : -5
+					},
+					appendTo : 'div.mc-wrap > div.mc-container',
+					helper : function() {
+						var $helper = $("<div />", {
+							css : {
+								'line-height' : '18px',
+								'background-color' : '#eeeeee;',
+								'padding' : '0 3px',
+								'z-index' : '31'
+							}
+						}).append($('<span />', {
+							css : {
+								'display' : 'inline-block',
+								'width' : '20px',
+								'height' : '18px',
+								'vertical-align' : 'middle',
+								'background' : 'transparent url("img/webd_sprites.png") no-repeat',
+								'background-position' : '0px -233px',
+							},
+							text : ' ',
+						})).append(document.createTextNode(' ' + self.model.get('name')));
+						return $helper;
+					},
+				});
+				switch (this.model.get('linkCount')) {
+				case 'BigMail':
+					this.$el.draggable('destroy');
+				}
+				this.$el.droppable({
+					greedy : true,
+					tolerance : 'pointer',
+					accept : function(element) {
+						var folderId = element.data('folder-id');
+						if (folderId && folderId !== $(this).data('folder-id')) {
+							return true;
+						}
+						var fileIds = element.data('file-ids');
+						if (fileIds && fileIds.length) {
+							return true;
+						}
+						return false;
+					},
+					drop : function(event, ui) {
+						var folderId = ui.draggable.data('folder-id');
+						if (folderId) {
+							function findFolderModel(collection, folderId) {
+								var model = collection.get(folderId);
+								if (!model) {
+									for (var i = 0; i < collection.length; i++) {
+										model = collection.at(i);
+										model = findFolderModel(model.folders, folderId);
+										if (model)
+											break;
+									}
+								}
+								return model;
+							}
+							var model = findFolderModel(disk.myDriveModel.folders, folderId);
+							if (!model)
+								return;
+							var pathname = self.model.get('path') + '/' + self.model.get('name');
+							if (model.get('path') === pathname)
+								return;
+							var models = disk.moveFiles.splice(0, disk.moveFiles.length);
+							disk.moveFiles.push(model);
+							disk.moveTo(self.model);
+							disk.moveFiles.splice(0, 1, models);
+						} // end if (folderId)
+						var fileIds = ui.draggable.data('file-ids');
+						if (fileIds && fileIds.length) {
+
+						} // end if (fileIds && fileIds.length)
+					},
+					over : function(event, ui) {
+						$(this).children('div.reverse-area').css('cursor', 'default').find(
+								'> span.item_wrap > p.mc-folder_name').css('cursor', 'default');
+					},
+					out : function(event, ui) {
+						$(this).children('div.reverse-area').css('cursor', '').find(
+								'> span.item_wrap > p.mc-folder_name').css('cursor', '');
+					},
+				});
+				this.$el.contextmenu(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					disk.contextMenuView.showFolderMenu(event, self.model);
+					return false;
+				});
+				if (this.model.isNew()) {
+					this.newFolder();
+				}
+			},
+			appendHtml : function(collectionView, itemView) {
+				var $list = collectionView.$el.children('ul.child_folder');
+				$list.append(itemView.el);
+			},
+			newFolder : function() {
+				var self = this, model = this.model;
+				this.$el.addClass('new_folder');
+				var $wrapper = this.$el.find('> div.reverse-area > span.item_wrap > p.mc-folder_name');
+				var $input = $('<input>', {
+					type : 'text',
+					value : model.get('name')
+				}).click(function(event) {
+					return false;
+				}).appendTo($wrapper.empty());
+				var $span = $('<span></span>').text(model.get('name')).hide().appendTo('body');
+				var width = $span.width();
+				$input.css('width', width < 120 ? 140 : width + 20).select().focus();
+				$input.keydown(function(event) {
+					event.stopPropagation();
+					if (event.which == 13) {
+						event.preventDefault();
+						$(this).blur();
+					}
+				}).blur(function(event) {
+					var $this = $(this);
+					var folderName = $this.val();
+					if (folderName.length > 255) {
+						alert(i18n.folderNameTooLong);
+						$this.select();
+						return false;
+					}
+					if (!folderName) {
+						self.close();
+						return false;
+					}
+					if (/[\/:*?\"<>|\r\n\t]/g.test(folderName)) {
+						alert(i18n.invalidFileName);
+						$this.val(folderName.replace(/[\/:*?\"<>|\r\n\t]/g, ''));
+						$this.select();
+						return false;
+					}
+					disk.overlayView.showOverlay();
+					model.urlRoot = _.result(model, 'urlRoot') + '/' + model.parentFolder.id;
+					model.save({
+						name : folderName
+					}, {
+						wait : true,
+						success : function(model, response, options) {
+							self.close();
+							disk.overlayView.hideOverlay();
+							if (disk.folderModel.id === model.parentFolder.id)
+								disk.syncFilePaginator();
+							else
+								location.hash = '#disk/files?id=' + model.parentFolder.id;
+						},
+						error : function(model, response, options) {
+							switch (response.status) {
+							case 409:
+								alert(i18n.folderNameAlreadyExists + folderName);
+								break;
+							}
+							self.close();
+							disk.overlayView.hideOverlay();
+						},
+					});
+					return true;
+				}).click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					return false;
+				});
+				setTimeout(function() {
+					var newFolderName = i18n.newFolder;
+					var collection = self.model.parentFolder.files;
+					var model = collection.find(function(model) {
+						return model.get('name') == newFolderName;
+					});
+					for (var i = 0; model; i++) {
+						if (i >= 100)
+							break;
+						var beginIndex = newFolderName.lastIndexOf(' (');
+						var endIndex = newFolderName.lastIndexOf(')');
+						var number = 1;
+						if (beginIndex != -1 && endIndex != -1 && beginIndex < endIndex) {
+							number = newFolderName.substring(beginIndex + 2, endIndex);
+							number = parseInt(number);
+							if (isNaN(number))
+								number = 1;
+							else
+								number += 1;
+						}
+						newFolderName = i18n.newFolder + ' (' + number + ')';
+						model = collection.find(function(model) {
+							return model.get('name') == newFolderName;
+						});
+					}
+					$input.val(newFolderName).focus().select();
+				}, 250);
+			},
+			rename : function() {
+				var self = this;
+				var model = this.model;
+				switch (model.get('linkCount')) {
+				case 'BigMail':
+				case 'Guest':
+					alert(i18n.cannotRenameFolder);
+					return;
+				}
+				this.$el.addClass('new_folder');
+				var $wrapper = this.$el.find('> div.reverse-area > span.item_wrap > p.mc-folder_name');
+				var $input = $('<input>', {
+					type : 'text',
+					value : model.get('name')
+				}).click(function(event) {
+					return false;
+				}).appendTo($wrapper.empty());
+				var $span = $('<span></span>').text(model.get('name')).hide().appendTo('body');
+				var width = $span.width();
+				$input.css('width', width < 120 ? 140 : width + 20).select().focus();
+				$input.keydown(function(event) {
+					event.stopPropagation();
+					if (event.which == 13) {
+						event.preventDefault();
+						$(this).blur();
+					}
+				}).keyup(function(event) {
+					var $this = $(this);
+					$span.text($this.val());
+					var width = $span.width();
+					$this.css('width', width < 120 ? 140 : width + 20);
+				}).blur(function(event) {
+					self.$el.removeClass('new_folder');
+					$span.remove();
+					var $this = $(this);
+					var newName = $this.val();
+					if (newName.length > 255) {
+						if (model.get('directory'))
+							alert(i18n.folderNameTooLong);
+						else
+							alert(i18n.fileNameTooLong);
+						$this.select();
+						return false;
+					}
+					var originalName = model.get('name');
+					if (!newName || newName == originalName) {
+						$this.remove();
+						$wrapper.text(originalName);
+						return false;
+					}
+					if (/[\/:*?\"<>|\r\n\t]/g.test(newName)) {
+						alert(i18n.invalidFileName);
+						$this.val(newName.replace(/[\/:*?\"<>|\r\n\t]/g, ''));
+						$this.select();
+						return false;
+					}
+					disk.overlayView.showOverlay();
+					model.save({
+						path : model.get('path'),
+						name : model.get('name'),
+						renameTo : newName
+					}, {
+						patch : true,
+						wait : true,
+						success : function(model, response, options) {
+							disk.overlayView.hideOverlay();
+							model.set('name', newName);
+							if (disk.folderModel.id === model.id) {
+								disk.folderModel.set('name', newName);
+								disk.renamedFolder = model;
+								disk.syncFilePaginator({
+									id : model.parentFolder.id
+								});
+							}
+							if (disk.folderModel.id === model.parentFolder.id)
+								disk.syncFilePaginator();
+						},
+						error : function(model, response, options) {
+							switch (response.status) {
+							case 409:
+								if (model.get('directory'))
+									alert(i18n.folderNameAlreadyExists + newName);
+								else
+									alert(i18n.fileNameAlreadyExists + newName);
+								break;
+							default:
+								if (model.get('directory'))
+									alert(i18n.failedToRenameFolder);
+								else
+									alert(i18n.failedToRenameFile);
+							}
+							$this.remove();
+							$wrapper.text(originalName);
+							disk.overlayView.hideOverlay();
+						},
+					});
+					return false;
+				});
+				return;
+			},
+		}); // disk.MyDriveFolderItemView
+
+		disk.MyDriveTrashItemView = Backbone.Marionette.CompositeView.extend({
+			tagName : 'li',
+			template : function(data) {
+				var html, compiledTemplate = disk.MyDriveTrashItemView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#my-drive-trash-item-template').html();
+					compiledTemplate = _.template(html);
+					disk.MyDriveTrashItemView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					trash : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function() {
+				// this.model == disk.trashFolderModel
+				this.listenTo(this.model, 'change', this.render);
+				this.listenTo(app.vent, 'toggle:folder-selection', function(id) {
+					if (this.model.id === id)
+						this.$el.children('div.reverse-area').addClass('click');
+					else
+						this.$el.children('div.reverse-area').removeClass('click');
+				});
+			},
+			onRender : function() {
+				var self = this;
+				this.$el.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					app.$hidablesListener.trigger('hide.all');
+					var now = Date.now ? Date.now() : (new Date()).getTime();
+					location.hash = '#disk/files?id=' + self.model.id + '&_=' + now;
+					return false;
+				});
+				var $empty = this.$el.find('p.mc-btn_clean');
+				$empty.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					disk.emptyTrash();
+					return false;
+				});
+			},
+		}); // disk.MyDriveTrashItemView
+
+		disk.MyDriveFoldersView = Backbone.Marionette.CompositeView.extend({
+			template : function(data) {
+				var html, compiledTemplate = disk.MyDriveFoldersView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#my-drive-folders-template').html();
+					compiledTemplate = _.template(html);
+					disk.MyDriveFoldersView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					myDrive : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			itemView : disk.MyDriveFolderItemView,
+			itemViewContainer : 'div.mc-list_menu > ul.mc-user_folder',
+			initialize : function(options) {
+				// this.model == disk.myDriveModel
+				// this.collection == disk.myDriveModel.folders
+			},
+			onRender : function() {
+				var self = this;
+				this.$myDriveHeader = this.$el.children('h3.mc-lft_mTit');
+				var $myDriveText = this.$myDriveHeader.children('span:first');
+				var $myDriveLink = this.$myDriveHeader.children('a.mc-btn_fd_up');
+				$myDriveText.add($myDriveLink).click(function(event) {
+					event.preventDefault();
+					app.vent.trigger('toggle:folder-selection', self.model.id);
+					location.hash = '#disk/files?id=' + self.model.id + '&_=' + (new Date()).getTime();
+				});
+				var $addFolder = this.$myDriveHeader.children('a.mc-btn_add');
+				$addFolder.click(function(event) {
+					event.preventDefault()
+					var model = new disk.FileModel({
+						id : null,
+						directory : true,
+						lastModified : (new Date()).getTime(),
+						name : '',
+						path : self.model.get('path') + '/' + self.model.get('name'),
+					});
+					model.parentFolder = self.model;
+					self.collection.add(model);
+				});
+				var $settings = this.$myDriveHeader.children('a.mc-btn_setup');
+				$settings.click(function(event) {
+					event.preventDefault();
+					app.vent.trigger('toggle:folder-selection', self.model.id);
+					location.hash = '#disk/settings?_=' + (new Date()).getTime();
+				});
+			},
+			onShow : function() {
+				var self = this;
+				var $region = this.$myDriveHeader.parent();
+				$region.data('folder-id', this.model.id);
+				$region.droppable({
+					greedy : true,
+					tolerance : 'pointer',
+					accept : function(element) {
+						var folderId = element.data('folder-id');
+						if (folderId && folderId !== $(this).data('folder-id')) {
+							return true;
+						}
+						var fileIds = element.data('file-ids');
+						if (fileIds && fileIds.length) {
+							return true;
+						}
+						return false;
+					},
+					drop : function(event, ui) {
+						var folderId = ui.draggable.data('folder-id');
+						if (folderId) {
+							function findFolderModel(collection, folderId) {
+								var model = collection.get(folderId);
+								if (!model) {
+									for (var i = 0; i < collection.length; i++) {
+										model = collection.at(i);
+										model = findFolderModel(model.folders, folderId);
+										if (model)
+											break;
+									}
+								}
+								return model;
+							}
+							var model = findFolderModel(disk.myDriveModel.folders, folderId);
+							if (!model)
+								return;
+							if (model.get('path') === '/' + self.model.get('name'))
+								return;
+							var models = disk.moveFiles.splice(0, disk.moveFiles.length);
+							disk.moveFiles.push(model);
+							disk.moveTo(self.model);
+							disk.moveFiles.splice(0, 1, models);
+						} // end if (folderId)
+						var fileIds = ui.draggable.data('file-ids');
+						if (fileIds && fileIds.length) {
+
+						} // end if (fileIds && fileIds.length)
+					},
+					over : function(event, ui) {
+						$(this).children('div.reverse-area').css('cursor', 'default').find(
+								'> span.item_wrap > p.mc-folder_name').css('cursor', 'default');
+					},
+					out : function(event, ui) {
+						$(this).children('div.reverse-area').css('cursor', '').find(
+								'> span.item_wrap > p.mc-folder_name').css('cursor', '');
+					},
+				});
+			},
+			onClose : function() {
+				this.trashItemView.close();
+			},
+			onCompositeCollectionRendered : function() {
+				if (this.trashItemView)
+					this.trashItemView.close();
+				this.trashItemView = new disk.MyDriveTrashItemView({
+					model : disk.trashFolderModel
+				});
+				this.$itemViewContainer.append(this.trashItemView.render().el);
+			},
+			onAfterItemAdded : function(itemView) {
+				if (itemView.model.get('linkCount') === 'BigMail')
+					this.attachmentsFolderItemView = itemView;
+				if (this.attachmentsFolderItemView) {
+					var $items = this.$itemViewContainer.children();
+					if ($items.index(this.attachmentsFolderItemView.el) > -1)
+						itemView.$el.insertBefore(this.attachmentsFolderItemView.el);
+				}
+			},
+		}); // disk.MyDriveFoldersView
+
+		disk.ShareRegionView = Backbone.Marionette.Layout.extend({
+			template : function(data) {
+				var html, compiledTemplate = disk.ShareRegionView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#share-region-template').html();
+					compiledTemplate = _.template(html);
+					disk.ShareRegionView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					data : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			regions : {
+				sharedFoldersRegion : {
+					selector : 'li.shared-folders',
+					regionType : Backbone.Marionette.Region.extend({
+						open : function(view) {
+							this.$el.empty().append(view.$el.children());
+						},
+					}),
+				},
+				groupFoldersRegion : {
+					selector : 'li.group-folders',
+					regionType : Backbone.Marionette.Region.extend({
+						open : function(view) {
+							this.$el.empty().append(view.$el.children());
+						},
+					}),
+				},
+			},
+			initialize : function(options) {
+				// this.model == No Model
+			},
+			onRender : function() {
+				/*
+				 * this.sharedFoldersRegion.show(new
+				 * disk.SharedFolderRegionView({ parentView : this, }));
+				 */
+				this.groupFoldersRegion.show(new disk.GroupFoldersRegionView({
+					model : disk.groupRootModel,
+					collection : disk.groupRootModel.folders,
+					parentView : this
+				}));
+			},
+		}); // disk.ShareRegionView
+
+		disk.SharedFolderView = Backbone.Marionette.CompositeView.extend({
+
+		}); // disk.SharedFolderView
+
+		disk.SharedFolderRegionView = Backbone.Marionette.CompositeView.extend({
+			template : function(data) {
+				var html, compiledTemplate = disk.SharedFolderRegionView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#shared-folder-region-template').html();
+					compiledTemplate = _.template(html);
+					disk.SharedFolderRegionView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					data : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			itemView : disk.SharedFolderView,
+			itemViewContainer : 'ul.child_folder.depth1',
+			initialize : function(options) {
+				// this.model == No Model
+				this.parentView = options.parentView;
+			},
+			onRender : function() {
+				var self = this;
+				var $toggle = this.$el.children('div.reverse-area:first');
+				$toggle.click(function(event) {
+					event.stopPropagation();
+					var $region = self.parentView.sharedFoldersRegion.$el;
+					if ($region.hasClass('fold_folder'))
+						$region.removeClass('fold_folder').addClass('spread_folder');
+					else
+						$region.removeClass('spread_folder').addClass('fold_folder');
+				});
+			},
+		}); // disk.SharedFolderRegionView
+
+		disk.GroupFolderItemView = Backbone.Marionette.CompositeView.extend({
+			tagName : 'li',
+			className : 'fold_folder',
+			template : function(data) {
+				var html, compiledTemplate = disk.GroupFolderItemView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#group-folder-item-template').html();
+					compiledTemplate = _.template(html);
+					disk.GroupFolderItemView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					folder : data,
+					i18n : i18n
+				});
+				return html;
+			},
+			initialize : function(options) {
+				// this.model == disk.FileModel
+				this.collection = this.model.folders;
+				this.listenTo(app.vent, 'toggle:folder-selection', function(id) {
+					if (this.model.id === id)
+						this.$el.children('div.reverse-area').addClass('click');
+					else
+						this.$el.children('div.reverse-area').removeClass('click');
+				});
+				this.listenTo(this.model, 'select:folder', function() {
+					app.vent.trigger('toggle:folder-selection', this.model.id);
+					var $parents = this.$el.parents('li.fold_folder');
+					$parents.removeClass('fold_folder').addClass('spread_folder');
+					$parents.children('ul.child_folder').show();
+				});
+				this.listenTo(this.model, 'expand:folder', function() {
+					this.$el.removeClass('fold_folder').addClass('spread_folder');
+					var $list = this.$el.children('ul.child_folder');
+					$list.slideDown();
+				});
+				this.listenTo(this.model, 'rename:folder', this.rename);
+			},
+			onRender : function() {
+				var self = this;
+				var $list = this.$el.children('ul.child_folder');
+				var paths = this.model.get('path').split('/');
+				$list.addClass('depth' + paths.length);
+				this.$el.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var model = self.model, folderModel = disk.folderModel;
+					app.vent.trigger('toggle:folder-selection', model.id);
+					var pathname = model.get('path') + '/' + model.get('name');
+					var folderPathname = folderModel.get('path') + '/' + folderModel.get('name');
+					var $this = $(this);
+					if ($this.hasClass('fold_folder')) {
+						if (self.collection.size() === 0) {
+							model.files.once('sync', function() {
+								$this.removeClass('fold_folder').addClass('spread_folder');
+								$list.slideDown();
+							});
+						} else {
+							$this.removeClass('fold_folder').addClass('spread_folder');
+							$list.slideDown();
+						}
+					} else if ($this.hasClass('spread_folder')) {
+						if (folderPathname.indexOf(pathname + '/') === -1) {
+							$this.removeClass('spread_folder').addClass('fold_folder');
+							$list.slideUp();
+						}
+					}
+					app.$hidablesListener.trigger('hide.all');
+					var now = Date.now ? Date.now() : (new Date()).getTime();
+					location.hash = '#disk/files?id=' + model.id + '&_=' + now;
+					return false;
+				});
+				this.$el.data('folder-id', this.model.id);
+				this.$el.draggable({
+					cursor : 'default',
+					cursorAt : {
+						top : -5,
+						left : -5
+					},
+					appendTo : 'div.mc-wrap > div.mc-container',
+					helper : function() {
+						var $helper = $("<div />", {
+							css : {
+								'line-height' : '18px',
+								'background-color' : '#eeeeee;',
+								'padding' : '0 4px',
+								'z-index' : '31'
+							}
+						}).append($('<span />', {
+							css : {
+								'display' : 'inline-block',
+								'width' : '20px',
+								'height' : '18px',
+								'vertical-align' : 'middle',
+								'background' : 'transparent url("img/webd_sprites.png") no-repeat',
+								'background-position' : '0px -233px',
+							},
+							text : ' ',
+						})).append(document.createTextNode(' ' + self.model.get('name')));
+						return $helper;
+					},
+				});
+				this.$el.droppable({
+					greedy : true,
+					tolerance : 'pointer',
+					accept : function(element) {
+						var folderId = element.data('folder-id');
+						if (folderId && folderId !== $(this).data('folder-id')) {
+							return true;
+						}
+						var fileIds = element.data('file-ids');
+						if (fileIds && fileIds.length) {
+							return true;
+						}
+						return false;
+					},
+					drop : function(event, ui) {
+						var folderId = ui.draggable.data('folder-id');
+						if (folderId) {
+							function findFolderModel(collection, folderId) {
+								var model = collection.get(folderId);
+								if (!model) {
+									for (var i = 0; i < collection.length; i++) {
+										model = collection.at(i);
+										model = findFolderModel(model.folders, folderId);
+										if (model)
+											break;
+									}
+								}
+								return model;
+							}
+							var model = findFolderModel(disk.groupRootModel.folders, folderId);
+							if (!model)
+								return;
+							var pathname = self.model.get('path') + '/' + self.model.get('name');
+							if (model.get('path') === pathname)
+								return;
+							var models = disk.moveFiles.splice(0, disk.moveFiles.length);
+							disk.moveFiles.push(model);
+							disk.moveTo(self.model);
+							disk.moveFiles.splice(0, 1, models);
+						} // end if (folderId)
+						var fileIds = ui.draggable.data('file-ids');
+						if (fileIds && fileIds.length) {
+
+						} // end if (fileIds && fileIds.length)
+					},
+					over : function(event, ui) {
+						$(this).children('div.reverse-area').css('cursor', 'default').find(
+								'> span.item_wrap > p.mc-folder_name').css('cursor', 'default');
+					},
+					out : function(event, ui) {
+						$(this).children('div.reverse-area').css('cursor', '').find(
+								'> span.item_wrap > p.mc-folder_name').css('cursor', '');
+					},
+				});
+				this.$el.contextmenu(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					disk.contextMenuView.showFolderMenu(event, self.model);
+					return false;
+				});
+			},
+			appendHtml : function(collectionView, itemView) {
+				var $list = collectionView.$el.children('ul.child_folder');
+				$list.append(itemView.el);
+			},
+			rename : function() {
+				var model = this.model;
+				switch (model.get('linkCount')) {
+				case 'BigMail':
+				case 'Guest':
+					alert(i18n.cannotRenameFolder);
+					return;
+				}
+				var $wrapper = this.$el.find('> div.reverse-area > span.item_wrap > p.mc-folder_name');
+				var $input = $('<input>', {
+					type : 'text',
+					value : model.get('name')
+				}).click(function(event) {
+					return false;
+				}).appendTo($wrapper.empty());
+				var $span = $('<span></span>').text(model.get('name')).hide().appendTo('body');
+				var width = $span.width();
+				$input.css('width', width < 120 ? 140 : width + 20).select().focus();
+				$input.keydown(function(event) {
+					event.stopPropagation();
+					if (event.which == 13) {
+						event.preventDefault();
+						$(this).blur();
+					}
+				}).keyup(function(event) {
+					var $this = $(this);
+					$span.text($this.val());
+					var width = $span.width();
+					$this.css('width', width < 120 ? 140 : width + 20);
+				}).blur(function(event) {
+					$span.remove();
+					var $this = $(this);
+					var newName = $this.val();
+					if (newName.length > 255) {
+						if (model.get('directory'))
+							alert(i18n.folderNameTooLong);
+						else
+							alert(i18n.fileNameTooLong);
+						$this.select();
+						return false;
+					}
+					var originalName = model.get('name');
+					if (!newName || newName == originalName) {
+						$this.remove();
+						$wrapper.text(originalName);
+						return false;
+					}
+					if (/[\/:*?\"<>|\r\n\t]/g.test(newName)) {
+						alert(i18n.invalidFileName);
+						$this.val(newName.replace(/[\/:*?\"<>|\r\n\t]/g, ''));
+						$this.select();
+						return false;
+					}
+					disk.overlayView.showOverlay();
+					model.save({
+						path : model.get('path'),
+						name : model.get('name'),
+						renameTo : newName
+					}, {
+						patch : true,
+						wait : true,
+						success : function(model, response, options) {
+							disk.overlayView.hideOverlay();
+							model.set('name', newName);
+							if (disk.folderModel.id === model.id) {
+								disk.folderModel.set('name', newName);
+								disk.renamedFolder = model;
+								disk.syncFilePaginator({
+									id : model.parentFolder.id
+								});
+							}
+							if (disk.folderModel.id === model.parentFolder.id)
+								disk.syncFilePaginator();
+						},
+						error : function(model, response, options) {
+							switch (response.status) {
+							case 409:
+								if (model.get('directory'))
+									alert(i18n.folderNameAlreadyExists + newName);
+								else
+									alert(i18n.fileNameAlreadyExists + newName);
+								break;
+							default:
+								if (model.get('directory'))
+									alert(i18n.failedToRenameFolder);
+								else
+									alert(i18n.failedToRenameFile);
+							}
+							$this.remove();
+							$wrapper.text(originalName);
+							disk.overlayView.hideOverlay();
+						},
+					});
+					return false;
+				});
+				return;
+			},
+		}); // disk.GroupFolderItemView
+
+		disk.GroupFolderView = Backbone.Marionette.CompositeView.extend({
+			tagName : 'li',
+			className : 'fold_folder',
+			template : function(data) {
+				var html, compiledTemplate = disk.GroupFolderView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#group-folder-template').html();
+					compiledTemplate = _.template(html);
+					disk.GroupFolderView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					groupFolder : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			itemView : disk.GroupFolderItemView,
+			itemViewContainer : 'ul.child_folder.depth2',
+			initialize : function(options) {
+				// this.model == disk.FileModel
+				this.collection = this.model.folders;
+				this.listenTo(app.vent, 'toggle:folder-selection', function(id) {
+					if (this.model.id === id)
+						this.$el.children('div.reverse-area').addClass('click');
+					else
+						this.$el.children('div.reverse-area').removeClass('click');
+				});
+				this.listenTo(this.model, 'select:folder', function() {
+					app.vent.trigger('toggle:folder-selection', this.model.id);
+					var $parents = this.$el.parents('li.fold_folder');
+					$parents.removeClass('fold_folder').addClass('spread_folder');
+					$parents.children('ul.child_folder').show();
+				});
+				this.listenTo(this.model, 'expand:folder', function() {
+					this.$el.removeClass('fold_folder').addClass('spread_folder');
+					var $list = this.$el.children('ul.child_folder');
+					$list.slideDown();
+				});
+			},
+			onRender : function() {
+				var self = this;
+				var $list = this.$el.children('ul.child_folder');
+				this.$el.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var model = self.model, folderModel = disk.folderModel;
+					app.vent.trigger('toggle:folder-selection', model.id);
+					var pathname = model.get('path') + '/' + model.get('name');
+					var folderPathname = folderModel.get('path') + '/' + folderModel.get('name');
+					var $this = $(this);
+					if ($this.hasClass('fold_folder')) {
+						if (self.collection.size() === 0) {
+							model.files.once('sync', function() {
+								$this.removeClass('fold_folder').addClass('spread_folder');
+								$list.slideDown();
+							});
+						} else {
+							$this.removeClass('fold_folder').addClass('spread_folder');
+							$list.slideDown();
+						}
+					} else if ($this.hasClass('spread_folder')) {
+						if (folderPathname.indexOf(pathname + '/') === -1) {
+							$this.removeClass('spread_folder').addClass('fold_folder');
+							$list.slideUp();
+						}
+					}
+					app.$hidablesListener.trigger('hide.all');
+					var now = Date.now ? Date.now() : (new Date()).getTime();
+					location.hash = '#disk/files?id=' + model.id + '&_=' + now;
+					return false;
+				});
+				this.$el.data('folder-id', this.model.id);
+				this.$el.droppable({
+					greedy : true,
+					tolerance : 'pointer',
+					accept : function(element) {
+						var folderId = element.data('folder-id');
+						if (folderId && folderId !== $(this).data('folder-id')) {
+							return true;
+						}
+						var fileIds = element.data('file-ids');
+						if (fileIds && fileIds.length) {
+							return true;
+						}
+						return false;
+					},
+					drop : function(event, ui) {
+						var folderId = ui.draggable.data('folder-id');
+						if (folderId) {
+							function findFolderModel(collection, folderId) {
+								var model = collection.get(folderId);
+								if (!model) {
+									for (var i = 0; i < collection.length; i++) {
+										model = collection.at(i);
+										model = findFolderModel(model.folders, folderId);
+										if (model)
+											break;
+									}
+								}
+								return model;
+							}
+							var model = findFolderModel(disk.groupRootModel.folders, folderId);
+							if (!model)
+								return;
+							var pathname = self.model.get('path') + '/' + self.model.get('name');
+							if (model.get('path') === pathname)
+								return;
+							var models = disk.moveFiles.splice(0, disk.moveFiles.length);
+							disk.moveFiles.push(model);
+							disk.moveTo(self.model);
+							disk.moveFiles.splice(0, 1, models);
+						} // end if (folderId)
+						var fileIds = ui.draggable.data('file-ids');
+						if (fileIds && fileIds.length) {
+
+						} // end if (fileIds && fileIds.length)
+					},
+					over : function(event, ui) {
+						$(this).children('div.reverse-area').css('cursor', 'default').find(
+								'> span.item_wrap > p.mc-folder_name').css('cursor', 'default');
+					},
+					out : function(event, ui) {
+						$(this).children('div.reverse-area').css('cursor', '').find(
+								'> span.item_wrap > p.mc-folder_name').css('cursor', '');
+					},
+				});
+				this.$el.contextmenu(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					disk.contextMenuView.showFolderMenu(event, self.model);
+					return false;
+				});
+			}
+		}); // disk.GroupFolderView
+
+		disk.GroupFoldersRegionView = Backbone.Marionette.CompositeView.extend({
+			template : function(data) {
+				var html, compiledTemplate = disk.GroupFoldersRegionView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#group-folders-region-template').html();
+					compiledTemplate = _.template(html);
+					disk.GroupFoldersRegionView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					groupRoot : data,
+					i18n : i18n
+				});
+				return html;
+			},
+			itemView : disk.GroupFolderView,
+			itemViewContainer : 'ul.child_folder.depth1',
+			initialize : function(options) {
+				// this.model == disk.groupRootModel
+				// this.collection == disk.groupRootModel.folders
+				this.parentView = options.parentView;
+				this.listenTo(app.vent, 'toggle:folder-selection', function(id) {
+					var $region = this.parentView.groupFoldersRegion.$el;
+					if (this.model.id === id)
+						$region.children('div.reverse-area').addClass('click');
+					else
+						$region.children('div.reverse-area').removeClass('click');
+				});
+			},
+			onRender : function() {
+				var self = this;
+				var $toggle = this.$el.children('div.reverse-area:first');
+				$toggle.click(function(event) {
+					event.stopPropagation();
+					app.vent.trigger('toggle:folder-selection', self.model.id);
+					var model = self.model, folderModel = disk.folderModel;
+					var pathname = model.get('path') + '/' + model.get('name');
+					var folderPathname = folderModel.get('path') + '/' + folderModel.get('name');
+					var $region = self.parentView.groupFoldersRegion.$el;
+					if ($region.hasClass('fold_folder')) {
+						if (self.collection.size() === 0) {
+							self.model.files.once('sync', function() {
+								$region.removeClass('fold_folder').addClass('spread_folder');
+							});
+						} else {
+							$region.removeClass('fold_folder').addClass('spread_folder');
+						}
+					} else if ($region.hasClass('spread_folder')) {
+						if (folderPathname.indexOf(pathname + '/') === -1) {
+							$region.removeClass('spread_folder').addClass('fold_folder');
+						}
+					}
+					app.$hidablesListener.trigger('hide.all');
+					var now = Date.now ? Date.now() : (new Date()).getTime();
+					location.hash = '#disk/files?id=' + self.model.id + '&_=' + now;
+				});
+			},
+		}); // disk.GroupFoldersRegionView
+
+		disk.ContentLayout = Backbone.Marionette.Layout.extend({
+			tagName : 'div',
+			className : 'mc-content',
+			template : function(data) {
+				var html = disk.$template.filter('#content-layout-template').html();
+				var compiledTemplate = _.template(html);
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			regions : {
+				contentHeaderRegion : 'div.mc-content_header',
+				advancedSearchRegion : 'div.detail_search_view',
+				toolbarRegion : 'div.mc-actionArea',
+				filterRegion : 'div.add_layertbl',
+				folderDetailsRegion : 'div.content_box > div.mc-divList > div.type_list',
+				folderIconsRegion : 'div.content_box > div.mc-divList > div.type_thumb',
+				paginationRegion : 'div.content_box_bottom',
+			},
+			initialize : function(options) {
+				// this.model == No Model
+				this.listenTo(this, 'show:filter-layer', function() {
+					this.filterRegion.$el.attr('hidable', true).show();
+				});
+				this.listenTo(this, 'hide:filter-layer', function() {
+					this.filterRegion.$el.hide();
+				});
+				this.listenTo(this, 'show:folder-details', function() {
+					this.folderIconsRegion.$el.hide();
+					this.folderDetailsRegion.$el.show();
+					app.$hidablesListener.trigger('hide.all');
+					app.vent.trigger('folder-details:rendered');
+				});
+				this.listenTo(this, 'show:folder-icons', function() {
+					this.folderDetailsRegion.$el.hide();
+					this.folderIconsRegion.$el.show();
+					app.$hidablesListener.trigger('hide.all');
+					app.vent.trigger('folder-icons:rendered');
+				});
+			},
+			onRender : function() {
+				var self = this;
+				var paginator = disk.filePaginator;
+				// Header Region
+				this.contentHeaderRegion.show(new disk.ContentHeaderView({
+					model : disk.folderModel
+				}));
+				this.advancedSearchRegion.show(new disk.AdvancedSearchView({
+					contentLayout : this
+				}));
+				// Toolbar Region
+				this.toolbarRegion.show(new disk.FolderToolbarView({
+					collection : paginator,
+					contentLayout : this
+				}));
+				this.filterRegion.show(new disk.FolderFilterView({
+					contentLayout : this
+				}));
+				this.filterRegion.$el.css({
+					'margin-top' : '-7px',
+					'right' : '14px',
+				});
+				// Content Region
+				var model = new Backbone.Model(paginator.paginator_ui);
+				if (app.userModel && app.userModel.get('USERS_LISTNUM')) {
+					model.set('perPage', app.userModel.get('USERS_LISTNUM'));
+				}
+				this.folderDetailsRegion.show(new disk.FolderDetailsView({
+					model : model,
+					collection : paginator
+				}));
+				this.folderIconsRegion.show(new disk.FolderIconsView({
+					model : model,
+					collection : paginator
+				}));
+				this.paginationRegion.show(new disk.PaginationView({
+					collection : paginator
+				}));
+				var $contentWrapper = this.folderDetailsRegion.$el.parent().parent();
+				this.$el.off('resize.contentLayout');
+				this.$el.on('resize.contentLayout', function(event) {
+					var $contentHeaderRegion = self.contentHeaderRegion.$el;
+					var $advancedSearchRegion = self.advancedSearchRegion.$el;
+					var $toolbarRegion = self.toolbarRegion.$el;
+					var top = $contentHeaderRegion.outerHeight(true) + $toolbarRegion.outerHeight(true);
+					if ($advancedSearchRegion.is(':visible'))
+						top += $advancedSearchRegion.outerHeight(true);
+					$contentWrapper.css('top', top);
+					var $filterRegion = self.filterRegion.$el;
+					return true;
+				});
+				// Drag & Drop
+				this.$el.on('dragenter', function(event) {
+					var dataTransfer = event.originalEvent.dataTransfer;
+					var types = dataTransfer.types;
+					if (types) {
+						if ((types.contains && types.contains("Files"))
+								|| (types.indexOf && types.indexOf("Files") !== -1)) {
+							if (disk.droppableView.$el.is(':hidden'))
+								disk.droppableView.$el.show();
+						}
+					}
+					return true;
+				});
+			},
+		}); // disk.ContentLayout
+
+		disk.ContentHeaderView = Backbone.Marionette.Layout.extend({
+			template : function(data) {
+				var html, compiledTemplate = disk.ContentHeaderView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#content-header-template').html();
+					compiledTemplate = _.template(html);
+					disk.ContentHeaderView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					folder : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			regions : {
+				simpleSearchRegion : {
+					selector : 'fieldset.mc-msearch',
+					regionType : Backbone.Marionette.Region.extend({
+						open : function(view) {
+							this.$el.empty().append(view.$el.children());
+						},
+					})
+				},
+			},
+			initialize : function(options) {
+				// this.model == disk.folderModel
+				this.listenTo(this.model, 'change', this.render);
+				this.contentLayout = options.contentLayout;
+			},
+			onRender : function() {
+				var self = this;
+				this.simpleSearchRegion.show(new disk.SimpleSearchView({
+					contentLayout : this.contentLayout
+				}));
+			},
+		}); // disk.ContentHeaderView
+
+		disk.SimpleSearchView = Backbone.Marionette.ItemView.extend({
+			template : function(data) {
+				var html, compiledTemplate = disk.SimpleSearchView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#simple-search-template').html();
+					compiledTemplate = _.template(html);
+					disk.SimpleSearchView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				// this.model == No Model
+			},
+			onRender : function() {
+				var self = this;
+				var $input = this.$el.find('input[name="term"]:first').placeholder();
+				$input.keydown(function(event) {
+					event.stopPropagation();
+					if (event.which == 13) {
+						event.preventDefault();
+						var $this = $(this);
+						var term = $this.val();
+						$this.blur();
+						location.hash = '#disk/files?search=' + encodeURIComponent(term);
+					}
+				});
+				var $search = this.$el.find('input[name="search"]:first')
+				$search.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var term = $input.val();
+					$input.blur();
+					location.hash = '#disk/files?search=' + encodeURIComponent(term);
+					return false;
+				});
+				var $advancedSearch = this.$el.children('a.mc-search_detail');
+				$advancedSearch.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var contentLayout = disk.controller.contentLayout;
+					var $advancedSearchRegion = contentLayout.advancedSearchRegion.$el;
+					$advancedSearchRegion.toggle();
+					if ($advancedSearchRegion.is(':visible')) {
+						$(this).css('background', 'url(img/btn_mail.gif) no-repeat -91px -151px');
+					} else {
+						$(this).css('background', 'url(img/btn_mail.gif) no-repeat -33px -151px');
+					}
+					$(this).trigger('resize.contentLayout');
+					return false;
+				});
+			},
+		}); // disk.SimpleSearchView
+
+		disk.AdvancedSearchView = Backbone.Marionette.ItemView.extend({
+			tagName : 'form',
+			template : function(data) {
+				var html, compiledTemplate = disk.AdvancedSearchView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#advanced-search-template').html();
+					compiledTemplate = _.template(html);
+					disk.AdvancedSearchView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				// this.model == No Model
+			},
+			onRender : function() {
+				var self = this;
+				var $path = this.$el.find('input[name="path"]');
+				var $folder = this.$el.find('input[name="folder"]:first');
+				$path.change(function(event) {
+					var id = $(this).attr('id');
+					switch (id) {
+					case 'lookIn':
+						$folder.focus();
+						break;
+					default:
+						$folder.data('pathname', '').val('');
+					}
+				});
+				$folder.focus(function(event) {
+					if ($path.filter(':checked').attr('id') !== 'lookIn') {
+						$path.filter('#lookIn').prop('checked', true);
+					}
+					var folderPathView = new disk.FolderPathView();
+					folderPathView.showSearchIn(function(folderModel) {
+						var pathname = folderModel.get('path') + '/' + folderModel.get('name');
+						$folder.data('pathname', pathname)
+						if (folderModel.get('path').match(/^\/마이디스크/))
+							pathname = folderModel.get('path').replace(/^\/마이디스크/, '');
+						else if (folderModel.get('path').match(/^\/공유디스크/))
+							pathname = folderModel.get('path').replace(/^\/공유디스크/, '/' + i18n.groupDrive);
+						pathname += '/' + folderModel.get('name');
+						if (folderModel.get('path') == '/마이디스크' && folderModel.get('name') == '대용량메일')
+							pathname = '/' + i18n.folder.largeAttachments;
+						$folder.val(pathname);
+					});
+					return false;
+				});
+				var $type = this.$el.find('select[name="type"]:first');
+				var $size = this.$el.find('select[name="size"]:first');
+				var $date = this.$el.find('select[name="date"]:first');
+				var $dateFrom = this.$el.find('input[name="from"]:first');
+				$dateFrom.datepicker({
+					maxDate : new Date,
+					beforeShow : function(input, inst) {
+						$date.val('custom');
+					}
+				});
+				var $dateTo = this.$el.find('input[name="to"]:first');
+				$dateTo.datepicker({
+					maxDate : new Date,
+					beforeShow : function(input, inst) {
+						$date.val('custom');
+					}
+				});
+				$date.change(function(event) {
+					var $this = $(this);
+					var date = new Date(), now = new Date();
+					var format = $dateTo.datepicker('option', 'dateFormat');
+					switch ($this.val()) {
+					case '1w':
+						date.setDate(now.getDate() - 7);
+						$dateFrom.val($.datepicker.formatDate(format, date));
+						$dateTo.val($.datepicker.formatDate(format, now));
+						break;
+					case '1m':
+						date.setMonth(now.getMonth() - 1);
+						$dateFrom.val($.datepicker.formatDate(format, date));
+						$dateTo.val($.datepicker.formatDate(format, now));
+						break;
+					case '3m':
+						date.setMonth(now.getMonth() - 3);
+						$dateFrom.val($.datepicker.formatDate(format, date));
+						$dateTo.val($.datepicker.formatDate(format, now));
+						break;
+					case '6m':
+						date.setMonth(now.getMonth() - 6);
+						$dateFrom.val($.datepicker.formatDate(format, date));
+						$dateTo.val($.datepicker.formatDate(format, now));
+						break;
+					case 'custom':
+					case 'any':
+					default:
+						$dateFrom.val('');
+						$dateTo.val('');
+					}
+					return false;
+				});
+				var contentHeaderRegion = this.options.contentLayout.contentHeaderRegion;
+				var $search = this.$el.find('button.btn_srch_submit');
+				$search.click(function(event) {
+					var params = '';
+					var $term = contentHeaderRegion.$el.find('input[name="term"]:first');
+					if ($term.val()) {
+						params += 'search.term=' + encodeURIComponent($term.val());
+					}
+					if ($type.val() && $type.val() !== 'any') {
+						if (params.length)
+							params += '&';
+						params += 'search.type=' + $type.val();
+					}
+					if ($size.val() && $size.val() !== 'any') {
+						if (params.length)
+							params += '&';
+						switch ($size.val()) {
+						case 'small':
+							params += 'search.sizeFrom=0';
+							params += '&search.sizeTo=' + (1 * 1024 * 1024 - 1);
+							break;
+						case 'medium':
+							params += 'search.sizeFrom=' + (1 * 1024 * 1024);
+							params += '&search.sizeTo=' + (10 * 1024 * 1024 - 1);
+							break;
+						case 'large':
+							params += 'search.sizeFrom=' + (10 * 1024 * 1024);
+							params += '&search.sizeTo=' + (100 * 1024 * 1024 - 1);
+							break;
+						case 'huge':
+							params += 'search.sizeFrom=' + (100 * 1024 * 1024);
+							params += '&search.sizeTo=' + (1024 * 1024 * 1024 - 1);
+							break;
+						case 'gigantic':
+							params += 'search.sizeFrom=' + (1 * 1024 * 1024 * 1024);
+							params += '&search.sizeTo=' + (4 * 1024 * 1024 * 1024);
+							break;
+						}
+					}
+					if ($date.val() && $date.val() !== 'any') {
+						var fromDate, toDate;
+						var format = $dateTo.datepicker('option', 'dateFormat');
+						try {
+							fromDate = $.datepicker.parseDate(format, $dateFrom.val());
+						} catch (error) {
+							alert(i18n.search.invalidStartDate);
+							$dateFrom.val('');
+							return false;
+						}
+						try {
+							toDate = $.datepicker.parseDate(format, $dateTo.val());
+						} catch (error) {
+							alert(i18n.search.invalidEndDate);
+							$dateTo.val('');
+							return false;
+						}
+						if (fromDate && toDate) {
+							if (fromDate.getTime() > toDate.getTime()) {
+								alert(i18n.search.endDateCannotBeEarlierThanStartDate);
+								$dateTo.val('');
+								return false;
+							}
+							if (params.length)
+								params += '&';
+							params += 'search.dateFrom=' + $.format.date(fromDate, 'yyyyMMdd');
+							params += '&search.dateTo=' + $.format.date(toDate, 'yyyyMMdd');
+						}
+					}
+					if ($folder.val()) {
+						if (params.length)
+							params += '&';
+						else
+							params += 'search.term=&';
+						params += 'search.path=' + encodeURIComponent($folder.data('pathname'));
+					}
+					if (!params.length)
+						params += 'search.term=';
+					location.hash = '#disk/files?' + params;
+					return false;
+				});
+			},
+		}); // disk.AdvancedSearchView
+
+		disk.FolderViewLayoutView = Backbone.Marionette.ItemView.extend({
+			tagName : 'ul',
+			className : 'view_box',
+			template : function(data) {
+				var html, compiledTemplate = disk.FolderViewLayoutView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#folder-view-layout-template').html();
+					compiledTemplate = _.template(html);
+					disk.FolderViewLayoutView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				// this.model == No Model
+			},
+			onRender : function() {
+				var self = this;
+				var contentLayout = this.options.contentLayout;
+				this.$filter = this.$el.find('li.c_filter:first');
+				this.$filter.click(function(event) {
+					var $link = $(this).children('a');
+					var $filterRegion = contentLayout.filterRegion.$el;
+					if ($filterRegion.is(':hidden')) {
+						$link.removeClass('close');
+					}
+					if ($link.hasClass('close')) {
+						$link.removeClass('close');
+						contentLayout.trigger('hide:filter-layer');
+					} else {
+						$link.addClass('close');
+						contentLayout.trigger('show:filter-layer');
+					}
+					return false;
+				});
+				var $details = this.$el.find('li.v_ty1:first');
+				var $icons = this.$el.find('li.v_ty2:first');
+				$details.click(function(event) {
+					var $this = $(this);
+					if (!$this.hasClass('on')) {
+						$this.addClass('on');
+						$icons.removeClass('on');
+						contentLayout.trigger('show:folder-details');
+					}
+					return false;
+				});
+				$icons.click(function(event) {
+					var $this = $(this);
+					if (!$this.hasClass('on')) {
+						$this.addClass('on');
+						$details.removeClass('on');
+						contentLayout.trigger('show:folder-icons');
+					}
+					return false;
+				});
+				if (!contentLayout.folderDetailsRegion.$el) {
+					return;
+				}
+				if (contentLayout.folderDetailsRegion.$el.is(':visible')) {
+					$details.addClass('on');
+					$icons.removeClass('on');
+				}
+				if (contentLayout.folderIconsRegion.$el.is(':visible')) {
+					$details.removeClass('on');
+					$icons.addClass('on');
+				}
+			},
+		}); // disk.FolderViewLayoutView
+
+		disk.FolderFilterView = Backbone.Marionette.ItemView.extend({
+			tagName : 'div',
+			className : 'view_filter',
+			attributes : {
+				tabindex : '0'
+			},
+			template : function(data) {
+				var html, compiledTemplate = disk.FolderFilterView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#folder-filter-template').html();
+					compiledTemplate = _.template(html);
+					disk.FolderFilterView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				// this.model == No Model
+				this.listenTo(app.vent, 'filter:files:none', function() {
+					var $checkbox = this.$el.find('#filter-none');
+					$checkbox.prop('checked', true).parent('li').click();
+					if (disk.filePaginator.fieldFilterRules)
+						disk.filePaginator.setFieldFilter([]);
+				});
+			},
+			onRender : function() {
+				var self = this;
+				var $list = this.$el.children('ul.filtering');
+				var $items = $list.children('li');
+				var $checkboxes = $items.children('input[type="checkbox"]');
+				var $extentions = $items.children('input[name="file-extensions"]');
+				$extentions.click(function(event) {
+					return false;
+				});
+				$items.click(function(event) {
+					var $this = $(this);
+					$items.removeClass('checked');
+					$this.addClass('checked');
+					$checkboxes.prop('checked', false);
+					var $checkbox = $this.children('input[type="checkbox"]');
+					$checkbox.prop('checked', true);
+					return false;
+				});
+				var $okay = this.$el.find('div.add_layer_btn > button.b');
+				$okay.click(function(event) {
+					event.preventDefault();
+					var rules, $checkbox = $checkboxes.filter(':checked');
+					switch ($checkbox.attr('id')) {
+					case 'filter-none':
+						rules = [];
+						break;
+					case 'filter-files':
+						rules = [ {
+							field : 'file',
+							type : 'equalTo',
+							value : true
+						} ];
+						break;
+					case 'filter-folders':
+						rules = [ {
+							field : 'directory',
+							type : 'equalTo',
+							value : true
+						} ];
+						break;
+					case 'filter-shared':
+						break;
+					case 'filter-important':
+						rules = [ {
+							field : 'starred',
+							type : 'equalTo',
+							value : true
+						} ];
+						break;
+					case 'filter-extensions':
+						var pattern = $extentions.val();
+						pattern = pattern.replace(/\s|\*/g, '');
+						var expr = [];
+						for (var i = 0; i < pattern.length; i++) {
+							var ch = pattern.charAt(i);
+							if ("^$.*+?=!:|\/()[]{}".indexOf(ch) != -1)
+								expr.push("\\");
+							expr.push(ch);
+						}
+						pattern = expr.join("");
+						pattern = pattern.replace(/,/g, '|');
+						rules = [ {
+							field : 'name',
+							type : 'pattern',
+							value : new RegExp('(' + pattern + ')$', 'i')
+						} ];
+						break;
+					}
+					disk.filePaginator.setFieldFilter(rules);
+				});
+				var $cancel = this.$el.find('div.add_layer_btn > button:not(.b)');
+				$cancel.click(function(event) {
+					event.preventDefault();
+					app.vent.trigger('filter:files:none');
+				});
+			},
+		}); // disk.FolderFilterView
+
+		disk.FolderToolbarView = Backbone.Marionette.Layout.extend({
+			template : function(data) {
+				var html, compiledTemplate = disk.FolderToolbarView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#folder-toolbar-template').html();
+					compiledTemplate = _.template(html);
+					disk.FolderToolbarView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					folder : disk.folderModel.toJSON(),
+					i18n : i18n,
+					popup : isPopup()
+				});
+				return html;
+			},
+			regions : {
+				folderViewLayoutRegion : 'div.right_sort',
+			},
+			initialize : function(options) {
+				// this.model == No Model
+				// this.collection == disk.filePaginator
+				this.listenTo(app.vent, 'folder-details:rendered', function() {
+					var contentLayout = this.options.contentLayout;
+					if (contentLayout.folderDetailsRegion.$el.is(':visible'))
+						this.render();
+				});
+				this.listenTo(app.vent, 'folder-icons:rendered', function() {
+					var contentLayout = this.options.contentLayout;
+					if (contentLayout.folderIconsRegion.$el.is(':visible'))
+						this.render();
+				});
+				this.listenTo(this.collection, 'change', function() {
+					var contentLayout = this.options.contentLayout;
+					var folderDetailsRegion = contentLayout.folderDetailsRegion;
+					var folderIconsRegion = contentLayout.folderIconsRegion;
+					if (this.$checkboxes)
+						this.$checkboxes.off('change.checkboxes');
+					var $checkboxes = $([]);
+					if (folderDetailsRegion.$el && folderDetailsRegion.$el.is(':visible')) {
+						$checkboxes = folderDetailsRegion.$el.find('li.mc-check input[type="checkbox"]');
+					}
+					if (folderIconsRegion.$el && folderIconsRegion.$el.is(':visible')) {
+						$checkboxes = folderIconsRegion.$el.find('div.check > input[type="checkbox"]');
+					}
+					this.$checkboxes = $checkboxes;
+					var $toggle = this.$toggle;
+					$checkboxes.on('change.checkboxes', function(event) {
+						event.stopPropagation();
+						if (this.checked) {
+							if ($checkboxes.length == $checkboxes.filter(':checked').length)
+								$toggle.prop('checked', true);
+						} else {
+							$toggle.removeAttr('checked');
+						}
+					});
+				});
+			},
+			onRender : function() {
+				var self = this;
+				var $toolsWrapper = this.$el.children('div.mc-buttonSet');
+				this.$toggle = $toolsWrapper.find('> span.task_check > input[type="checkbox"]');
+				this.$toggle.change(function(event) {
+					event.stopPropagation();
+					var $checkboxes = self.$checkboxes;
+					if (this.checked) {
+						if (!$checkboxes.length) {
+							this.checked = false;
+							return false;
+						}
+						$checkboxes.prop('checked', true);
+					} else {
+						$checkboxes.removeAttr('checked');
+					}
+					$checkboxes.change();
+				});
+				this.collection.trigger('change');
+				app.vent.off('contextmenu:files');
+				app.vent.on('contextmenu:files', function(mouseEvent, fileModel) {
+					var models = [], $checkboxes = self.$checkboxes;
+					var $selected = $checkboxes.filter(function(index, element) {
+						return fileModel.id === element.id;
+					});
+					var $checked = $checkboxes.filter(':checked');
+					if ($checked.index($selected) !== -1) {
+						$selected.prop('checked', true).change();
+						$checked.each(function(index, element) {
+							var model = self.collection.get(element.id);
+							if (model)
+								models.push(model);
+						});
+					} else {
+						$checked.prop('checked', false).change();
+						$selected.prop('checked', true).change();
+						models.push(fileModel);
+					}
+					disk.contextMenuView.showFilesMenu(mouseEvent, models);
+				});
+				var $upload = $toolsWrapper.find('> div.btn_grp > span.up_file');
+				$upload.click(disk.uploadFilesHandler);
+				var $download = $toolsWrapper.find('> div.btn_grp > button.download-files');
+				$download.click(function(event) {
+					event.preventDefault();
+					var $checked = self.$checkboxes.filter(':checked');
+					var models = [];
+					$checked.each(function(index, element) {
+						var model = self.collection.get(element.id);
+						if (model)
+							models.push(model);
+					});
+					disk.downloadFiles(models);
+				});
+				var $delete = $toolsWrapper.find('button.delete-files');
+				$delete.click(function(event) {
+					event.preventDefault();
+					var $checked = self.$checkboxes.filter(':checked');
+					var models = [];
+					$checked.each(function(index, element) {
+						var id = $(this).attr('id');
+						var model = self.collection.get(id);
+						if (model)
+							models.push(model);
+					});
+					disk.deleteFiles(models);
+				});
+				var $restore = $toolsWrapper.children('button.restore-files');
+				$restore.click(function(event) {
+					event.preventDefault();
+					var $checked = self.$checkboxes.filter(':checked');
+					var models = [];
+					$checked.each(function(index, element) {
+						var id = $(this).attr('id');
+						var model = self.collection.get(id);
+						if (model)
+							models.push(model);
+					});
+					disk.restoreFiles(models);
+				});
+				var $emptyTrash = $toolsWrapper.children('button.empty-trash');
+				$emptyTrash.click(function(event) {
+					event.preventDefault();
+					disk.emptyTrash();
+				});
+				var $newFolder = $toolsWrapper.children('button.new-folder');
+				$newFolder.click(function(event) {
+					event.preventDefault();
+					app.vent.trigger('create:folder');
+				});
+				var $attachToMail = $toolsWrapper.children('button.attach-files');
+				$attachToMail.click(function(event) {
+					event.preventDefault();
+					var $checked = self.$checkboxes.filter(':checked');
+					var models = [];
+					$checked.each(function(index, element) {
+						var id = $(this).attr('id');
+						var model = self.collection.get(id);
+						if (model)
+							models.push(model.toJSON());
+					});
+					$checked.prop('checked', false).change();
+					if (!models.length) {
+						return false;
+					}
+					if (!JSON || !JSON.stringify) {
+						alert('Failed to attach files: No JSON Object');
+						return false;
+					}
+					disk.overlayView.showProcessing();
+					var url = 'disk/' + disk.folderModel.id + '/attachments';
+					if (isPopup())
+						url = '../../' + url;
+					var data = JSON.stringify(models);
+					$.ajax({
+						url : url,
+						type : 'POST',
+						dataType : 'json',
+						contentType : 'application/json',
+						data : data,
+						success : function(data, textStatus, jqXHR) {
+							disk.attachments = data;
+							var url = isPopup() ? '../#compose' : 'popup/#compose';
+							var w = window.open(url, 'composeMail', 'scrollbars=yes,width=1000,height=800');
+							w.focus();
+						},
+						error : function(jqXHR, textStatus, errorThrown) {
+							alert('Failed to attach files: ' + textStatus);
+						},
+						complete : function(jqXHR, textStatus) {
+							disk.overlayView.hideProcessing();
+						}
+					});
+				});
+				this.folderViewLayoutRegion.show(new disk.FolderViewLayoutView({
+					contentLayout : this.options.contentLayout
+				}));
+				app.debug("     disk.FolderToolbarView.onRender();");
+			},
+		}); // disk.FolderToolbarView
+
+		disk.FolderDetailsItemView = Backbone.Marionette.ItemView.extend({
+			tagName : 'li',
+			className : 'list_body_li',
+			template : function(data) {
+				var html, compiledTemplate = disk.FolderDetailsItemView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#folder-details-item-template').html();
+					compiledTemplate = _.template(html);
+					disk.FolderDetailsItemView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					file : data,
+					folder : disk.folderModel.toJSON(),
+					i18n : i18n,
+					popup : isPopup()
+				});
+				return html;
+			},
+			initialize : function(options) {
+				// this.model == disk.FileModel
+				this.listenTo(this.model, 'change', this.render);
+				this.listenTo(this.model, 'rename:file', function() {
+					if (this.$el.is(':visible'))
+						this.rename();
+				});
+			},
+			onRender : function() {
+				var self = this;
+				var $checkbox = this.$el.find('li.mc-check input[type="checkbox"]');
+				$checkbox.change(function(event) {
+					event.stopPropagation();
+					var $this = $(this);
+					if ($this.is(':checked'))
+						self.$el.addClass('focus');
+					else
+						self.$el.removeClass('focus');
+				});
+				if (this.$el.hasClass('focus')) {
+					$checkbox.prop('checked', true);
+				}
+				var $important = this.$el.find('li.mc-important a');
+				$important.click(function(event) {
+					event.preventDefault();
+					var $this = $(this), starred;
+					if ($this.hasClass('icoImportantOff')) {
+						starred = true;
+						$this.removeClass('icoImportantOff').addClass('icoImportantOn');
+					} else {
+						starred = false;
+						$this.removeClass('icoImportantOn').addClass('icoImportantOff');
+					}
+					disk.updateStarred(self.model, starred);
+					return true;
+				});
+				var $links = this.$el.find('li.mc-filename a');
+				var $shareWith = $links.filter('.bu.i_fold_adm');
+				$shareWith.click(function(event) {
+					event.preventDefault();
+					return true;
+				});
+				var $fileLink = $links.not('.bu.i_fold_adm');
+				$fileLink.click(function(event) {
+					event.preventDefault();
+					return true;
+				}).dblclick(function(event) {
+					if (self.model.get('directory'))
+						location.href = $fileLink.attr('href');
+					else
+						disk.downloadFiles([ self.model ]);
+					return false;
+				});
+				this.$el.click(function(event) {
+					if (event.target === $checkbox.get(0))
+						return true;
+					if (event.target === $important.get(0))
+						return true;
+					if (event.target === $shareWith.get(0))
+						return true;
+					if ($checkbox.is(':checked'))
+						$checkbox.prop('checked', false).change();
+					else
+						$checkbox.prop('checked', true).change();
+					return true;
+				});
+				this.$el.contextmenu(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					app.vent.trigger('contextmenu:files', event, self.model);
+					return false;
+				});
+				if (this.model.isNew()) {
+					this.createFolder();
+				}
+			},
+			createFolder : function() {
+				var self = this;
+				var $input = this.$el.find('li.mc-filename input');
+				$input.keydown(function(event) {
+					event.stopPropagation();
+					if (event.which == 13) {
+						event.preventDefault();
+						$(this).blur();
+					}
+				}).blur(function(event) {
+					var $this = $(this);
+					var folderName = $this.val();
+					if (folderName.length > 255) {
+						alert(i18n.folderNameTooLong);
+						$this.select();
+						return false;
+					}
+					if (!folderName) {
+						self.close();
+						return false;
+					}
+					if (/[\/:*?\"<>|\r\n\t]/g.test(folderName)) {
+						alert(i18n.invalidFileName);
+						$this.val(folderName.replace(/[\/:*?\"<>|\r\n\t]/g, ''));
+						$this.select();
+						return false;
+					}
+					disk.overlayView.showOverlay();
+					var model = self.model;
+					model.urlRoot = _.result(model, 'urlRoot') + '/' + model.parentFolder.id;
+					model.save({
+						name : folderName
+					}, {
+						wait : true,
+						success : function(model, response, options) {
+							self.close();
+							disk.overlayView.hideOverlay();
+							disk.syncFilePaginator();
+						},
+						error : function(model, response, options) {
+							switch (response.status) {
+							case 409:
+								alert(i18n.folderNameAlreadyExists + folderName);
+								break;
+							}
+							self.close();
+							disk.overlayView.hideOverlay();
+						},
+					});
+					return true;
+				}).click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					return false;
+				});
+				setTimeout(function() {
+					var newFolderName = i18n.newFolder;
+					var collection = self.collection;
+					var model = collection.find(function(model) {
+						return model.get('name') == newFolderName;
+					});
+					for (var i = 0; model; i++) {
+						if (i >= 100)
+							break;
+						var beginIndex = newFolderName.lastIndexOf(' (');
+						var endIndex = newFolderName.lastIndexOf(')');
+						var number = 1;
+						if (beginIndex != -1 && endIndex != -1 && beginIndex < endIndex) {
+							number = newFolderName.substring(beginIndex + 2, endIndex);
+							number = parseInt(number);
+							if (isNaN(number))
+								number = 1;
+							else
+								number += 1;
+						}
+						newFolderName = i18n.newFolder + ' (' + number + ')';
+						model = collection.find(function(model) {
+							return model.get('name') == newFolderName;
+						});
+					}
+					$input.val(newFolderName).focus().select();
+				}, 250);
+			},
+			rename : function() {
+				var model = this.model;
+				if (model.get('directory')) {
+					switch (model.get('linkCount')) {
+					case 'BigMail':
+					case 'Guest':
+						alert(i18n.cannotRenameFolder);
+						return;
+					}
+				}
+				var $wrapper = this.$el.find('li.mc-filename > div.inpd_a > div.inpd');
+				var $children = $wrapper.children().detach();
+				var $input = $('<input>', {
+					type : 'text',
+					value : model.get('name')
+				}).appendTo($wrapper);
+				var $span = $('<span></span>').text(model.get('name')).hide().appendTo('body');
+				var width = $span.width();
+				$input.css('width', width < 120 ? 140 : width + 20).select().focus();
+				$input.keydown(function(event) {
+					event.stopPropagation();
+					if (event.which == 13) {
+						event.preventDefault();
+						$(this).blur();
+					}
+				}).keyup(function(event) {
+					var $this = $(this);
+					$span.text($this.val());
+					var width = $span.width();
+					$this.css('width', width < 120 ? 140 : width + 20);
+				}).blur(function(event) {
+					$span.remove();
+					var $this = $(this);
+					var newName = $this.val();
+					if (newName.length > 255) {
+						if (model.get('directory'))
+							alert(i18n.folderNameTooLong);
+						else
+							alert(i18n.fileNameTooLong);
+						$this.select();
+						return false;
+					}
+					var originalName = model.get('name');
+					if (!newName || newName == originalName) {
+						$this.remove();
+						$wrapper.append($children);
+						return false;
+					}
+					if (/[\/:*?\"<>|\r\n\t]/g.test(newName)) {
+						alert(i18n.invalidFileName);
+						$this.val(newName.replace(/[\/:*?\"<>|\r\n\t]/g, ''));
+						$this.select();
+						return false;
+					}
+					disk.overlayView.showOverlay();
+					model.save({
+						path : model.get('path'),
+						name : model.get('name'),
+						renameTo : newName
+					}, {
+						patch : true,
+						wait : true,
+						success : function(model, response, options) {
+							disk.overlayView.hideOverlay();
+							disk.syncFilePaginator();
+						},
+						error : function(model, response, options) {
+							switch (response.status) {
+							case 409:
+								if (model.get('directory'))
+									alert(i18n.folderNameAlreadyExists + newName);
+								else
+									alert(i18n.fileNameAlreadyExists + newName);
+								break;
+							default:
+								if (model.get('directory'))
+									alert(i18n.failedToRenameFolder);
+								else
+									alert(i18n.failedToRenameFile);
+							}
+							$this.remove();
+							$wrapper.append($children);
+							disk.overlayView.hideOverlay();
+						},
+					});
+					return false;
+				});
+				return;
+			},
+		}); // disk.FolderDetailsItemView
+
+		disk.FolderDetailsView = Backbone.Marionette.CompositeView.extend({
+			template : function(data) {
+				var html, compiledTemplate = disk.FolderDetailsView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#folder-details-template').html();
+					compiledTemplate = _.template(html);
+					disk.FolderDetailsView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					params : data,
+					folder : disk.folderModel.toJSON(),
+					i18n : i18n,
+				});
+				return html;
+			},
+			itemView : disk.FolderDetailsItemView,
+			itemViewContainer : 'div.mc-listWrap > ol.list_body_group',
+			initialize : function(options) {
+				// this.model == Backbone.Model(disk.filePagnator.paginator_ui)
+				// this.collection == disk.filePaginator
+				this.listenTo(app.vent, 'paginate:files', this.paginateFiles);
+				this.listenTo(app.vent, 'create:folder', this.createFolder);
+			},
+			onRender : function() {
+				var self = this;
+				this.setParentLink();
+				this.$el.contextmenu(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var $checkboxes = self.$itemViewContainer.find('li.mc-check input[type="checkbox"]');
+					$checkboxes.filter(':checked').prop('checked', false).change();
+					disk.contextMenuView.showFilesMenu(event, [ disk.folderModel ]);
+					return false;
+				});
+				app.debug("disk.FolderDetailsView.onRender() {...}");
+				setTimeout(function() {
+					app.vent.trigger('folder-details:rendered');
+				}, 15);
+			},
+			onCompositeCollectionRendered : function() {
+				app.vent.trigger('folder-details:rendered');
+			},
+			setParentLink : function(parentModel) {
+				if (!this.$parentLink) {
+					this.$parentItem = this.$itemViewContainer.children('li.folder_root:first');
+					this.$parentLink = this.$parentItem.children('a');
+				}
+				if (isPopup()) {
+					this.$parentItem.detach();
+					return;
+				}
+				if (parentModel) {
+					this.parentModel = parentModel;
+					this.$parentLink.attr('href', '#disk/files?id=' + parentModel.id);
+					if (!this.$parentItem.parent().length)
+						this.$parentItem.prependTo(this.$itemViewContainer);
+				} else {
+					this.parentModel = disk.myDriveModel;
+					this.$parentLink.attr('href', '#disk/files?id=' + disk.myDriveModel.id);
+					switch (disk.folderModel.get('linkCount')) {
+					case 'SearchResults':
+					case 'Starred':
+					case 'Recent':
+						this.$parentItem.detach();
+						break;
+					default:
+						if (!this.$parentItem.parent().length)
+							this.$parentItem.prependTo(this.$itemViewContainer);
+					}
+				}
+				var self = this;
+				this.$parentLink.off('dblclick').on('dblclick', function(event) {
+					location.hash = self.$parentLink.attr('href');
+					return true;
+				});
+				this.$parentLink.off('click').on('click', function(event) {
+					event.preventDefault();
+					return true;
+				});
+			},
+			renderColumns : function(params) {
+				this.model.clear({
+					silent : true
+				});
+				if (!params.id)
+					this.model.set('id', null);
+				if (!params.currentPage)
+					this.model.set('currentPage', this.collection.paginator_ui.currentPage);
+				if (!params.perPage) {
+					if (app.userModel && app.userModel.get('USERS_LISTNUM'))
+						this.model.set('perPage', app.userModel.get('USERS_LISTNUM'));
+					else
+						this.model.set('perPage', this.collection.paginator_ui.perPage);
+				}
+				if (!params.sortColumn) {
+					this.model.set('sortColumn', this.collection.paginator_ui.sortColumn);
+					this.collection.sortColumn = this.collection.paginator_ui.sortColumn;
+				}
+				if (disk.folderModel.get('linkCount') === 'BigMail' && !params.currentPage) {
+					params.currentPage = this.collection.paginator_ui.currentPage;
+					params.sortColumn = 'uploaded';
+					this.collection.resetDefaults(params);
+					location.hash = '#' + this.collection.getURL(params);
+					return;
+				}
+				this.model.set(params);
+				var html = this.renderModel();
+				html = $('<div>').html(html).children('ul.mc-wdListItem').html();
+				var $columnList = this.$el.children('ul.mc-wdListItem');
+				$columnList.html(html);
+			},
+			paginateFiles : function(params, parentModel, models) {
+				this.renderColumns(params);
+				this.setParentLink(parentModel);
+				var $region = this.$el.parent();
+				if ($region.is(':hidden'))
+					return;
+				var paginator = this.collection;
+				if (models) {
+					delete paginator.origModels;
+					paginator.reset(models, {
+						silent : true
+					});
+				}
+				paginator.resetDefaults(params);
+				if (params && params.currentPage)
+					paginator.goTo(params.currentPage);
+				else
+					paginator.goTo(1);
+			},
+			createFolder : function() {
+				var $region = this.$el.parent();
+				if ($region.is(':hidden'))
+					return;
+				var folderModel = disk.folderModel;
+				var model = new disk.FileModel({
+					id : null,
+					directory : true,
+					lastModified : (new Date()).getTime(),
+					name : '',
+					path : folderModel.get('path') + '/' + folderModel.get('name'),
+				});
+				model.parentFolder = folderModel;
+				var itemView = new disk.FolderDetailsItemView({
+					model : model,
+					collection : this.collection
+				});
+				var $itemView = itemView.render().$el.appendTo(this.$itemViewContainer);
+				var $scrollableParents = $itemView.parents().filter(function(index, element) {
+					var overflow = $(this).css('overflow');
+					return overflow == 'scroll' || overflow == 'auto';
+				});
+				if ($scrollableParents.length) {
+					var $offsetParent = $scrollableParents.first();
+					var top = $offsetParent.scrollTop() + $itemView.position().top;
+					$offsetParent.scrollTop(top);
+				}
+			},
+		}); // disk.FolderDetailsView
+
+		disk.FolderIconsItemView = Backbone.Marionette.ItemView.extend({
+			tagName : 'li',
+			template : function(data) {
+				var html, compiledTemplate = disk.FolderIconsItemView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#folder-icons-item-template').html();
+					compiledTemplate = _.template(html);
+					disk.FolderIconsItemView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					file : data,
+					i18n : i18n,
+					popup : isPopup()
+				});
+				return html;
+			},
+			initialize : function(options) {
+				// this.model == disk.FileModel
+				this.listenTo(this.model, 'change', this.render);
+				this.listenTo(this.model, 'rename:file', function() {
+					if (this.$el.is(':visible'))
+						this.rename();
+				});
+			},
+			onRender : function() {
+				var self = this;
+				var $checkbox = this.$el.find('div.check > input[type="checkbox"]');
+				$checkbox.change(function(event) {
+					event.stopPropagation();
+					var $this = $(this);
+					if ($this.is(':checked'))
+						self.$el.addClass('focus');
+					else
+						self.$el.removeClass('focus');
+				});
+				var $important = this.$el.find('div.check > a.bu_star');
+				$important.click(function(event) {
+					event.preventDefault();
+					var $this = $(this), starred;
+					if ($this.hasClass('on')) {
+						$this.removeClass('on');
+						starred = false;
+					} else {
+						$this.addClass('on');
+						starred = true;
+					}
+					disk.updateStarred(self.model, starred);
+					return true;
+				});
+				var $shareWith = this.$el.find('div.check > a.i_fold_adm');
+				$shareWith.click(function(event) {
+					event.preventDefault();
+					return true;
+				});
+				var $fileLink = this.$el.find('div.thumb_box > div.title a');
+				$fileLink.click(function(event) {
+					event.preventDefault();
+					return true;
+				});
+				this.$el.click(function(event) {
+					if (event.target === $checkbox.get(0))
+						return true;
+					if (event.target === $important.get(0))
+						return true;
+					if (event.target === $shareWith.get(0))
+						return true;
+					if ($checkbox.is(':checked'))
+						$checkbox.prop('checked', false).change();
+					else
+						$checkbox.prop('checked', true).change();
+					return true;
+				}).dblclick(function(event) {
+					if (self.model.get('directory'))
+						location.href = $fileLink.attr('href');
+					else
+						disk.downloadFiles([ self.model ]);
+					return false;
+				});
+				this.$el.contextmenu(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					app.vent.trigger('contextmenu:files', event, self.model);
+					return false;
+				});
+				if (this.model.isNew()) {
+					this.createFolder();
+				}
+			},
+			createFolder : function() {
+				var self = this;
+				var $input = this.$el.find('div.thumb_box > div.title input');
+				$input.keydown(function(event) {
+					event.stopPropagation();
+					if (event.which == 13) {
+						event.preventDefault();
+						$(this).blur();
+					}
+				}).blur(function(event) {
+					var $this = $(this);
+					var folderName = $this.val();
+					if (folderName.length > 255) {
+						alert(i18n.folderNameTooLong);
+						$this.select();
+						return false;
+					}
+					if (!folderName) {
+						self.close();
+						return false;
+					}
+					if (/[\/:*?\"<>|\r\n\t]/g.test(folderName)) {
+						alert(i18n.invalidFileName);
+						$this.val(folderName.replace(/[\/:*?\"<>|\r\n\t]/g, ''));
+						$this.select();
+						return false;
+					}
+					disk.overlayView.showOverlay();
+					var model = self.model;
+					model.urlRoot = _.result(model, 'urlRoot') + '/' + model.parentFolder.id;
+					model.save({
+						name : folderName
+					}, {
+						wait : true,
+						success : function(model, response, options) {
+							self.close();
+							disk.overlayView.hideOverlay();
+							disk.syncFilePaginator();
+						},
+						error : function(model, response, options) {
+							switch (response.status) {
+							case 409:
+								alert(i18n.folderNameAlreadyExists + folderName);
+								break;
+							}
+							self.close();
+							disk.overlayView.hideOverlay();
+						},
+					});
+					return true;
+				}).click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					return false;
+				});
+				setTimeout(function() {
+					var newFolderName = i18n.newFolder;
+					var collection = self.collection;
+					var model = collection.find(function(model) {
+						return model.get('name') == newFolderName;
+					});
+					for (var i = 0; model; i++) {
+						if (i >= 100)
+							break;
+						var beginIndex = newFolderName.lastIndexOf(' (');
+						var endIndex = newFolderName.lastIndexOf(')');
+						var number = 1;
+						if (beginIndex != -1 && endIndex != -1 && beginIndex < endIndex) {
+							number = newFolderName.substring(beginIndex + 2, endIndex);
+							number = parseInt(number);
+							if (isNaN(number))
+								number = 1;
+							else
+								number += 1;
+						}
+						newFolderName = i18n.newFolder + ' (' + number + ')';
+						model = collection.find(function(model) {
+							return model.get('name') == newFolderName;
+						});
+					}
+					$input.val(newFolderName).focus().select();
+				}, 250);
+			},
+			rename : function() {
+				var model = this.model;
+				if (model.get('directory')) {
+					switch (model.get('linkCount')) {
+					case 'BigMail':
+					case 'Guest':
+						alert(i18n.cannotRenameFolder);
+						return;
+					}
+				}
+				var $wrapper = this.$el.find('div.thumb_box > div.title > div');
+				var $children = $wrapper.children().detach();
+				var $input = $('<input>', {
+					type : 'text',
+					value : model.get('name')
+				}).css('width', '96%').appendTo($wrapper);
+				$input.focus().select();
+				$input.keydown(function(event) {
+					event.stopPropagation();
+					if (event.which == 13) {
+						event.preventDefault();
+						$(this).blur();
+					}
+				}).blur(function(event) {
+					var $this = $(this);
+					var newName = $this.val();
+					if (newName.length > 255) {
+						if (model.get('directory'))
+							alert(i18n.folderNameTooLong);
+						else
+							alert(i18n.fileNameTooLong);
+						$this.select();
+						return false;
+					}
+					var originalName = model.get('name');
+					if (!newName || newName == originalName) {
+						$this.remove();
+						$wrapper.append($children);
+						return false;
+					}
+					if (/[\/:*?\"<>|\r\n\t]/g.test(newName)) {
+						alert(i18n.invalidFileName);
+						$this.val(newName.replace(/[\/:*?\"<>|\r\n\t]/g, ''));
+						$this.select();
+						return false;
+					}
+					disk.overlayView.showOverlay();
+					model.save({
+						path : model.get('path'),
+						name : model.get('name'),
+						renameTo : newName
+					}, {
+						patch : true,
+						wait : true,
+						success : function(model, response, options) {
+							disk.overlayView.hideOverlay();
+							disk.syncFilePaginator();
+						},
+						error : function(model, response, options) {
+							switch (response.status) {
+							case 409:
+								if (model.get('directory'))
+									alert(i18n.folderNameAlreadyExists + newName);
+								else
+									alert(i18n.fileNameAlreadyExists + newName);
+								break;
+							default:
+								if (model.get('directory'))
+									alert(i18n.failedToRenameFolder);
+								else
+									alert(i18n.failedToRenameFile);
+							}
+							$this.remove();
+							$wrapper.append($children);
+							disk.overlayView.hideOverlay();
+						},
+					});
+					return false;
+				});
+			},
+		}); // disk.FolderIconsItemView
+
+		disk.FolderIconsView = Backbone.Marionette.CompositeView.extend({
+			template : function(data) {
+				var html, compiledTemplate = disk.FolderIconsView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#folder-icons-template').html();
+					compiledTemplate = _.template(html);
+					disk.FolderIconsView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					params : data,
+					folder : disk.folderModel.toJSON(),
+					i18n : i18n,
+				});
+				return html;
+			},
+			itemView : disk.FolderIconsItemView,
+			itemViewContainer : 'ul.thumb_list',
+			initialize : function(options) {
+				// this.model == Backbone.Model(disk.filePagnator.paginator_ui)
+				// this.collection == disk.filePaginator
+				this.listenTo(app.vent, 'paginate:files', this.paginateFiles);
+				this.listenTo(app.vent, 'create:folder', this.createFolder);
+			},
+			onRender : function() {
+				var self = this;
+				this.initParentLink();
+				this.$el.contextmenu(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var $checkboxes = self.$itemViewContainer.find('div.check > input[type="checkbox"]');
+					$checkboxes.filter(':checked').prop('checked', false).change();
+					disk.contextMenuView.showFilesMenu(event, [ disk.folderModel ]);
+					return false;
+				});
+				setTimeout(function() {
+					app.vent.trigger('folder-icons:rendered');
+				}, 100);
+			},
+			onCompositeModelRendered : function() {
+				var self = this;
+				var $sortSection = this.$el.children('div.list_sort');
+				var $sortLayer = this.$el.children('div.sort_layer');
+				var $sortColumn = $sortSection.children('a').eq(0);
+				$sortColumn.click(function(event) {
+					var position = $sortSection.position();
+					$sortLayer.css({
+						top : position.top + $sortSection.outerHeight(true),
+						left : $sortColumn.position().left,
+					});
+					if ($sortLayer.is(':visible'))
+						$sortLayer.hide();
+					else
+						$sortLayer.show();
+					return false;
+				});
+				var $sortDirection = $sortSection.children('a').eq(1);
+				$sortDirection.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var direction = self.model.get('sortDirection');
+					direction = direction ? direction : 'desc';
+					direction = direction === 'desc' ? 'asc' : 'desc';
+					location.hash = '#' + self.collection.getURL({
+						sortDirection : direction
+					});
+					return false;
+				});
+				var $sortItems = $sortLayer.find('> ul li');
+				$sortItems.click(function(event) {
+					$sortItems.removeClass('on');
+					var column = $(this).addClass('on').data('column');
+					location.hash = '#' + self.collection.getURL({
+						sortColumn : column
+					});
+					return false;
+				});
+			},
+			onCompositeCollectionRendered : function() {
+				app.vent.trigger('folder-icons:rendered');
+			},
+			renderSortBy : function(params) {
+				var $html = $('<div>').html(this.renderModel());
+				var $sortSection = this.$el.children('div.list_sort');
+				$sortSection.html($html.children('div.list_sort').html());
+				var $sortLayer = this.$el.children('div.sort_layer').hide();
+				$sortLayer.html($html.children('div.sort_layer').html());
+				this.onCompositeModelRendered();
+			},
+			initParentLink : function(parentModel) {
+				if (!this.$parentItem) {
+					this.$parentItem = this.$itemViewContainer.find('> li:first');
+					this.$parentLink = this.$parentItem.find('> div.thumb_box > div.title > a');
+				}
+				if (isPopup()) {
+					this.$parentItem.detach();
+					return;
+				}
+				if (parentModel) {
+					this.parentModel = parentModel;
+					this.$parentLink.attr('href', '#disk/files?id=' + parentModel.id);
+					if (!this.$parentItem.parent().length)
+						this.$parentItem.prependTo(this.$itemViewContainer);
+				} else {
+					this.parentModel = disk.myDriveModel;
+					this.$parentLink.attr('href', '#disk/files?id=' + disk.myDriveModel.id);
+					switch (disk.folderModel.get('linkCount')) {
+					case 'SearchResults':
+					case 'Starred':
+					case 'Recent':
+						this.$parentItem.detach();
+						break;
+					default:
+						if (!this.$parentItem.parent().length)
+							this.$parentItem.prependTo(this.$itemViewContainer);
+					}
+				}
+				var self = this;
+				this.$parentItem.off('dblclick').on('dblclick', function(event) {
+					location.hash = self.$parentLink.attr('href');
+					return true;
+				});
+				this.$parentLink.off('click').on('click', function(event) {
+					event.preventDefault();
+					return true;
+				});
+			},
+			paginateFiles : function(params, parentModel, models) {
+				this.renderSortBy(params);
+				this.initParentLink(parentModel);
+				var $region = this.$el.parent();
+				if ($region.is(':hidden'))
+					return;
+				var paginator = this.collection;
+				if (models) {
+					delete paginator.origModels;
+					paginator.reset(models, {
+						silent : true
+					});
+				}
+				paginator.resetDefaults(params);
+				if (params && params.currentPage)
+					paginator.goTo(params.currentPage);
+				else
+					paginator.goTo(1);
+			},
+			createFolder : function() {
+				var $region = this.$el.parent();
+				if ($region.is(':hidden'))
+					return;
+				var folderModel = disk.folderModel;
+				var model = new disk.FileModel({
+					id : null,
+					directory : true,
+					lastModified : (new Date()).getTime(),
+					name : '',
+					path : folderModel.get('path') + '/' + folderModel.get('name'),
+				});
+				model.parentFolder = folderModel;
+				var itemView = new disk.FolderIconsItemView({
+					model : model,
+					collection : this.collection
+				});
+				var $itemView = itemView.render().$el.appendTo(this.$itemViewContainer);
+				var $scrollableParents = $itemView.parents().filter(function(index, element) {
+					var overflow = $(this).css('overflow');
+					return overflow == 'scroll' || overflow == 'auto';
+				});
+				if ($scrollableParents.length) {
+					var $offsetParent = $scrollableParents.first();
+					var top = $offsetParent.scrollTop() + $itemView.position().top;
+					$offsetParent.scrollTop(top);
+				}
+			},
+		}); // disk.FolderIconsView
+
+		disk.PaginationView = Backbone.Marionette.ItemView.extend({
+			tagName : 'div',
+			className : 'mc-paginate',
+			template : function(data) {
+				var html, compiledTemplate = disk.PaginationView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#pagination-template').html();
+					compiledTemplate = _.template(html);
+					disk.PaginationView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					paginator : data.paginator,
+					i18n : i18n,
+				});
+				return html.replace(/\r|\n|\t/g, '');
+			},
+			initialize : function(options) {
+				this.model = new Backbone.Model({
+					paginator : options.collection
+				});
+				this.collection = options.collection; // disk.FilePaginator
+				this.listenTo(this.collection, 'reset', this.render);
+			},
+			onRender : function() {
+				if (isPopup()) {
+					var $links = this.$el.find('a[href]');
+					$links.each(function(index, element) {
+						var $el = $(element);
+						var href = $el.attr('href');
+						$el.data('href', href).attr('href', '#');
+					});
+					$links.click(function(event) {
+						event.preventDefault();
+						location.hash = $(this).data('href');
+					});
+				}
+			},
+		}); // disk.PaginationView
+
+		disk.FilesUploadView = Backbone.Marionette.ItemView.extend({
+			tagName : 'div',
+			className : 'mc-dh_layer',
+			template : function(data) {
+				var html, compiledTemplate = disk.FilesUploadView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#files-upload-template').html();
+					compiledTemplate = _.template(html);
+					disk.FilesUploadView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					items : data.items,
+					folder : disk.uploadableFolder.toJSON(),
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function(options) {
+				// this.collection = options.collection
+				this.folderModel = disk.uploadableFolder = options.folderModel;
+				this.parentView = options.parentView;
+				this.fail = false;
+				this.done = false;
+			},
+			onRender : function() {
+				var self = this, $el = this.$el;
+				if (this.options.zIndex)
+					$el.css('z-index', this.options.zIndex);
+
+				this.$totalProgressPercent = $el.find('.progress_bar .total');
+				this.$totalProgressBar = $el.find('.p_bar .p_bar_value:first');
+
+				this.$transferFiles = $el.find('#transfer-files');
+				this.$transferRate = $el.find('#transfer-rate');
+				this.$transferBytes = $el.find('#transfer-bytes');
+				this.$transferTime = $el.find('#transfer-time');
+
+				this.$close = $el.find('img.lClose:first');
+				this.$close.click(function(event) {
+					self.xhr && self.xhr.abort();
+				});
+				this.$pause = $el.find('div.addButton.nb button');
+				this.$pause.click(function(event) {
+					self.xhr && self.xhr.abort();
+				});
+			},
+			upload : function(callback, context) {
+				var self = this, $el = this.$el, collection = this.collection;
+				var options = this.options;
+				var totalLoaded = 0, totalBytes = 0, totalPercent = 0, totalRate = 0;
+				var startTime = this._now();
+				collection.each(function(model, index) {
+					totalBytes += model.get('file').size;
+				});
+				var uploadables = [];
+				collection.each(function(model, index) {
+					uploadables.push(function() {
+						self.$transferFiles.text((index + 1) + '/' + collection.length);
+						var file = model.get('file');
+						var url = 'disk/' + self.folderModel.id + '/files?pathname=' + self.folderModel.id;
+						if (isPopup())
+							url = '../../' + url;
+
+						var xhr = self.xhr = new XMLHttpRequest();
+						xhr.open('POST', url);
+						xhr.onreadystatechange = function() {
+							if (xhr.readyState === 4 && xhr.status === 200) {
+								setTimeout(function() {
+									if (index < collection.length - 1) {
+										try {
+											uploadables[index + 1].call();
+										} catch (error) {
+											app.log(error);
+											self.fail = true;
+											callback.call(context);
+										}
+									} else {
+										self.done = true;
+										callback.apply(context);
+									}
+								}, 100);
+							}
+						};
+
+						var formData = new FormData();
+						formData.append(file.name, file);
+
+						var $fileItem = $el.find('div.upld_file_list ul li').eq(index);
+						var $progress = $fileItem.find('.file_progress');
+						var $progressBytes = $progress.find('.st');
+						var $progressBar = $progress.find('.p_bar .p_bar_value');
+						var $progressStatus = $progress.find('.transfer_status');
+
+						var $parent = $fileItem.parents('.upld_file_list:first');
+						var top = $parent.scrollTop() + $fileItem.position().top;
+						$parent.scrollTop(top);
+
+						var prevLoaded = 0;
+						xhr.upload.onprogress = function(event) {
+							$progressStatus.text(i18n.uploadFiles.uploading);
+							if (event.lengthComputable) {
+								var loaded = event.loaded;
+								var total = event.total;
+								var transferred = loaded - prevLoaded;
+								totalLoaded += transferred;
+								if (transferred > 0) {
+									var position = self._formatSize(totalLoaded) + '/' + self._formatSize(totalBytes);
+									self.$transferBytes.text(position);
+									var pos = self._formatSize(loaded) + '/' + self._formatSize(total);
+									$progressBytes.text(pos);
+								}
+								prevLoaded = loaded;
+								var percent = Math.round(totalLoaded / totalBytes * 100);
+								if (percent != totalPercent) {
+									totalPercent = percent;
+									self.$totalProgressPercent.text(percent + '%');
+									self.$totalProgressBar.css('width', percent + '%');
+								}
+								percent = Math.round(loaded / total * 100);
+								$progressBar.css('width', percent + '%');
+								var elapsedTime = self._now() - startTime;
+								if (elapsedTime == 0)
+									interval = 1;
+								var rate = Math.round(totalLoaded * 1000 / elapsedTime);
+								if (totalRate != rate) {
+									totalRate = rate;
+									var speed = self._formatSize(rate);
+									self.$transferRate.text(speed + i18n.uploadFiles.perSecond);
+								}
+								var remainingBytes = totalBytes - totalLoaded;
+								var remainingTime = Math.floor(remainingBytes / rate * 1000);
+								var estimatedTime = elapsedTime + remainingTime;
+								var time = '';
+								if (elapsedTime > 60000)
+									time += Math.floor(elapsedTime / 60000) + i18n.uploadFiles.elapsedMinutes;
+								time += Math.floor(elapsedTime % 60000 / 1000) + i18n.uploadFiles.elapsedSeconds;
+								time += ' / ';
+								if (estimatedTime > 60000)
+									time += Math.floor(estimatedTime / 60000) + i18n.uploadFiles.elapsedMinutes;
+								time += Math.floor(estimatedTime % 60000 / 1000) + i18n.uploadFiles.elapsedSeconds;
+								self.$transferTime.text(time);
+							} // end if (event.lengthComputable)
+						}; // xhr.upload.onprogress
+						xhr.upload.onabort = function(event) {
+							$progressStatus.text(i18n.uploadFiles.aborted);
+							self.fail = true;
+							callback.call(context);
+						}; // xhr.upload.onabort = function(event) {..}
+						xhr.upload.onload = function(event) {
+							$progressStatus.text(i18n.uploadFiles.uploaded);
+						}; // xhr.upload.onload = function(event) {...}
+						xhr.send(formData);
+					}); // uploadables[].push(function() {...});
+				}); // collection.each(function(model, index) {...});
+				if (uploadables.length) {
+					try {
+						uploadables[0].call();
+					} catch (error) {
+						app.log(error);
+						this.fail = true;
+						callback.call(context);
+					}
+				} else {
+					this.done = true;
+					callback.call(context);
+				}
+			}, // upload : function() {...}
+			_formatSize : function(number, pattern) {
+				pattern = typeof pattern === 'string' ? pattern : '0.0b';
+				return numeral(number).format(pattern);
+			},
+			_now : function() {
+				return Date.now ? Date.now() : new Date().getTime();
+			},
+		}); // disk.FilesUploadView
+
+		disk.ContextMenuView = Backbone.Marionette.ItemView.extend({
+			tagName : 'div',
+			id : 'file-contextmenu',
+			className : 'rightmenu_layer up_file_on',
+			attributes : {
+				style : 'display: none; z-index: 2015;',
+			},
+			template : function(data) {
+				var html, compiledTemplate = disk.ContextMenuView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#file-contextmenu-template').html();
+					compiledTemplate = _.template(html);
+					disk.ContextMenuView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					files : data.items,
+					cutFiles : disk.moveFiles,
+					copyFiles : disk.copyFiles,
+					i18n : i18n,
+				});
+				if (!data.items[0].folder && disk.folderModel.get('linkCount') === 'Trash') {
+					html = disk.$template.filter('#trash-contextmenu-template').html();
+					compiledTemplate = _.template(html);
+					html = compiledTemplate({
+						files : data.items,
+						i18n : i18n,
+					});
+				}
+				return html;
+			},
+			initialize : function(options) {
+				this.collection = new disk.FileCollection();
+			},
+			onRender : function() {
+				var self = this;
+				var $contextMenu = $('body > #file-contextmenu');
+				if ($contextMenu.length)
+					$contextMenu.remove();
+				$contextMenu = this.$el.appendTo('body');
+				$contextMenu.css({
+					'position' : 'absolute',
+					'top' : 'auto',
+					'right' : 'auto',
+					'bottom' : 'auto',
+					'left' : 'auto',
+				});
+				$contextMenu.attr('hidable', true);
+				$contextMenu.click(function(event) {
+					event.stopPropagation();
+				});
+				var event = this.mouseEvent;
+				var viewportX, viewportY;
+				if (window.innerHeight) {
+					viewportX = window.innerWidth;
+					viewportY = window.innerHeight;
+				} else if (document.documentElement && document.documentElement.clientHeight) {
+					viewportX = document.documentElement.clientWidth;
+					viewportY = document.documentElement.clientHeight;
+				} else if (document.body) {
+					viewportX = document.body.clientWidth;
+					viewportY = document.body.clientHeight;
+				}
+				if ($contextMenu.outerHeight() > (viewportY - event.pageY)) {
+					$contextMenu.css('bottom', (viewportY - event.pageY) + 'px');
+				} else {
+					$contextMenu.css('top', event.pageY + 'px');
+				}
+				if ($contextMenu.outerWidth() > (viewportX - event.pageX)) {
+					$contextMenu.css('right', (viewportX - event.pageX) + 'px');
+				} else {
+					$contextMenu.css('left', event.pageX + 'px');
+				}
+				this.$el.contextmenu(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					return false;
+				});
+				var $openFolder = this.$el.find('a.open-folder:first');
+				$openFolder.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.$el.hide();
+					var model = self.collection.at(0);
+					if (!model || !model.get('directory'))
+						return false;
+					location.hash = '#disk/files?id=' + model.id;
+					return false;
+				});
+				var $uploadToFolder = this.$el.find('a.upload-to-folder:first');
+				$uploadToFolder.click(function(event) {
+					self.$el.hide();
+					var model = self.collection.at(0);
+					if (!model || !model.get('directory'))
+						return false;
+					$(this).data('upload-to-folder', model);
+					disk.uploadFilesHandler.call(this, event);
+					return false;
+				});
+				var $download = this.$el.find('a.download-files:first');
+				$download.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.$el.hide();
+					var models = self.collection.models;
+					disk.downloadFiles(models);
+					return false;
+				});
+				var $cut = this.$el.find('a.cut-files:first');
+				$cut.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.$el.hide();
+					disk.copyFiles.splice(0);
+					disk.moveFiles.splice(0);
+					self.collection.each(function(model, index) {
+						disk.moveFiles.push(model);
+					});
+					return false;
+				});
+				var $copy = this.$el.find('a.copy-files:first');
+				$copy.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.$el.hide();
+					disk.moveFiles.splice(0);
+					disk.copyFiles.splice(0);
+					self.collection.each(function(model, index) {
+						disk.copyFiles.push(model);
+					});
+					return false;
+				});
+				var $paste = this.$el.find('a.paste-files:first');
+				$paste.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.$el.hide();
+					var folderModel = self.collection.at(0);
+					if (disk.moveFiles.length) {
+						disk.moveTo(folderModel);
+						return false;
+					}
+					if (disk.copyFiles.length) {
+						disk.copyTo(folderModel);
+						return false;
+					}
+					return false;
+				});
+				var $move = this.$el.find('a.move-files:first');
+				$move.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.$el.hide();
+					disk.copyFiles.splice(0);
+					disk.moveFiles.splice(0);
+					self.collection.each(function(model, index) {
+						disk.moveFiles.push(model);
+					});
+					var folderPathView = new disk.FolderPathView();
+					folderPathView.showMoveTo(function(folderModel) {
+						disk.moveTo(folderModel);
+						return;
+					});
+					return false;
+				});
+				var $sharingSettings = this.$el.find('a.sharing-settings:first');
+				$sharingSettings.mouseover(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					return false;
+				}).mouseout(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					return false;
+				});
+				var $shareWithOthers = this.$el.find('a.share-with-others:first');
+				$shareWithOthers.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					return false;
+				});
+				var $sharableLink = this.$el.find('a.get-shareable-link:first');
+				$sharableLink.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					return false;
+				});
+				var $sharedLinkSettings = this.$el.find('a.shared-link-settings:first');
+				$sharedLinkSettings.mouseover(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					return false;
+				}).mouseout(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					return false;
+				});
+				var $restore = this.$el.find('a.restore-files:first');
+				$restore.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.$el.hide();
+					var models = [];
+					self.collection.each(function(model, index) {
+						models.push(model);
+					});
+					disk.restoreFiles(models);
+					return false;
+				});
+				var $delete = this.$el.find('a.delete-files:first');
+				$delete.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.$el.hide();
+					var models = [];
+					self.collection.each(function(model, index) {
+						models.push(model);
+					});
+					disk.deleteFiles(models);
+					return false;
+				});
+				var $rename = this.$el.find('a.rename-file:first');
+				$rename.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.$el.hide();
+					var model = self.collection.at(0);
+					if (!model)
+						return false;
+					if (model.get('folder'))
+						model.trigger('rename:folder');
+					else
+						model.trigger('rename:file');
+					return false;
+				});
+				var $addStar = this.$el.find('a.add-star:first');
+				$addStar.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.$el.hide();
+					disk.updateStarred(self.collection.at(0), true);
+					return false;
+				});
+				var $removeStar = this.$el.find('a.remove-star:first');
+				$removeStar.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.$el.hide();
+					disk.updateStarred(self.collection.at(0), false);
+					return false;
+				});
+				var $properties = this.$el.find('a.properties-of-files:first');
+				$properties.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.$el.hide();
+					var models = [];
+					self.collection.each(function(model, index) {
+						models.push(model);
+					});
+					disk.filePropertiesView.showProperties(models);
+					return false;
+				});
+			}, // onRender : function() {...}
+			showFilesMenu : function(mouseEvent, fileModels) {
+				this.mouseEvent = mouseEvent;
+				if (this.collection.length === 1 && this.collection.at(0).has('folder')) {
+					this.collection.at(0).unset('folder', {
+						silent : true
+					});
+				}
+				this.collection.reset(fileModels);
+				this.render().$el.show();
+			},
+			showFolderMenu : function(mouseEvent, folderModel) {
+				this.mouseEvent = mouseEvent;
+				folderModel.set('folder', true, {
+					silent : true
+				});
+				this.collection.reset([ folderModel ]);
+				this.render().$el.show();
+			},
+		}); // disk.ContextMenuView
+
+		disk.FilePropertiesView = Backbone.Marionette.ItemView.extend({
+			tagName : 'div',
+			id : 'file-properties',
+			className : 'dh_layer',
+			attributes : {
+				style : 'position: absolute; width: 444px; z-index: 2017; display: none;',
+			},
+			template : function(data) {
+				var html, compiledTemplate = disk.FilePropertiesView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#file-properties-template').html();
+					compiledTemplate = _.template(html);
+					disk.FilePropertiesView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					files : data.items,
+					i18n : i18n
+				});
+				return html;
+			},
+			initialize : function(options) {
+				this.collection = new disk.FileCollection();
+			},
+			onRender : function() {
+				var self = this;
+				disk.overlayView.showOverlay();
+				var $fileProperties = $('body > #file-properties');
+				if ($fileProperties.length)
+					$fileProperties.remove();
+				this.$el.appendTo('body');
+				var $viewport = $(window);
+				$viewport.off('resize.fileProperties');
+				$viewport.on('resize.fileProperties', function(event) {
+					var viewportWidth = $(this).width() / 2;
+					var viewportHeight = $(this).height() / 2;
+					var width = self.$el.width() / 2;
+					var height = self.$el.height() / 2;
+					var top = Math.floor(viewportHeight - height);
+					var left = Math.floor(viewportWidth - width);
+					self.$el.css({
+						top : top,
+						left : left
+					});
+				});
+				$viewport.trigger('resize.fileProperties');
+				var $content = this.$el.find('div.content:first');
+				var $close = this.$el.find('div.pop_close a.bu_close_p');
+				$close.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.close();
+					return false;
+				});
+				var $starred = this.$el.find('input#toggle-starred');
+				var $restore = this.$el.find('input#restore-from-trash');
+				var $okay = this.$el.find('div.footer button');
+				$okay.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					if ($starred.length) {
+						var model = self.fileModels[0];
+						if ($starred.is(':checked') != model.get('starred'))
+							disk.updateStarred(model, $starred.is(':checked'));
+					}
+					if ($restore.length && $restore.is(':checked')) {
+						disk.restoreFiles(self.fileModels);
+					}
+					self.close();
+					return false;
+				});
+			},
+			onClose : function() {
+				$(window).off('resize.fileProperties');
+				disk.overlayView.hideOverlay();
+			},
+			showProperties : function(fileModels) {
+				this.fileModels = fileModels;
+				var models = [];
+				var isTrash = disk.folderModel.get('linkCount') === 'Trash';
+				for (var i = 0; i < fileModels.length; i++) {
+					var model = fileModels[i].clone();
+					if (model.get('directory') && !isTrash)
+						disk.fetchFileSize(model, false);
+					models.push(model);
+				}
+				this.collection.reset(models);
+				this.render().$el.show();
+			}
+		});
+
+		disk.FolderPathItemView = Backbone.Marionette.CompositeView.extend({
+			tagName : 'li',
+			className : 'tree-node tree-collapsed',
+			template : function(data) {
+				var html, compiledTemplate = disk.FolderPathItemView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#folder-path-item-template').html();
+					compiledTemplate = _.template(html);
+					disk.FolderPathItemView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					folder : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			initialize : function() {
+				// this.model == disk.FileModel
+				this.collection = this.model.folders;
+				this.listenTo(this.model.files, 'sync', function() {
+					var $wrapper = this.$el.children('div:first');
+					if (this.model.folders.length > 0)
+						$wrapper.addClass('tree-has-child');
+					else
+						$wrapper.removeClass('tree-has-child');
+				});
+				this.listenTo(app.vent, 'toggle:folder-path-selection', function(id) {
+					var $wrapper = this.$el.children('div:first');
+					if (this.model.id === id)
+						$wrapper.addClass('tree-selected');
+					else
+						$wrapper.removeClass('tree-selected');
+				});
+				this.listenTo(app.vent, 'feedback:selected-folder', function() {
+					var $wrapper = this.$el.children('div:first');
+					if ($wrapper.hasClass('tree-selected'))
+						app.vent.trigger('callback:selected-folder', this.model);
+				});
+			},
+			onRender : function() {
+				var model = this.model;
+				var $wrapper = this.$el.children('div:first');
+				if (this.model.folders.length === 0) {
+					$wrapper.removeClass('tree-has-child');
+				}
+				var paths = this.model.get('path').split('/');
+				$wrapper.css('padding-left', 21 + (19 * (paths.length - 2)));
+				var $list = this.$el.children('ul:first');
+				this.$el.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					app.vent.trigger('toggle:folder-path-selection', model.id);
+					var $this = $(this);
+					if ($this.hasClass('tree-collapsed')) {
+						model.folders.each(function(model, index, list) {
+							if (model.folders.length === 0 && model.files.length === 0)
+								disk.fetchFileCollection(model);
+						});
+						$this.removeClass('tree-collapsed');
+						$list.slideDown();
+					} else {
+						$this.addClass('tree-collapsed');
+						$list.slideUp();
+					}
+					return false;
+				});
+			},
+			appendHtml : function(collectionView, itemView) {
+				var $list = collectionView.$el.children('ul:first');
+				$list.append(itemView.el);
+			},
+		}); // disk.FolderPathItemView
+
+		disk.MyDrivePathView = Backbone.Marionette.CompositeView.extend({
+			template : function(data) {
+				var html, compiledTemplate = disk.MyDrivePathView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#my-drive-path-template').html();
+					compiledTemplate = _.template(html);
+					disk.MyDrivePathView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					myDrive : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			itemView : disk.FolderPathItemView,
+			itemViewContainer : '> ul:first',
+			initialize : function(options) {
+				// this.model == disk.myDriveModel
+				// this.collection == disk.myDriveModel.folders
+			},
+			onRender : function() {
+				var self = this;
+				var $wrapper = this.$el.children('div.root_hd');
+				this.listenTo(app.vent, 'toggle:folder-path-selection', function(id) {
+					if (this.model.id === id)
+						$wrapper.addClass('tree-selected');
+					else
+						$wrapper.removeClass('tree-selected');
+				});
+				$wrapper.click(function(event) {
+					app.vent.trigger('toggle:folder-path-selection', self.model.id);
+					return false;
+				});
+				this.listenTo(app.vent, 'feedback:selected-folder', function() {
+					if ($wrapper.hasClass('tree-selected'))
+						app.vent.trigger('callback:selected-folder', this.model);
+				});
+				this.collection.each(function(model, index, list) {
+					if (model.folders.length === 0 && model.files.length === 0)
+						disk.fetchFileCollection(model);
+				});
+			},
+			onShow : function() {
+				var self = this;
+			},
+			onClose : function() {
+				var self = this;
+			},
+			onCompositeCollectionRendered : function() {
+				var self = this;
+			},
+			onAfterItemAdded : function(itemView) {
+				var self = this;
+			},
+		}); // disk.MyDrivePathView
+
+		disk.GroupFolderPathView = Backbone.Marionette.CompositeView.extend({
+			template : function(data) {
+				var html, compiledTemplate = disk.GroupFolderPathView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#group-folder-path-template').html();
+					compiledTemplate = _.template(html);
+					disk.GroupFolderPathView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					groupRoot : data,
+					i18n : i18n,
+				});
+				return html;
+			},
+			itemView : disk.FolderPathItemView,
+			itemViewContainer : '> ul:first',
+			initialize : function(options) {
+				// this.model == disk.groupRootModel,
+				// this.collection == disk.groupRootModel.folders
+			},
+			onRender : function() {
+				var self = this;
+				var $wrapper = this.$el.children('div.root_hd');
+				this.listenTo(app.vent, 'toggle:folder-path-selection', function(id) {
+					if (this.model.id === id)
+						$wrapper.addClass('tree-selected');
+					else
+						$wrapper.removeClass('tree-selected');
+				});
+				$wrapper.click(function(event) {
+					app.vent.trigger('toggle:folder-path-selection', self.model.id);
+					return false;
+				});
+				this.listenTo(app.vent, 'feedback:selected-folder', function() {
+					if ($wrapper.hasClass('tree-selected'))
+						app.vent.trigger('callback:selected-folder', this.model);
+				});
+				this.collection.each(function(model, index, list) {
+					if (model.folders.length === 0 && model.files.length === 0)
+						disk.fetchFileCollection(model);
+				});
+			},
+		}); // disk.GroupFolderPathView
+
+		disk.FolderPathView = Backbone.Marionette.Layout.extend({
+			tagName : 'div',
+			id : 'disk-folder-path',
+			attributes : {
+				style : 'display: none; position: absolute; z-index: 2017;',
+			},
+			template : function(data) {
+				var html, compiledTemplate = disk.FolderPathView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#folder-path-template').html();
+					compiledTemplate = _.template(html);
+					disk.FolderPathView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			regions : {
+				myDrivePathRegion : {
+					selector : 'div.tree_in > ul > li.my-drive-path',
+					regionType : Backbone.Marionette.Region.extend({
+						open : function(view) {
+							this.$el.empty().append(view.$el.children());
+						},
+					})
+				},
+				groupFolderPathRegion : {
+					selector : 'div.tree_in > ul > li.group-folder-path',
+					regionType : Backbone.Marionette.Region.extend({
+						open : function(view) {
+							this.$el.empty().append(view.$el.children());
+						},
+					})
+				},
+			},
+			initialize : function(options) {
+				// this.model == No Model
+				this.listenTo(app.vent, 'callback:selected-folder', function(folderModel) {
+					this.callback(folderModel);
+					this.close();
+				});
+			},
+			onRender : function() {
+				var self = this;
+				disk.overlayView.showOverlay();
+				var $layer = $('body > #disk-folder-path');
+				if ($layer.length)
+					$layer.remove();
+				$layer = this.$el.appendTo('body');
+				var $viewport = $(window).off('resize.folderPath');
+				$viewport.on('resize.folderPath', function(event) {
+					var viewportWidth = $viewport.width() / 2;
+					var viewportHeight = $viewport.height() / 2;
+					var width = $layer.width() / 2;
+					var height = $layer.height() / 2;
+					var top = Math.floor(viewportHeight - height);
+					var left = Math.floor(viewportWidth - width);
+					$layer.css({
+						top : top,
+						left : left
+					});
+				});
+				$viewport.trigger('resize.folderPath');
+				// My Drive
+				var myDrivePathView = new disk.MyDrivePathView({
+					model : disk.myDriveModel,
+					collection : disk.myDriveModel.folders
+				});
+				this.myDrivePathRegion.show(myDrivePathView);
+				// Group Folders
+				var groupFolderPathView = new disk.GroupFolderPathView({
+					model : disk.groupRootModel,
+					collection : disk.groupRootModel.folders
+				});
+				this.groupFolderPathRegion.show(groupFolderPathView);
+				// Buttons
+				var $select = this.$el.find('div.footer > button:first');
+				$select.click(function(event) {
+					disk.overlayView.hideOverlay();
+					app.vent.trigger('feedback:selected-folder');
+					return false;
+				});
+				var $cancel = this.$el.find('div.footer > button').not($select);
+				$cancel.click(function(event) {
+					disk.overlayView.hideOverlay();
+					self.close();
+					return false;
+				});
+			},
+			showMoveTo : function(callback, context) {
+				this.callback = function() {
+					callback.apply(context, arguments);
+				};
+				this.render().$el.show();
+			},
+			showSearchIn : function(callback, context) {
+				this.callback = function() {
+					callback.apply(context, arguments);
+				};
+				this.render().$el.show();
+			},
+		}); // disk.FolderPathView
+
+		disk.FolderPathLayout = Backbone.Marionette.Layout.extend({
+			attributes : {
+				style : 'position: absolute;',
+			},
+			template : function(data) {
+				var html, compiledTemplate = disk.FolderPathLayout.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#folder-path-template').html();
+					compiledTemplate = _.template(html);
+					disk.FolderPathLayout.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n
+				});
+				return html;
+			},
+			regions : {
+				myDrivePathRegion : {
+					selector : 'div.tree_in > ul > li.my-drive-path',
+					regionType : Backbone.Marionette.Region.extend({
+						open : function(view) {
+							this.$el.empty().append(view.$el.children());
+						},
+					})
+				},
+				groupFolderPathRegion : {
+					selector : 'div.tree_in > ul > li.group-folder-path',
+					regionType : Backbone.Marionette.Region.extend({
+						open : function(view) {
+							this.$el.empty().append(view.$el.children());
+						},
+					})
+				},
+			},
+			initialize : function(options) {
+				// this.model == No Model
+				this.params = options.params;
+				this.attachment = options.attachment;
+				this.listenTo(app.vent, 'callback:selected-folder', function(folderModel) {
+					this.saveAttachment(folderModel);
+				});
+			},
+			onRender : function() {
+				var self = this;
+				// My Drive
+				var myDrivePathView = new disk.MyDrivePathView({
+					model : disk.myDriveModel,
+					collection : disk.myDriveModel.folders
+				});
+				this.myDrivePathRegion.show(myDrivePathView);
+				// Group Folders
+				var groupFolderPathView = new disk.GroupFolderPathView({
+					model : disk.groupRootModel,
+					collection : disk.groupRootModel.folders
+				});
+				this.groupFolderPathRegion.show(groupFolderPathView);
+				// Buttons
+				var $select = this.$el.find('div.footer > button:first');
+				$select.click(function(event) {
+					disk.overlayView.showProcessing();
+					app.vent.trigger('feedback:selected-folder');
+					return false;
+				});
+				var $cancel = this.$el.find('div.footer > button').not($select);
+				$cancel.click(function(event) {
+					window.close();
+					return false;
+				});
+			},
+			saveAttachment : function(folderModel) {
+				var attachment = this.attachment;
+				if (!attachment || !attachment.name || !attachment.size) {
+					disk.overlayView.hideProcessing();
+					return;
+				}
+				var msg = '';
+				if (folderModel.get('writable') === false) {
+					disk.overlayView.hideProcessing();
+					msg = i18n.leadingNoPermissionToUpload;
+					var folderName = folderModel.get('name');
+					switch (folderModel.get('linkCount')) {
+					case 'UserDisk':
+						folderName = i18n.myDrive;
+						break;
+					case 'BigMail':
+						folderName = i18n.folder.largeAttachments;
+						break;
+					case 'Trash':
+						folderName = i18n.folder.trash;
+						break;
+					case 'GroupRoot':
+						folderName = i18n.groupDrive;
+						break;
+					}
+					if (folderName.length > 16) {
+						msg += "'" + folderName.substring(0, 13) + "...'";
+					} else {
+						msg += "'" + folderName + "'";
+					}
+					msg += i18n.trailingNoPermissionToUpload;
+					var modalView = new disk.ModalView({
+						model : new Backbone.Model({
+							message : msg
+						}),
+						width : 324
+					});
+					modalView.render().$el.show();
+					return;
+				}
+				var fileModel = folderModel.files.find(function(model) {
+					return model.get('name') === attachment.name;
+				});
+				if (fileModel) {
+					if (fileModel.get('directory')) {
+						disk.fetchFileSize(fileModel, false);
+						msg = i18n.confirm.replaceFolder;
+					} else {
+						msg = i18n.confirm.replaceFile;
+					}
+					msg += '\n\n\n';
+					msg += i18n.confirm.Name + ': ' + fileModel.get('name') + '\n';
+					msg += i18n.confirm.New + ': ' + numeral(attachment.size).format('0.0b') + '\n';
+					msg += i18n.confirm.Current + ': ' + numeral(fileModel.get('size')).format('0.0b') + '\n';
+					msg = msg.replace(/<br>/gi, '\n');
+					if (!confirm(msg)) {
+						disk.overlayView.hideProcessing();
+						return;
+					}
+				}
+				var quotaModel = new disk.QuotaModel({
+					id : folderModel.id,
+				});
+				quotaModel.fetch({
+					async : false,
+					type : 'POST',
+					data : {
+						_method : 'GET',
+						pathname : folderModel.get('path') + '/' + folderModel.get('name')
+					}
+				});
+				var quota = quotaModel.get('quota')
+				var usage = quotaModel.get('usage');
+				var free = quota - usage;
+				var formatSize = function(number, pattern) {
+					pattern = pattern ? pattern : '0[.]00b';
+					return number ? numeral(number).format(pattern) : '0KB';
+				};
+				if (quota == 0 || attachment.size > free) {
+					alert(i18n.uploadFiles.leadingMaxFileSize + formatSize(free) + i18n.uploadFiles.middlingMaxFileSize
+							+ formatSize(attachment.size) + i18n.uploadFiles.trailingMaxFileSize);
+					disk.overlayView.hideProcessing();
+					return;
+				}
+				if (!disk.configModel)
+					disk.configModel = new disk.ConfigModel();
+				disk.configModel.fetch({
+					async : false
+				});
+				var maxFileSize = disk.configModel.get('UPLOAD_FILE_SIZE_LIMIT');
+				if (maxFileSize && maxFileSize <= attachment.size) {
+					alert(i18n.uploadFiles.leadingFileTooLarge + '"' + attachment.name + ' ('
+							+ formatSize(attachment.size) + ')"' + i18n.uploadFiles.middlingFileTooLarge
+							+ formatSize(maxFileSize) + i18n.uploadFiles.trailingFileTooLarge);
+					disk.overlayView.hideProcessing();
+					return;
+				}
+				if (!disk.fileFilterCollection)
+					disk.fileFilterCollection = new disk.FileFilterCollection();
+				disk.fileFilterCollection.fetch({
+					async : false
+				});
+				var filterItems = [];
+				disk.fileFilterCollection.each(function(model, index, list) {
+					var item = model.get('FILTER_ITEM');
+					if (item)
+						filterItems.push(item);
+				});
+				var pattern = (function(pattern) {
+					if (!pattern || typeof pattern !== 'string')
+						return /[^\s\S]/;
+					pattern = pattern.replace(/\s|\*/g, '');
+					var specialCharacters = "^$.*+?=!:|\/()[]{}";
+					var expr = [];
+					var ch = '';
+					for (var i = 0; i < pattern.length; i++) {
+						ch = pattern.charAt(i);
+						if (specialCharacters.indexOf(ch) != -1)
+							expr.push("\\");
+						expr.push(ch);
+					}
+					pattern = expr.join("");
+					pattern = pattern.replace(/,/g, '|');
+					return new RegExp('(' + pattern + ')$', 'i');
+				})(filterItems.join(","));
+				if (pattern.test(attachment.name)) {
+					alert(i18n.uploadFiles.leadingBlockedFileExtension + filterItems.join(',')
+							+ i18n.uploadFiles.trailingBlockedFileExtension);
+					disk.overlayView.hideProcessing();
+					return;
+				}
+				var params = this.params;
+				var model = new (app.BackboneModel.extend({
+					url : '../../mails/' + params.id + '/attachments/' + params.index + '/disk'
+				}))();
+				var jqXHR = model.save({
+					pathname : folderModel.get('path') + '/' + folderModel.get('name')
+				}, {
+					patch : true,
+					wait : true,
+					success : function(model, response, options) {
+						disk.overlayView.hideProcessing();
+						if (confirm(i18n.confirm.savedAttachment)) {
+							var url = '../../#disk/files?id=' + folderModel.id;
+							var win = window.open(url, 'disk', 'width=900px,height=600,resizable=yes');
+							win.focus();
+						}
+					},
+					error : function(model, response, options) {
+						disk.overlayView.hideProcessing();
+						alert('Failed to save an attachment to drive.');
+					},
+				});
+				jqXHR.always(function(data_jqXHR, textStatus, jqXHR_errorThrown) {
+					window.close();
+				});
+			}
+		}); // disk.FolderPathLayout
+
+		disk.DroppableView = Backbone.Marionette.ItemView.extend({
+			tagName : 'div',
+			id : 'disk-droppable',
+			className : 'drag_layer',
+			attributes : {
+				style : 'display: none; z-index: 2016;',
+			},
+			template : function(data) {
+				var html, compiledTemplate = disk.DroppableView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#disk-droppable-template').html();
+					compiledTemplate = _.template(html);
+					disk.DroppableView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+					popup : isPopup()
+				});
+				return html;
+			},
+			initialize : function(options) {
+				// this.model == No Model
+			},
+			onRender : function() {
+				var self = this;
+				this.$el.on('dragenter', function(event) {
+					var dataTransfer = event.originalEvent.dataTransfer;
+					var types = dataTransfer.types;
+					if (types) {
+						if ((types.contains && types.contains("Files"))
+								|| (types.indexOf && types.indexOf("Files") !== -1)) {
+							event.preventDefault();
+							self.$el.show();
+						}
+					}
+				});
+				this.$el.on('dragover', function(event) {
+					event.preventDefault() && event.stopPropagation();
+					return false;
+				});
+				this.$el.on('dragleave', function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var $this = $(this);
+					if (!$this.has(event.target) || $this.is(event.target))
+						$this.hide();
+					return false;
+				});
+				this.$el.on('drop', function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.$el.hide();
+					var isAllFiles = true;
+					var dataTransfer = event.originalEvent.dataTransfer;
+					if (!dataTransfer) {
+						return false;
+					}
+					if (dataTransfer.items) {
+						$.each(dataTransfer.items, function(index, item) {
+							var entry = item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
+							if (entry && !entry.isFile) {
+								isAllFiles = false;
+							}
+						});
+					}
+					if (!isAllFiles)
+						return false;
+					var files = dataTransfer.files;
+					if (files)
+						disk.uploadFiles(files);
+					return false;
+				});
+			},
+		}); // disk.DroppableView
+
+		disk.SettingsLayout = Backbone.Marionette.Layout.extend({
+			tagName : 'div',
+			className : 'content_fix',
+			template : function(data) {
+				var html = disk.$template.filter('#settings-layout-template').html();
+				var compiledTemplate = _.template(html);
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			regions : {
+				contentRegion : 'div.settings-content-region',
+			},
+			initialize : function(options) {
+				// this.model == No Model
+			},
+			onRender : function() {
+				return;
+			},
+			onShow : function() {
+				var storageLayout = new disk.SettingsStorageLayout({
+					model : disk.userModel
+				});
+				this.contentRegion.show(storageLayout);
+			},
+		}); // disk.SettingsLayout
+
+		disk.SettingsStorageLayout = Backbone.Marionette.Layout.extend({
+			tagName : 'div',
+			className : 'setting_tab',
+			template : function(data) {
+				var html = disk.$template.filter('#settings-storage-template').html();
+				var compiledTemplate = _.template(html);
+				html = compiledTemplate({
+					user : data,
+					i18n : i18n
+				});
+				return html;
+			},
+			regions : {
+				capacityRegion : 'div.capacity-panel',
+				fileTypesRegion : 'div.file-types-panel',
+				foldersRegion : 'div.folders-panel'
+			},
+			initialize : function(options) {
+				// this.model == disk.userModel
+			},
+			onRender : function() {
+				var self = this;
+				this.$tabs = this.$el.find('ul.tab_list > li');
+				this.$tabs.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.capacityRegion.$el && self.capacityRegion.$el.hide();
+					self.fileTypesRegion.$el && self.fileTypesRegion.$el.hide();
+					self.foldersRegion.$el && self.foldersRegion.$el.hide();
+					self.$tabs.removeClass('on');
+					var $this = $(this).addClass('on');
+					if ($this.hasClass('capacity-tab')) {
+						self.capacityRegion.show(new disk.SettingsCapacityPanelView());
+						self.capacityRegion.$el.show();
+					} else if ($this.hasClass('file-types-tab')) {
+						self.fileTypesRegion.show(new disk.SettingsFileTypesPanelView());
+						self.fileTypesRegion.$el.show();
+					} else if ($this.hasClass('folders-tab')) {
+						self.foldersRegion.show(new disk.SettingsFoldersPanelView());
+						self.foldersRegion.$el.show();
+					}
+					return false;
+				});
+				var $selectEmptyTrashDays = this.$el.find('div.basket select:first');
+				var $applyEmptyTrashDays = this.$el.find('div.basket button:first');
+				$applyEmptyTrashDays.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var days = $selectEmptyTrashDays.val();
+					if (isNaN(days))
+						return false;
+					disk.overlayView.showOverlay();
+					self.model.save({
+						EMPTY_TRASH_DAYS : parseInt(days)
+					}, {
+						patch : true,
+						wait : true,
+						success : function(model, response, options) {
+							disk.overlayView.hideOverlay();
+							alert(i18n.settings.emptyTrashDaysModified);
+						},
+						error : function(model, response, options) {
+							disk.overlayView.hideOverlay();
+							alert('Failed to save a settings:empty-trash-days');
+						}
+					});
+					return false;
+				});
+			},
+			onShow : function() {
+				this.$tabs.filter('.capacity-tab').addClass('on');
+				this.capacityRegion.show(new disk.SettingsCapacityPanelView());
+			}
+		}); // disk.SettingsStorageLayout
+
+		disk.SettingsCapacityPanelView = Backbone.Marionette.ItemView.extend({
+			tagName : 'div',
+			className : 'mycapacity_cont',
+			template : function(data) {
+				var html = disk.$template.filter('#settings-capacity-panel-template').html();
+				var compiledTemplate = _.template(html);
+				html = compiledTemplate({
+					data : data,
+					i18n : i18n
+				});
+				return html;
+			},
+			initialize : function(options) {
+				this.model = new Backbone.Model({
+					quota : disk.userModel.get('DISK_QUOTA'),
+					usage : disk.userModel.get('DISK_USAGE'),
+					free : (disk.userModel.get('DISK_QUOTA') - disk.userModel.get('DISK_USAGE')),
+					trash : disk.trashFolderModel.get('size')
+				});
+			},
+			onRender : function() {
+				return;
+			},
+			onShow : function() {
+				var $canvas = this.$el.find('section.piechart canvas:first');
+				disk.userModel.fetch({
+					success : function(model, response, options) {
+						var trash = disk.trashFolderModel.get('size');
+						var usage = model.get('DISK_USAGE') - trash;
+						var free = model.get('DISK_QUOTA') - usage - trash;
+						var doughnutData = [ {
+							value : usage,
+							color : '#6495ED', // cornflowerblue
+							highlight : '#6699FF',
+							label : i18n.settings.used
+						}, {
+							value : free,
+							color : '#6B8E23', // olivedrab
+							highlight : '#669933',
+							label : i18n.settings.free
+						}, {
+							value : trash,
+							color : '#FFA500', // orange
+							highlight : '#FF9900',
+							label : i18n.settings.trash
+						} ];
+						if (!$canvas[0].getContext) {
+							G_vmlCanvasManager.initElement($canvas[0]);
+						}
+						var ctx = $canvas[0].getContext("2d");
+						var doughnut = new Chart(ctx).Doughnut(doughnutData, {
+							responsive : true,
+							segmentShowStroke : false
+						});
+					},
+				});
+			}
+		}); // disk.SettingsCapacityPanelView
+
+		disk.SettingsFileTypesPanelView = Backbone.Marionette.ItemView.extend({
+			tagName : 'div',
+			className : 'mycapacity_cont',
+			template : function(data) {
+				var html = disk.$template.filter('#settings-file-types-panel-template').html();
+				var compiledTemplate = _.template(html);
+				html = compiledTemplate({
+					data : data,
+					i18n : i18n
+				});
+				return html;
+			},
+			initialize : function(options) {
+				this.model = new (app.BackboneModel.extend({
+					urlRoot : function() {
+						return isPopup() ? '../../disk' : 'disk';
+					},
+					url : function() {
+						var base = _.result(this, 'urlRoot');
+						var url = base.replace(/([^\/])$/, '$1/') + disk.myDriveModel.id + '/types';
+						return url;
+					},
+					defaults : {
+						texts : {
+							size : 0,
+							count : 0
+						},
+						images : {
+							size : 0,
+							count : 0
+						},
+						videos : {
+							size : 0,
+							count : 0
+						},
+						audio : {
+							size : 0,
+							count : 0
+						},
+						compressed : {
+							size : 0,
+							count : 0
+						},
+						other : {
+							size : 0,
+							count : 0
+						},
+						quota : disk.userModel.get('DISK_QUOTA'),
+						usage : disk.userModel.get('DISK_USAGE')
+					}
+				}))();
+				this.listenTo(this.model, 'sync', this.render);
+			},
+			onRender : function() {
+				var model = this.model;
+				var doughnutData = [ {
+					value : model.get('texts').size,
+					color : '#F4909D',
+					highlight : '#FF9999',
+					label : i18n.settings.documents
+				}, {
+					value : model.get('images').size,
+					color : '#FDDD00',
+					highlight : '#FFCC00',
+					label : i18n.settings.images
+				}, {
+					value : model.get('videos').size,
+					color : '#53C127',
+					highlight : '#66CC33',
+					label : i18n.settings.videos
+				}, {
+					value : model.get('audio').size,
+					color : '#56A6F5',
+					highlight : '#6699FF',
+					label : i18n.settings.audio
+				}, {
+					value : model.get('compressed').size,
+					color : '#675FFF',
+					highlight : '#6666FF',
+					label : i18n.settings.compressed
+				}, {
+					value : model.get('other').size,
+					color : '#C9CBD0',
+					highlight : '#CCCCCC',
+					label : i18n.settings.other
+				} ];
+				var $canvas = this.$el.find('section.piechart canvas:first');
+				setTimeout(function() {
+					if (!$canvas[0].getContext) {
+						G_vmlCanvasManager.initElement($canvas[0]);
+					}
+					var ctx = $canvas[0].getContext("2d");
+					var doughnut = new Chart(ctx).Doughnut(doughnutData, {
+						responsive : true,
+						segmentShowStroke : false
+					});
+				}, 15);
+				return;
+			},
+			onShow : function() {
+				this.model.fetch({
+					type : 'POST',
+					data : {
+						_method : 'GET',
+						pathname : '/' + disk.myDriveModel.get('name')
+					}
+				});
+			}
+		}); // disk.SettingsFileTypesPanelView
+
+		disk.SettingsFoldersPanelView = Backbone.Marionette.ItemView.extend({
+			tagName : 'div',
+			className : 'type_folder',
+			template : function(data) {
+				var html = disk.$template.filter('#settings-folders-panel-template').html();
+				var compiledTemplate = _.template(html);
+				html = compiledTemplate({
+					folders : data.items,
+					i18n : i18n
+				});
+				return html;
+			},
+			initialize : function(options) {
+				// this.model == No Model
+				this.collection = new (disk.FileCollection.extend({
+					url : function() {
+						if (isPopup())
+							return '../../disk/' + this.pathname.replace(/^([^\/])/, '$1') + '/folders';
+						else
+							return 'disk/' + this.pathname.replace(/^([^\/])/, '$1') + '/folders';
+					},
+				}))();
+				this.collection.pathname = disk.myDriveModel.id;
+				this.listenTo(this.collection, 'sync', this.render);
+			},
+			onRender : function() {
+				return;
+			},
+			onShow : function() {
+				this.collection.fetch({
+					type : 'POST',
+					data : {
+						_method : 'GET',
+						pathname : '/' + disk.myDriveModel.get('name')
+					}
+				});
+				return;
+			}
+		}); // disk.SettingsFoldersPanelView
+
+		disk.ModalView = Backbone.Marionette.ItemView.extend({
+			tagName : 'div',
+			className : 'dh_layer',
+			attributes : {
+				style : 'position: absolute; display: none;',
+			},
+			template : function(data) {
+				var html = disk.$template.filter('#modal-view-template').html();
+				var compiledTemplate = _.template(html);
+				html = compiledTemplate({
+					data : data,
+					i18n : i18n
+				});
+				return html;
+			},
+			initialize : function(options) {
+				return;
+			},
+			onRender : function() {
+				disk.overlayView.showOverlay();
+				var self = this, options = this.options;
+				if (options.width)
+					this.$el.css('width', options.width);
+				else
+					this.$el.css('width', 374);
+				if (options.zIndex)
+					this.$el.css('z-index', options.zIndex);
+				else
+					this.$el.css('z-index', 2017);
+				this.$el.appendTo('body');
+				var $viewport = $(window);
+				$viewport.off('resize.diskModal');
+				$viewport.on('resize.diskModal', function(event) {
+					var viewportWidth = $(this).width() / 2;
+					var viewportHeight = $(this).height() / 2;
+					var width = self.$el.width() / 2;
+					var height = self.$el.height() / 2;
+					var top = Math.floor(viewportHeight - height);
+					var left = Math.floor(viewportWidth - width);
+					self.$el.css({
+						top : top,
+						left : left
+					});
+				});
+				$viewport.trigger('resize.diskModal');
+				var $close = this.$el.find('div.pop_close a.bu_close_p');
+				$close.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					self.close();
+					return false;
+				});
+				if (!options.buttons) { // OK Button
+					this.$el.find('div.footer button').click(function(event) {
+						event.preventDefault() && event.stopPropagation();
+						self.close();
+						return false;
+					});
+				}
+				for ( var selector in options.buttons) {
+					var $button = this.$el.find(selector);
+					var callback = options.buttons[selector];
+					(function($button, callback) {
+						$button.click(function(event) {
+							event.preventDefault() && event.stopPropagation();
+							callback.call();
+							return false;
+						});
+					})($button, callback);
+				}
+			},
+			onClose : function() {
+				$(window).off('resize.diskModal');
+				disk.overlayView.hideOverlay();
+				var options = this.options;
+				if (typeof options.close == 'function') {
+					setTimeout(function() {
+						options.close.call();
+					}, 15);
+				}
+			}
+		}); // disk.ModalView
+
+		disk.MyDriveLayout = Backbone.Marionette.Layout.extend({
+			tagName : 'div',
+			className : 'mc-wrap opw',
+			template : function(data) {
+				var html = disk.$template.filter('#my-drive-layout-template').html();
+				var compiledTemplate = _.template(html);
+				html = compiledTemplate({
+					i18n : i18n,
+				});
+				return html;
+			},
+			regions : {
+				headerRegion : 'div.file_add_title',
+				toolbarRegion : 'div.mc-actionArea',
+				filterRegion : 'div.add_layertbl',
+				folderDetailsRegion : 'div.content_box > div.mc-divList > div.type_list',
+				folderIconsRegion : 'div.content_box > div.mc-divList > div.type_thumb',
+				paginationRegion : 'div.content_box_bottom',
+			},
+			initialize : function(options) {
+				// this.model == No Model
+				this.listenTo(this, 'show:filter-layer', function() {
+					this.filterRegion.$el.attr('hidable', true).show();
+				});
+				this.listenTo(this, 'hide:filter-layer', function() {
+					this.filterRegion.$el.hide();
+				});
+				this.listenTo(this, 'show:folder-details', function() {
+					this.folderIconsRegion.$el.hide();
+					this.folderDetailsRegion.$el.show();
+					app.$hidablesListener.trigger('hide.all');
+					app.vent.trigger('folder-details:rendered');
+				});
+				this.listenTo(this, 'show:folder-icons', function() {
+					this.folderDetailsRegion.$el.hide();
+					this.folderIconsRegion.$el.show();
+					app.$hidablesListener.trigger('hide.all');
+					app.vent.trigger('folder-icons:rendered');
+				});
+			},
+			onRender : function() {
+				var self = this;
+				var paginator = disk.filePaginator;
+				// Header Region
+				this.headerRegion.show(new disk.AttachmentsHeaderView({
+					model : disk.folderModel
+				}));
+				// Toolbar Region
+				this.toolbarRegion.show(new disk.FolderToolbarView({
+					collection : paginator,
+					contentLayout : this
+				}));
+				this.filterRegion.show(new disk.FolderFilterView({
+					contentLayout : this
+				}));
+				this.filterRegion.$el.css({
+					'margin-top' : '-7px',
+					'right' : '14px',
+				});
+				// Content Region
+				var model = new Backbone.Model(paginator.paginator_ui);
+				if (app.userModel && app.userModel.get('USERS_LISTNUM')) {
+					model.set('perPage', app.userModel.get('USERS_LISTNUM'));
+				}
+				this.folderDetailsRegion.show(new disk.FolderDetailsView({
+					model : model,
+					collection : paginator
+				}));
+				this.folderIconsRegion.show(new disk.FolderIconsView({
+					model : model,
+					collection : paginator
+				}));
+				this.paginationRegion.show(new disk.PaginationView({
+					collection : paginator
+				}));
+				var $contentWrapper = this.folderDetailsRegion.$el.parent().parent();
+				this.$el.off('resize.contentLayout');
+				this.$el.on('resize.contentLayout', function(event) {
+					var $headerRegion = self.headerRegion.$el;
+					var $toolbarRegion = self.toolbarRegion.$el;
+					var top = $headerRegion.outerHeight(true) + $toolbarRegion.outerHeight(true);
+					$contentWrapper.css('top', top);
+					return true;
+				});
+				setTimeout(function() {
+					self.$el.trigger('resize.contentLayout');
+				}, 1000);
+				// Drag & Drop
+				this.$el.on('dragenter', function(event) {
+					var dataTransfer = event.originalEvent.dataTransfer;
+					var types = dataTransfer.types;
+					if (types) {
+						if ((types.contains && types.contains("Files"))
+								|| (types.indexOf && types.indexOf("Files") !== -1)) {
+							if (disk.droppableView.$el.is(':hidden'))
+								disk.droppableView.$el.show();
+						}
+					}
+					return true;
+				});
+				var $close = this.$el.find('a.bu_close_p:first');
+				$close.click(function(event) {
+					window.close();
+					return false;
+				});
+			},
+		}); // disk.MyDriveLayout
+
+		disk.AttachmentsLayout = Backbone.Marionette.Layout.extend({
+			className : 'mc-wrap opw',
+			template : function(data) {
+				var html, compiledTemplate = disk.AttachmentsLayout.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#attachments-layout-template').html();
+					compiledTemplate = _.template(html);
+					disk.AttachmentsLayout.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n
+				});
+				return html;
+			},
+			regions : {
+				headerRegion : 'div.file_add_title',
+				toolbarRegion : {
+					selector : 'div.file_add_content > div.mc-actionArea',
+					regionType : Backbone.Marionette.Region.extend({
+						open : function(view) {
+							this.$el.empty().append(view.$el.children());
+						}
+					})
+				},
+				detailsRegion : 'div.file_add_content > div.file_add_list_box > div.mc-divList > div.type_list',
+				iconsRegion : 'div.file_add_content > div.file_add_list_box > div.mc-divList > div.type_thumb',
+				paginationRegion : 'div.file_add_content > div.paginate_expand'
+			},
+			initialize : function(options) {
+				// this.model == No Model
+				this.listenTo(this, 'show:attachments-details', function() {
+					this.iconsRegion.$el.hide();
+					this.detailsRegion.$el.show();
+					app.vent.trigger('attachments-details:rendered');
+				});
+				this.listenTo(this, 'show:attachments-icons', function() {
+					this.detailsRegion.$el.hide();
+					this.iconsRegion.$el.show();
+					app.vent.trigger('attachments-icons:rendered');
+				});
+			},
+			onRender : function() {
+				var self = this;
+				var paginator = disk.filePaginator;
+				// Header Region
+				this.headerRegion.show(new disk.AttachmentsHeaderView({
+					model : disk.folderModel
+				}));
+				// Toolbar Region
+				this.toolbarRegion.show(new disk.AttachmentsToolbarView({
+					collection : paginator,
+					layout : this
+				}));
+				// Content Region
+				var model = new Backbone.Model(paginator.paginator_ui);
+				if (app.userModel && app.userModel.get('USERS_LISTNUM')) {
+					model.set('perPage', app.userModel.get('USERS_LISTNUM'));
+				}
+				this.detailsRegion.show(new disk.AttachmentsDetailsView({
+					model : model,
+					collection : paginator
+				}));
+				this.iconsRegion.show(new disk.AttachmentsIconsView({
+					model : model,
+					collection : paginator
+				}));
+				// Pagination Region
+				this.paginationRegion.show(new disk.PaginationView({
+					collection : paginator
+				}));
+				// Buttons
+				var $attach = this.$el.find('div.file_add_footer > button._btn-submit');
+				var $cancel = this.$el.find('div.file_add_footer > button._btn-cancel');
+				var $close = this.$el.find('a.bu_close_p:first');
+				$attach.click(function(event) {
+					app.vent.trigger('attach:files');
+					return false;
+				});
+				$cancel.add($close).click(function(event) {
+					window.close();
+					return false;
+				});
+			}
+		}); // disk.AttachmentsLayoutView
+
+		disk.AttachmentsHeaderView = Backbone.Marionette.ItemView.extend({
+			tagName : 'h1',
+			className : '_header',
+			template : function(data) {
+				var html, compiledTemplate = disk.AttachmentsHeaderView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#attachments-header-template').html();
+					compiledTemplate = _.template(html);
+					disk.AttachmentsHeaderView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					folder : data,
+					i18n : i18n
+				});
+				return html;
+			},
+			initialize : function(options) {
+				// this.model = disk.folderModel
+				this.listenTo(this.model, 'change', this.render);
+			},
+			onRender : function() {
+				return;
+			}
+		}); // disk.AttachmentsHeaderView
+
+		disk.AttachmentsToolbarView = Backbone.Marionette.ItemView.extend({
+			template : function(data) {
+				var html, compiledTemplate = disk.AttachmentsToolbarView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#attachments-toolbar-template').html();
+					compiledTemplate = _.template(html);
+					disk.AttachmentsToolbarView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n
+				});
+				return html;
+			},
+			initialize : function(options) {
+				// this.model == No Model
+				// this.collection == disk.filePaginator
+				this.listenTo(app.vent, 'attachments-details:rendered', function() {
+					var layout = this.options.layout;
+					if (layout.detailsRegion.$el.is(':visible'))
+						layout.toolbarRegion.open(this.render());
+				});
+				this.listenTo(app.vent, 'attachments-icons:rendered', function() {
+					var layout = this.options.layout;
+					if (layout.iconsRegion.$el.is(':visible'))
+						layout.toolbarRegion.open(this.render());
+				});
+				this.listenTo(app.vent, 'attach:files', function() {
+					try {
+						if (!window.opener || window.opener.closed)
+							return;
+					} catch (error) {
+						return;
+					}
+					var $checked = this.$checkboxes.filter(':checked');
+					var models = [], collection = this.collection;
+					$checked.each(function(index, element) {
+						var id = $(this).attr('id');
+						var model = collection.get(id);
+						if (model)
+							models.push(model.toJSON());
+					});
+					$checked.prop('checked', false).change();
+					if (!models.length) {
+						return;
+					}
+					if (!JSON || !JSON.stringify) {
+						alert('Failed to attach files: No JSON Object');
+						return;
+					}
+					disk.overlayView.showProcessing();
+					var data = JSON.stringify(models);
+					$.ajax({
+						url : '../../disk/' + disk.folderModel.id + '/attachments',
+						type : 'POST',
+						dataType : 'json',
+						contentType : 'application/json',
+						data : data,
+						success : function(data, textStatus, jqXHR) {
+							try {
+								if (!window.opener)
+									throw new Error('No window.opener');
+								if (window.opener.closed)
+									throw new Error('Closed window.opener');
+								var openerApp = window.opener.require('app');
+								openerApp.vent.trigger('attach:files', data);
+							} catch (error) {
+								alert(error.name + ': ' + error.message);
+							}
+						},
+						error : function(jqXHR, textStatus, errorThrown) {
+							alert('Failed to attach files: ' + textStatus);
+						},
+						complete : function(jqXHR, textStatus) {
+							disk.overlayView.hideProcessing();
+							window.close();
+						}
+					});
+				})
+			},
+			onRender : function() {
+				var self = this;
+				// Select Location
+				var $myDrive = this.$el.find('li.to-my-drive:first');
+				var $groupDrive = this.$el.find('li.to-group-drive:first');
+				var $locations = $myDrive.add($groupDrive);
+				$locations.removeClass('on');
+				switch (disk.folderModel.get('linkCount')) {
+				case 'UserDisk':
+					$myDrive.addClass('on');
+					break;
+				case 'GroupRoot':
+					$groupDrive.addClass('on');
+					break;
+				}
+				if (disk.folderModel.get('path')) {
+					if (/^\/마이디스크/.test(disk.folderModel.get('path')))
+						$myDrive.addClass('on');
+					else if (/^\/공유디스크/.test(disk.folderModel.get('path')))
+						$groupDrive.addClass('on');
+				}
+				$locations.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					$locations.removeClass('on');
+					$(this).addClass('on');
+					var hash = '#attachments/files?id=';
+					if ($myDrive.hasClass('on')) {
+						hash += disk.myDriveModel.id;
+					} else if ($groupDrive.hasClass('on')) {
+						hash += disk.groupRootModel.id;
+					}
+					location.href = hash;
+					return false;
+				});
+				// View: ▤ Details, ▦ Icons
+				var layout = this.options.layout;
+				var $details = this.$el.find('li.v_ty1:first');
+				var $icons = this.$el.find('li.v_ty2:first');
+				$details.click(function(event) {
+					var $this = $(this);
+					if (!$this.hasClass('on')) {
+						layout.trigger('show:attachments-details');
+					}
+					return false;
+				});
+				$icons.click(function(event) {
+					var $this = $(this);
+					if (!$this.hasClass('on')) {
+						layout.trigger('show:attachments-icons');
+					}
+					return false;
+				});
+				if (!layout.detailsRegion.$el) {
+					return;
+				}
+				var $toggle = $([]), $checkboxes = $([]);
+				if (layout.detailsRegion.$el.is(':visible')) {
+					$details.addClass('on');
+					$icons.removeClass('on');
+					$toggle = layout.detailsRegion.$el.find('li.mc-check input.allCheck');
+					$checkboxes = layout.detailsRegion.$el.find('li.mc-check input.mCheck');
+				}
+				if (layout.iconsRegion.$el.is(':visible')) {
+					$details.removeClass('on');
+					$icons.addClass('on');
+					$toggle = layout.iconsRegion.$el.find('span.check_bar input[type="checkbox"]');
+					$checkboxes = layout.iconsRegion.$el.find('div.check > input[type="checkbox"]');
+				}
+				if (this.$toggle)
+					this.$toggle.off('change.toggle');
+				if (this.$checkboxes)
+					this.$checkboxes.off('change.checkboxes');
+				this.$toggle = $toggle;
+				this.$checkboxes = $checkboxes;
+				$toggle.on('change.toggle', function(event) {
+					event.stopPropagation();
+					if (this.checked) {
+						if (!$checkboxes.length) {
+							this.checked = false;
+							return false;
+						}
+						$checkboxes.prop('checked', true);
+					} else {
+						$checkboxes.removeAttr('checked');
+					}
+					$checkboxes.change();
+					app.vent.trigger('toggle:folder-checkbox', false);
+				});
+				$checkboxes.on('change.checkboxes', function(event) {
+					event.stopPropagation();
+					if (this.checked) {
+						if ($checkboxes.length == $checkboxes.filter(':checked').length)
+							$toggle.prop('checked', true);
+					} else {
+						$toggle.removeAttr('checked');
+					}
+				});
+			}
+		}); // disk.AttachmentsToolbarView
+
+		disk.AttachmentsDetailsItemView = Backbone.Marionette.ItemView.extend({
+			tagName : 'li',
+			className : 'list_body_li',
+			template : function(data) {
+				var html, compiledTemplate = disk.FolderDetailsItemView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#folder-details-item-template').html();
+					compiledTemplate = _.template(html);
+					disk.FolderDetailsItemView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					file : data,
+					folder : disk.folderModel.toJSON(),
+					i18n : i18n,
+					popup : isPopup()
+				});
+				return html;
+			},
+			initialize : function(options) {
+				// this.model == disk.FileModel
+				this.listenTo(this.model, 'change', this.render);
+				this.listenTo(app.vent, 'toggle:checkbox', function(checked) {
+					this.$checkbox.prop('checked', checked).change();
+				});
+				if (this.model.get('directory')) {
+					this.listenTo(app.vent, 'toggle:folder-checkbox', function(checked) {
+						this.$checkbox.prop('checked', checked).change();
+					});
+				}
+			},
+			onRender : function() {
+				var self = this;
+				this.$checkbox = this.$el.find('li.mc-check input[type="checkbox"]');
+				if (this.model.get('directory'))
+					this.$checkbox.remove();
+				this.$checkbox.change(function(event) {
+					event.stopPropagation();
+					var $this = $(this);
+					if ($this.is(':checked'))
+						self.$el.addClass('focus');
+					else
+						self.$el.removeClass('focus');
+				});
+				var $starredItem = this.$el.find('li.mc-important:first');
+				$starredItem.remove();
+				var $filenameItem = this.$el.find('li.mc-filename:first');
+				$filenameItem.addClass('attached');
+				var $links = $filenameItem.find('a');
+				var $shareWith = $links.filter('.bu.i_fold_adm');
+				$shareWith.remove();
+				var $fileLink = $links.not('.bu.i_fold_adm');
+				$fileLink.click(function(event) {
+					event.preventDefault();
+					if (self.model.get('readable') === false)
+						return false;
+					if (self.model.get('directory') === true)
+						location.href = '#attachments/files?id=' + self.model.get('id');
+				});
+				if (disk.folderModel.get('linkCount') === 'BigMail') {
+					this.$el.find('li.mc-dwcount:first').remove();
+					this.$el.find('li.mc-expirydate:first').remove();
+				}
+				if (self.model.get('readable') === false) {
+					$fileLink.css('color', '#999');
+					this.$el.find('li.mc-dateUd:first').css('color', '#999');
+				}
+				this.$el.click(function(event) {
+					if (self.model.get('readable') === false)
+						return true;
+					if (event.target === self.$checkbox.get(0))
+						return true;
+					var checked = self.$checkbox.is(':checked');
+					if (self.model.get('directory') === true)
+						app.vent.trigger('toggle:checkbox', false);
+					else
+						app.vent.trigger('toggle:folder-checkbox', false);
+					if (checked)
+						self.$checkbox.prop('checked', false).change();
+					else
+						self.$checkbox.prop('checked', true).change();
+					return true;
+				}).dblclick(function(event) {
+					if (self.model.get('readable') === false)
+						return false;
+					if (self.model.get('directory') === true)
+						location.href = '#attachments/files?id=' + self.model.get('id');
+					return false;
+				});
+			}
+		});
+
+		disk.AttachmentsDetailsView = Backbone.Marionette.CompositeView.extend({
+			template : function(data) {
+				var html, compiledTemplate = disk.AttachmentsDetailsView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#attachments-details-template').html();
+					compiledTemplate = _.template(html);
+					disk.AttachmentsDetailsView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					params : data,
+					i18n : i18n
+				});
+				return html;
+			},
+			itemView : disk.AttachmentsDetailsItemView,
+			itemViewContainer : 'div.mc-listWrap > ol.list_body_group',
+			initialize : function(options) {
+				// this.model == Backbone.Model(disk.filePagnator.paginator_ui)
+				// this.collection == disk.filePaginator
+				this.listenTo(app.vent, 'paginate:files', this.paginateFiles);
+				return;
+			},
+			onRender : function() {
+				var self = this;
+				this.setParentLink();
+				setTimeout(function() {
+					app.vent.trigger('attachments-details:rendered');
+				}, 15);
+			},
+			onCompositeCollectionRendered : function() {
+				app.vent.trigger('attachments-details:rendered');
+			},
+			setParentLink : function(parentModel) {
+				if (!this.$parentLink) {
+					this.$parentItem = this.$itemViewContainer.children('li.folder_root:first');
+					this.$parentLink = this.$parentItem.children('a');
+				}
+				this.parentModel = parentModel ? parentModel : disk.myDriveModel;
+				this.$parentLink.attr('href', '#attachments/files?id=' + this.parentModel.id);
+				if (!this.$parentItem.parent().length) {
+					this.$parentItem.prependTo(this.$itemViewContainer);
+				}
+				var self = this;
+				this.$parentLink.off('click').on('click', function(event) {
+					location.hash = self.$parentLink.attr('href');
+					return true;
+				});
+			},
+			renderColumns : function(params) {
+				this.model.clear({
+					silent : true
+				});
+				if (!params.id)
+					this.model.set('id', null);
+				if (!params.currentPage)
+					this.model.set('currentPage', this.collection.paginator_ui.currentPage);
+				if (!params.perPage) {
+					if (app.userModel && app.userModel.get('USERS_LISTNUM'))
+						this.model.set('perPage', app.userModel.get('USERS_LISTNUM'));
+					else
+						this.model.set('perPage', this.collection.paginator_ui.perPage);
+				}
+				if (!params.sortColumn) {
+					this.model.set('sortColumn', this.collection.paginator_ui.sortColumn);
+					this.collection.sortColumn = this.collection.paginator_ui.sortColumn;
+				}
+				this.model.set(params);
+				var html = this.renderModel();
+				html = $('<div>').html(html).children('ul.mc-wdListItem').html();
+				var $columnList = this.$el.children('ul.mc-wdListItem');
+				$columnList.html(html);
+			},
+			paginateFiles : function(params, parentModel, models) {
+				this.renderColumns(params);
+				this.setParentLink(parentModel);
+				var $region = this.$el.parent();
+				if ($region.is(':hidden'))
+					return;
+				var paginator = this.collection;
+				if (models) {
+					delete paginator.origModels;
+					paginator.reset(models, {
+						silent : true
+					});
+				}
+				paginator.resetDefaults(params);
+				if (params && params.currentPage)
+					paginator.goTo(params.currentPage);
+				else
+					paginator.goTo(1);
+			}
+		}); // disk.AttachmentsDetailsView
+
+		disk.AttachmentsIconsItemView = Backbone.Marionette.ItemView.extend({
+			tagName : 'li',
+			template : function(data) {
+				var html, compiledTemplate = disk.FolderIconsItemView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#folder-icons-item-template').html();
+					compiledTemplate = _.template(html);
+					disk.FolderIconsItemView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					file : data,
+					i18n : i18n,
+					popup : isPopup()
+				});
+				return html;
+			},
+			initialize : function(options) {
+				// this.model == disk.FileModel
+				this.listenTo(this.model, 'change', this.render);
+				this.listenTo(app.vent, 'toggle:checkbox', function(checked) {
+					this.$checkbox.prop('checked', checked).change();
+				});
+				if (this.model.get('directory')) {
+					this.listenTo(app.vent, 'toggle:folder-checkbox', function(checked) {
+						this.$checkbox.prop('checked', checked).change();
+					});
+				}
+			},
+			onRender : function() {
+				var self = this;
+				this.$checkbox = this.$el.find('div.check > input[type="checkbox"]');
+				if (this.model.get('directory'))
+					this.$checkbox.remove();
+				this.$checkbox.change(function(event) {
+					event.stopPropagation();
+					var $this = $(this);
+					if ($this.is(':checked'))
+						self.$el.addClass('focus');
+					else
+						self.$el.removeClass('focus');
+				});
+				var $important = this.$el.find('div.check > a.bu_star');
+				$important.remove();
+				var $shareWith = this.$el.find('div.check > a.i_fold_adm');
+				$shareWith.remove();
+				var $fileLink = this.$el.find('div.thumb_box > div.title a');
+				if (this.model.get('readable') === false) {
+					$fileLink.css('color', '#999');
+				}
+				$fileLink.click(function(event) {
+					event.preventDefault();
+					if (self.model.get('readable') === false)
+						return false;
+					if (self.model.get('directory') === true)
+						location.href = '#attachments/files?id=' + self.model.get('id');
+				});
+				this.$el.click(function(event) {
+					if (self.model.get('readable') === false)
+						return true;
+					if (event.target === self.$checkbox.get(0))
+						return true;
+					var checked = self.$checkbox.is(':checked');
+					if (self.model.get('directory') === true)
+						app.vent.trigger('toggle:checkbox', false);
+					else
+						app.vent.trigger('toggle:folder-checkbox', false);
+					if (checked)
+						self.$checkbox.prop('checked', false).change();
+					else
+						self.$checkbox.prop('checked', true).change();
+					return true;
+				}).dblclick(function(event) {
+					if (self.model.get('readable') === false)
+						return true;
+					if (self.model.get('directory') === true)
+						location.href = '#attachments/files?id=' + self.model.get('id');
+					return false;
+				});
+			}
+		}); // disk.AttachmentsIconsItemView
+
+		disk.AttachmentsIconsView = Backbone.Marionette.CompositeView.extend({
+			template : function(data) {
+				var html, compiledTemplate = disk.AttachmentsIconsView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#attachments-icons-template').html();
+					compiledTemplate = _.template(html);
+					disk.AttachmentsIconsView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					params : data,
+					folder : disk.folderModel.toJSON(),
+					i18n : i18n
+				});
+				return html;
+			},
+			itemView : disk.AttachmentsIconsItemView,
+			itemViewContainer : 'ul.thumb_list',
+			initialize : function(options) {
+				// this.model == Backbone.Model(disk.filePagnator.paginator_ui)
+				// this.collection == disk.filePaginator
+				this.listenTo(app.vent, 'paginate:files', this.paginateFiles);
+			},
+			onRender : function() {
+				var self = this;
+				this.initParentLink();
+				setTimeout(function() {
+					app.vent.trigger('attachments-icons:rendered');
+				}, 100);
+			},
+			onCompositeModelRendered : function() {
+				var self = this;
+				var $sortSection = this.$el.children('div.list_sort');
+				var $sortLayer = this.$el.children('div.sort_layer');
+				var $sortColumn = $sortSection.children('a').eq(0);
+				$sortColumn.click(function(event) {
+					var position = $sortSection.position();
+					$sortLayer.css({
+						top : position.top + $sortSection.outerHeight(true),
+						left : $sortColumn.position().left,
+					});
+					if ($sortLayer.is(':visible'))
+						$sortLayer.hide();
+					else
+						$sortLayer.show();
+					return false;
+				});
+				var $sortDirection = $sortSection.children('a').eq(1);
+				$sortDirection.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var direction = self.model.get('sortDirection');
+					direction = direction ? direction : 'desc';
+					direction = direction === 'desc' ? 'asc' : 'desc';
+					location.hash = '#' + self.collection.getURL({
+						sortDirection : direction
+					});
+					return false;
+				});
+				var $sortItems = $sortLayer.find('> ul li');
+				$sortItems.click(function(event) {
+					$sortItems.removeClass('on');
+					var column = $(this).addClass('on').data('column');
+					location.hash = '#' + self.collection.getURL({
+						sortColumn : column
+					});
+					return false;
+				});
+			},
+			onCompositeCollectionRendered : function() {
+				app.vent.trigger('attachments-icons:rendered');
+			},
+			renderSortBy : function(params) {
+				var $html = $('<div>').html(this.renderModel());
+				var $sortSection = this.$el.children('div.list_sort');
+				$sortSection.html($html.children('div.list_sort').html());
+				var $sortLayer = this.$el.children('div.sort_layer').hide();
+				$sortLayer.html($html.children('div.sort_layer').html());
+				this.onCompositeModelRendered();
+			},
+			initParentLink : function(parentModel) {
+				if (!this.$parentItem) {
+					this.$parentItem = this.$itemViewContainer.find('> li:first');
+					this.$parentLink = this.$parentItem.find('> div.thumb_box > div.title > a');
+				}
+				this.parentModel = parentModel ? parentModel : disk.myDriveModel;
+				this.$parentLink.attr('href', '#attachments/files?id=' + this.parentModel.id);
+				if (!this.$parentItem.parent().length) {
+					this.$parentItem.prependTo(this.$itemViewContainer);
+				}
+				var self = this;
+				this.$parentItem.removeClass('focus');
+				this.$parentItem.off('dblclick').on('dblclick', function(event) {
+					location.hash = self.$parentLink.attr('href');
+					return true;
+				});
+				this.$parentItem.off('click').on('click', function(event) {
+					app.vent.trigger('toggle:checkbox', false);
+					if (self.$parentItem.hasClass('focus'))
+						self.$parentItem.removeClass('focus');
+					else
+						self.$parentItem.addClass('focus');
+					return true;
+				});
+				this.$parentLink.off('click').on('click', function(event) {
+					location.hash = self.$parentLink.attr('href');
+					return true;
+				});
+				app.vent.off('toggle:checkbox', null, this);
+				app.vent.on('toggle:checkbox', function(checked) {
+					if (checked)
+						this.$parentItem.addClass('focus');
+					else
+						this.$parentItem.removeClass('focus');
+				}, this);
+				app.vent.off('toggle:folder-checkbox', null, this);
+				app.vent.on('toggle:folder-checkbox', function(checked) {
+					if (checked)
+						this.$parentItem.addClass('focus');
+					else
+						this.$parentItem.removeClass('focus');
+				}, this);
+			},
+			paginateFiles : function(params, parentModel, models) {
+				this.renderSortBy(params);
+				this.initParentLink(parentModel);
+				var $region = this.$el.parent();
+				if ($region.is(':hidden'))
+					return;
+				var paginator = this.collection;
+				if (models) {
+					delete paginator.origModels;
+					paginator.reset(models, {
+						silent : true
+					});
+				}
+				paginator.resetDefaults(params);
+				if (params && params.currentPage)
+					paginator.goTo(params.currentPage);
+				else
+					paginator.goTo(1);
+			}
+		}); // disk.AttachmentsIconsView
+
+		disk.OverlayView = Backbone.Marionette.ItemView.extend({
+			tagName : 'div',
+			attributes : {
+				style : 'display: none;',
+			},
+			template : function(data) {
+				var html, compiledTemplate = disk.OverlayView.compiledTemplate;
+				if (!compiledTemplate) {
+					html = disk.$template.filter('#disk-overlay-template').html();
+					compiledTemplate = _.template(html);
+					disk.OverlayView.compiledTemplate = compiledTemplate;
+				}
+				html = compiledTemplate({
+					i18n : i18n,
+					popup : isPopup()
+				});
+				return html;
+			},
+			initialize : function(options) {
+				// this.model == No Model
+			},
+			onRender : function() {
+				var self = this;
+				this.$overlay = this.$el.children('#disk-overlay');
+				this.$loadingLayer = this.$overlay.children('.disk-loading-layer');
+				this.$processingLayer = this.$overlay.children('.disk-processing-layer');
+				this.$uploadingLayer = this.$overlay.children('.disk-uploading-layer');
+				this.$overlay.on('mousedown', function(event) {
+					event.preventDefault() && event.stopPropagation();
+				});
+				this.$viewport = $(window).off('resize.diskOverlay');
+				this.$viewport.on('resize.diskOverlay', function(event) {
+					var viewportWidth = self.$viewport.width() / 2;
+					var viewportHeight = self.$viewport.height() / 2;
+					var width = self.$loadingLayer.width() / 2;
+					var height = self.$loadingLayer.height() / 2;
+					var top = Math.floor(viewportHeight - height);
+					var left = Math.floor(viewportWidth - width);
+					self.$loadingLayer.css({
+						'top' : top,
+						'left' : left,
+					});
+					width = self.$processingLayer.width() / 2;
+					height = self.$processingLayer.height() / 2;
+					top = Math.floor(viewportHeight - height);
+					left = Math.floor(viewportWidth - width);
+					self.$processingLayer.css({
+						'top' : top,
+						'left' : left,
+					});
+					width = self.$uploadingLayer.width() / 2;
+					height = self.$uploadingLayer.height() / 2;
+					top = Math.floor(viewportHeight - height);
+					left = Math.floor(viewportWidth - width);
+					self.$uploadingLayer.css({
+						'top' : top,
+						'left' : left,
+					});
+				}).trigger('resize.diskOverlay');
+				this.$loadingLayer.hide();
+				this.$processingLayer.hide();
+				this.$uploadingLayer.hide();
+				this.$overlay.hide();
+				this.$overlay.appendTo('body');
+			},
+			onClose : function() {
+				this.$overlay.remove();
+			},
+			showOverlay : function() {
+				this.$overlay.show();
+			},
+			hideOverlay : function() {
+				this.$overlay.fadeOut();
+			},
+			showLoading : function() {
+				this.showOverlay();
+				this.$loadingLayer.show();
+			},
+			hideLoading : function() {
+				this.$loadingLayer.fadeOut();
+				this.hideOverlay();
+			},
+			showProcessing : function() {
+				this.showOverlay();
+				this.$processingLayer.show();
+			},
+			hideProcessing : function() {
+				this.$processingLayer.hide();
+				this.hideOverlay();
+			},
+			showUploading : function() {
+				this.showOverlay();
+				this.$uploadingLayer.show();
+			},
+			hideUploading : function() {
+				this.$uploadingLayer.hide();
+				this.hideOverlay();
+			},
+		}); // disk.OverlayView
+
+	}); // app.module('disk', function(disk, app, ...) {...})
+});��=�l�      d߸d߸EUUd7   d    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app/disk/disk-views.js necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"180137-1659949284000"
+Last-Modified: Mon, 08 Aug 2022 09:01:24 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 180137
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"180137-1659949284000"
+Last-Modified: Mon, 08 Aug 2022 09:01:24 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 180137
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ ctid 2 uncompressed-len 0 net-response-time-onstart 52 net-response-time-onstop 69  ��

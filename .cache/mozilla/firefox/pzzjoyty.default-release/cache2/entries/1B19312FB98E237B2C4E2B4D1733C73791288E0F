@@ -1,0 +1,468 @@
+
+
+
+
+
+
+
+<style>
+	.event {display:flex; position:relative;}
+	.event .text {position:relative; width:610px; height:360px; overflow:hidden;}
+	.event .text .btn {display:flex; position:absolute; top:0; right:0;}
+	.event .text .btn input {border-radius:0px;}
+	.event .text .btn input+input {margin-left:-1px;}
+	.event .text .list {height:244px; margin-top:40px;}
+	.event .text .item {position:relative; display:block;}
+	.event .title {display:block; font-size:22px; margin:3px; font-weight:500; color:#313131; padding-right:10px; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;}
+	.event .title a {display:block; margin:2px; overflow:hidden;}
+	.event .content {display:block; font-size:18px; font-weight:300; color:#313131; line-height:25px; height:75px; margin:10px 0 15px; overflow:hidden;}
+	.event .day {display:block; font-size:18px; font-weight:300; color:#313131;}
+	.event .day .link {display:inline-block; margin-left:10px; padding:0 15px; font-size:15px; color:#fff; line-height:28px; border:none; background:#427ee2; border-radius:50px;}
+
+ 	.event .text .list .slick-list {overflow:visible;}
+	.event .icon {position:absolute; top:208px; right:0px; margin:2px; cursor:pointer;}
+	
+	
+	.event .img {width:calc(100% - 670px); padding:2px 2px 2px 60px; overflow:hidden;}
+	.event .img .item a {display:block; margin:60px 30px 10px; transition:0.3s}
+	.event .img .item a img {width:300px; height:300px; box-shadow:1px 1px 7px #ddd; transition:0.3s} 
+ 	.event .img .slick-current a {margin:0 0px 10px;}
+ 	.event .img .slick-current a img {width:360px; height:360px;}
+
+	
+  	.event .slick-prev {display:none !important;}
+	.event .slick-next {display:none !important;}
+	
+	@media only screen and (max-width:1016px) {
+		.event {display:block;}
+		.event .text {width:auto;}
+		.event .img {display:none;}
+	}
+	
+	.selection {position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:100; display:none;}
+	.selection .box {position:absolute; top:50%; left:50%; transform: translate(-50%, -50%); padding:40px 30px 30px; background:#fff;}
+	.selection .box .close {position:absolute; top:-30px; right:0; font-size:30px; color:#fff; border:none; background:none;}
+	
+	
+</style>
+
+
+
+<div class="event">
+	<div class="text">
+		
+		<div class="btn">
+			<input class="f1" type="image" src="/site/ko/2021/res/img/btn_prev3.png" alt="이전" onclick="javascript:$('.event .list .slick-prev').click();">
+			<input type="image" src="/site/ko/2021/res/img/btn_next3.png" alt="다음" onclick="javascript:$('.event .list .slick-next').click();">
+		</div>
+	
+		<h2 class="h2">EVENT <span>&nbsp;</span></h2>
+		<div class="list">
+				
+				<div class="item">
+					<span class="title"><a href="/service/info/event?do=view&idx=100">2023학년도 창업교육센터 창업 교과목 개설안내</a></span> 
+					<span class="content"></span> 
+					<span class="day">일시 : 2023-01-30 ~ 2023-02-24</span>
+					<span class="day">장소 : 창업지원단</span>
+					<span class="day">주체부서 : 창업지원단</span>
+					
+					<input class="icon" type="image" src="/site/ko/2021/res/img/event_on.png" alt="일정공유" onclick="onSelection(100)">
+
+				</div>
+				
+				<div class="item">
+					<span class="title"><a href="/service/info/event?do=view&idx=99">2023 조형대학 오픈스쿨</a></span> 
+					<span class="content"></span> 
+					<span class="day">일시 : 2023-02-20 ~ 2023-02-11</span>
+					<span class="day">장소 : 조형대학</span>
+					<span class="day">주체부서 : 조형대학</span>
+					
+					<input class="icon" type="image" src="/site/ko/2021/res/img/event_on.png" alt="일정공유" onclick="onSelection(99)">
+
+				</div>
+				
+				<div class="item">
+					<span class="title"><a href="/service/info/event?do=view&idx=98">2022학년도 도서관 이용자 만족도 조사 실시</a></span> 
+					<span class="content">▶이용링크 : http://ksurv.kr/?a=39505</span> 
+					<span class="day">일시 : 2023-01-16 ~ 2023-01-27</span>
+					<span class="day">장소 : QR코드, 링크 연결 및 도서관 홈페이지</span>
+					<span class="day">주체부서 : 도서관</span>
+					
+					<input class="icon" type="image" src="/site/ko/2021/res/img/event_on.png" alt="일정공유" onclick="onSelection(98)">
+
+				</div>
+				
+				<div class="item">
+					<span class="title"><a href="/service/info/event?do=view&idx=97">23년 지역인재 7급 수습직원 선발시험</a></span> 
+					<span class="content"></span> 
+					<span class="day">일시 : 2023-01-16 ~ 2023-01-19</span>
+					<span class="day">장소 : 취업진로본부</span>
+					<span class="day">주체부서 : 취업진로본부</span>
+					
+					<input class="icon" type="image" src="/site/ko/2021/res/img/event_on.png" alt="일정공유" onclick="onSelection(97)">
+
+				</div>
+				
+				<div class="item">
+					<span class="title"><a href="/service/info/event?do=view&idx=96">[교양대학] 고전읽기 토론대회 : 노베르트 엘리아스의  「문명화과정」</a></span> 
+					<span class="content"></span> 
+					<span class="day">일시 : 2023-01-10 ~ 2023-01-13</span>
+					<span class="day">장소 : 교양대학</span>
+					<span class="day">주체부서 : 교양대학</span>
+					
+					<input class="icon" type="image" src="/site/ko/2021/res/img/event_on.png" alt="일정공유" onclick="onSelection(96)">
+
+				</div>
+				
+				<div class="item">
+					<span class="title"><a href="/service/info/event?do=view&idx=95">💛서울과기대 동문 셀럽과 함께하는 'ST LIVE 특집 토크쇼' 참여 안내💛 </a></span> 
+					<span class="content">
+💛서울과기대 동문 셀럽과 함께하는 &#39;ST LIVE 특집 토크쇼&#39; 신청 안내💛☞ 신청하기(클릭): https://naver.me/xFrn9wcp
+★ 시청만 원하시는 분들은 서울과기대 유튜브 채널을 통해 방송 당일 실시간 시청이 가능합니다.☞LIVE 시청하기(바로가기): https://youtu.be/OQw6GWjPa-E★ 본 라이브 방송(유튜브 댓글 등)에 참여하시는 분들에게는 추첨을 통해 영화관람권 2매, 치킨 세트 쿠폰, 이마트 상품권, 커피 쿠폰, 김수현작가님 친필 사인 도서 등푸짐한 상품을 드릴 예정이오니 ...</span> 
+					<span class="day">일시 : 2023-01-06 ~ 2023-01-18</span>
+					<span class="day">장소 : 서울과학기술대학교 유튜브</span>
+					<span class="day">주체부서 : 홍보실</span>
+					
+					<input class="icon" type="image" src="/site/ko/2021/res/img/event_on.png" alt="일정공유" onclick="onSelection(95)">
+
+				</div>
+				
+				<div class="item">
+					<span class="title"><a href="/service/info/event?do=view&idx=94">스마트캠퍼스 앱 베타 품질테스트 참여 이벤트(~13일까지 연장)</a></span> 
+					<span class="content">스마트캠퍼스 앱 베타 품질테스트 참여 이벤트(기간 연장)1) 테스트 기간: 2023년 1월 3일 09:00 ~ 1월 13일 16:002) 참여 대상: 본교 학부 재학생, 교직원3) 참여 방법: ❶정보이용 동의 &rarr; ❷베타버전 앱 설치 &rarr; ❸앱 이용 점검 &rarr; ❹결과 등록4) 참여 혜택- 테스트 결과 내용을 심사해 우수의견으로 선정된 100분께 소정의 사은품 제공- 사은품: 서울과학기술대학교 소비자생협 카페goods※※ 텀블러(음료권 포함) 11,400원 상당- 선정되신 분께는 개별 문자로 안내 드립니다.(1월...</span> 
+					<span class="day">일시 : 2023-01-03 ~ 2023-01-13</span>
+					<span class="day">장소 : 정보전산원</span>
+					<span class="day">주체부서 : 정보전산원</span>
+					
+					<input class="icon" type="image" src="/site/ko/2021/res/img/event_on.png" alt="일정공유" onclick="onSelection(94)">
+
+				</div>
+				
+				<div class="item">
+					<span class="title"><a href="/service/info/event?do=view&idx=93">☆창업지원단 라이브 커머스 참여안내☆</a></span> 
+					<span class="content">
+☆창업지원단 라이브 커머스 참여안내☆☆12/23 14:00☆방송 참여하기(클릭): https://naver.me/5MC54SRF
+최고급 이태리 가죽을 활용한 데스크 소품 !연말 연시 선물로 추천해드려요🎁</span> 
+					<span class="day">일시 : 2022-12-23 ~ 2022-12-23</span>
+					<span class="day">장소 : 창업지원단</span>
+					<span class="day">주체부서 : 창업지원단</span>
+					
+					<input class="icon" type="image" src="/site/ko/2021/res/img/event_on.png" alt="일정공유" onclick="onSelection(93)">
+
+				</div>
+			
+		</div>
+	
+		<a class="more" href="/service/info/event">MORE EVENTS +</a>
+	
+	</div>
+	
+	<div class="img">
+		<div class="list">
+		
+			<div class="item">
+				<a href="/service/info/event?do=view&idx=100">
+					<img alt="2023학년도 창업교육센터 창업 교과목 개설안내 이미지" src="/storage/www/event/SNUST0316A14E42374B6B85B516E137197D93.png" onerror="src='/site/ko/2021/res/img/no_img.png';">
+				</a>
+			</div>
+		
+			<div class="item">
+				<a href="/service/info/event?do=view&idx=99">
+					<img alt="2023 조형대학 오픈스쿨 이미지" src="/storage/www/event/SNUST0669E3276F424B508FB29D6F10FFBA07.png" onerror="src='/site/ko/2021/res/img/no_img.png';">
+				</a>
+			</div>
+		
+			<div class="item">
+				<a href="/service/info/event?do=view&idx=98">
+					<img alt="2022학년도 도서관 이용자 만족도 조사 실시 이미지" src="/storage/www/event/SNUST677E1271DB3744F6BFB74463288DC83E.png" onerror="src='/site/ko/2021/res/img/no_img.png';">
+				</a>
+			</div>
+		
+			<div class="item">
+				<a href="/service/info/event?do=view&idx=97">
+					<img alt="23년 지역인재 7급 수습직원 선발시험 이미지" src="/storage/www/event/SNUST7D12EABCCF3C4D27AEAE7993CF79B723.png" onerror="src='/site/ko/2021/res/img/no_img.png';">
+				</a>
+			</div>
+		
+			<div class="item">
+				<a href="/service/info/event?do=view&idx=96">
+					<img alt="[교양대학] 고전읽기 토론대회 : 노베르트 엘리아스의  「문명화과정」 이미지" src="/storage/www/event/SNUST9199AF4EE12D42FD92F902BE52BA5CFD.jpg" onerror="src='/site/ko/2021/res/img/no_img.png';">
+				</a>
+			</div>
+		
+			<div class="item">
+				<a href="/service/info/event?do=view&idx=95">
+					<img alt="💛서울과기대 동문 셀럽과 함께하는 'ST LIVE 특집 토크쇼' 참여 안내💛  이미지" src="/storage/www/event/SNUSTA138EBD5390E486AB4142F4701E5F6D6.png" onerror="src='/site/ko/2021/res/img/no_img.png';">
+				</a>
+			</div>
+		
+			<div class="item">
+				<a href="/service/info/event?do=view&idx=94">
+					<img alt="스마트캠퍼스 앱 베타 품질테스트 참여 이벤트(~13일까지 연장) 이미지" src="/storage/www/event/SNUST42AAD414C0384B2393FDD734BFDCFE35.png" onerror="src='/site/ko/2021/res/img/no_img.png';">
+				</a>
+			</div>
+		
+			<div class="item">
+				<a href="/service/info/event?do=view&idx=93">
+					<img alt="☆창업지원단 라이브 커머스 참여안내☆ 이미지" src="/storage/www/event/SNUSTF812AFC5DB7F4239962E3002014A67E2.png" onerror="src='/site/ko/2021/res/img/no_img.png';">
+				</a>
+			</div>
+		
+		</div>
+	</div>
+
+</div>
+
+<!-- 네이버,구글 선택 팝업 -->
+ <div class="selection">
+ 	<div class="box">
+	 	<input class="close" type="image" alt="닫기" src="/site/www/service/info/event/img/event_close.png" onclick="selection_close()">
+	 	<div class="t18 tac"><b>[학내행사 일정 공유]</b><br>공유할 캘린더 계정을 선택하세요</div>
+	 	<div class="mt40">
+	 		<input type="image" alt="NAVER 캘린더" src="/site/www/service/info/event/img/event_login01.png" onclick="onAddNaverReq()" title="새창 열림">
+	 	</div>
+	 	<div class="mt20">
+	 		<input type="image" alt="Google 캘린더" src="/site/www/service/info/event/img/event_login02.png" onclick="onAddGoogleReq()" title="새창 열림">
+	 	</div>
+ 	</div>
+ </div>
+
+<!-- 네이버 로그인 버튼 -->
+<div style="display:none;">
+	<div id="naver_id_login"></div>
+</div>
+<!-- 구글 로그인 버튼 -->
+<div style="display:none;">
+	<button id="authorize_button" style="display:none;">Authorize</button>
+    <button id="signout_button" style="display:none;">Sign Out</button>	
+</div>
+
+<script type="text/javascript">
+
+ 	var hostUrl = "https://www.seoultech.ac.kr";
+ 	var serviceUrl = "https://www.seoultech.ac.kr/service/info/event";
+   	var callbackUrl = "https://www.seoultech.ac.kr/site/www/service/info/event/naver_callback.jsp";
+ 	
+   	var clientId = "nRsUiD_kjzxhOxDKnxUW";
+ 	var naver_id_login = new naver_id_login(clientId, callbackUrl);
+ 	var state = naver_id_login.getUniqState();
+ 	naver_id_login.setButton("white", 2,40);
+ 	naver_id_login.setDomain(serviceUrl);
+ 	naver_id_login.setState(state);
+ 	naver_id_login.setPopup();
+ 	naver_id_login.init_naver_id_login();
+ 	
+ 	function onAddNaverDo(token, id)
+ 	{
+		console.log('onAddNaverDo(id) = ' + id);
+		console.log('onAddNaverDo(token) = ' + token);
+		
+		$.ajax({
+			url: '/site/www/service/info/event/naver_cal_add_do.jsp',
+			dataType: 'json',
+			data: {
+				id : id,
+				token: token
+			},
+			success: function(res) {
+				if (res.code == 200) {
+					alert("네이버 캘린더에 행사 일정을 공유했습니다.")
+				} else {
+					if (res.errorMessage) {
+						alert(res.errorMessage);	
+					}
+					if (res.message) {
+						alert(res.message);
+					}
+				}
+				
+				selection_close();
+			}
+		});			
+ 	}
+ 	
+ 	function onAddNaverReq()
+ 	{
+		$.ajax({
+			url: '/site/www/service/info/event/naver_cal_add_req.jsp',
+			data: {id : $(".selection").data('id')},
+			success: function(res) {
+				$('#naver_id_login_anchor').click();
+			}
+		});			
+ 	}
+ 	
+ 	function onAddGoogleReq()
+ 	{
+ 		// 로그인 되어 있으면
+ 		if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
+ 			onAddGoogleDo();
+ 		} else {
+ 			$('#authorize_button').click();
+ 		}
+ 	}
+
+	function onSelection(id) {
+		$(".selection").css("display", "block");
+		$(".selection").data({id:id});
+		
+		setTimeout(
+			function() {
+				$(".selection .box .close").focus();
+			},
+		 	100
+		);
+		 	
+	}
+	
+	function selection_close() {
+		$(".selection").data({id:null});
+		$(".selection").css("display", "none");
+		$(".event .icon").focus();
+	}
+</script>
+
+
+ <script type="text/javascript">
+  var CLIENT_ID = '1055155251050-pt9ughp5910s34akbv1n18ht73jd83h7.apps.googleusercontent.com';
+  var API_KEY = 'AIzaSyBxw6vaV1dn_cZmcH9tqdOR7UbvnLBYqUk';
+  var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest"];
+  var SCOPES = "https://www.googleapis.com/auth/calendar";
+  var authorizeButton = document.getElementById('authorize_button');
+  var signoutButton = document.getElementById('signout_button');
+
+  function handleClientLoad() {
+	 gapi.load('client:auth2', initClient);
+  }
+
+  function initClient() {
+	gapi.client.init({
+      apiKey: API_KEY,
+      clientId: CLIENT_ID,
+      discoveryDocs: DISCOVERY_DOCS,
+      scope: SCOPES
+    }).then(function () {
+      gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+      authorizeButton.onclick = handleAuthClick;
+      signoutButton.onclick = handleSignoutClick;
+    }, function(error) {
+//       	alert( JSON.stringify(error, null, 2) );
+    });
+  }
+
+  function updateSigninStatus(isSignedIn) {
+    if (isSignedIn) {
+      authorizeButton.style.display = 'none';
+      signoutButton.style.display = 'block';
+      //listUpcomingEvents();
+     	onAddGoogleDo();
+    } else {
+      authorizeButton.style.display = 'block';
+      signoutButton.style.display = 'none';
+    }
+  }
+
+  function handleAuthClick(event) {
+    gapi.auth2.getAuthInstance().signIn();
+  }
+
+  function handleSignoutClick(event) {
+    gapi.auth2.getAuthInstance().signOut();
+  }
+
+  function listUpcomingEvents() {
+    gapi.client.calendar.events.list({
+      'calendarId': 'primary',
+      'timeMin': (new Date()).toISOString(),
+      'showDeleted': false,
+      'singleEvents': true,
+      'maxResults': 10,
+      'orderBy': 'startTime'
+    }).then(function(response) {
+      var events = response.result.items;
+    });
+  }
+  
+  function onAddGoogleDo()
+  {
+	var calId = $(".selection").data('id');
+	
+	// 클릭한 캘린더가 있으면
+	if (calId)
+	{
+		$.ajax({
+			url: '/site/www/service/info/event/google_cal_add_do.jsp',
+			data: {id: calId},
+			dataType: 'json',
+			success: function(res) {
+				if (res.ret)
+				{
+					var event = {
+					  'summary': res.data.calSum,
+					  'location': res.data.Loc,
+					  'description': res.data.Des,
+					  'start': {
+					    'dateTime': res.data.bgnDate,
+					    'timeZone': 'Asia/Seoul'
+					  },
+					  'end': {
+					   	'dateTime': res.data.endDate,
+					    'timeZone': 'Asia/Seoul'
+					  },
+					  /*
+					  'recurrence': [
+					    'RRULE:FREQ=DAILY;COUNT=2'
+					  ],
+					  'attendees': [
+					    {'email': 'lpage@example.com'},
+					    {'email': 'sbrin@example.com'}
+					  ],
+					  */
+					  'reminders': {
+					    'useDefault': false,
+					    'overrides': [
+					      //{'method': 'email', 'minutes': 24 * 60},
+					      {'method': 'popup', 'minutes': 10}
+					    ]
+					  }
+					};
+					
+					var request = gapi.client.calendar.events.insert({
+					  'calendarId': 'primary',
+					  'resource': event
+					});
+
+					request.execute(function(event) {
+						console.log(event.htmlLink);
+					 	alert('구글 캘린더에 행사 일정을 공유했습니다.');
+					 	selection_close();
+					});
+				}
+				
+				else
+				{
+					alert(res.msg);	
+				}
+			}
+		});			
+	}
+  }
+</script>
+
+<script async defer src="https://apis.google.com/js/api.js"
+  onload="this.onload=function(){};handleClientLoad()"
+  onreadystatechange="if (this.readyState === 'complete') this.onload()">
+</script>
+��.5      c�Kc�KE6MXc�K   `    O^partitionKey=%28https%2Cseoultech.ac.kr%29,:https://www.seoultech.ac.kr/site/ko/2021/event.jsp necko:classified 1 strongly-framed 1 security-info FnhllAKWRHGAlo+ESXykKAAAAAAAAAAAwAAAAAAAAEaphjojH6pBabDSgSnsfLHeAAAAAgAAAAAAAAAAAAAAAAAAAAEAOQFmCjImkVxP+7sgiYWmMt8FvcOXmlQiTNWFiWlrbpbqgwAAAAAAAAaRMIIGjTCCBXWgAwIBAgIQArQI0uo3w8s1gBOsQZjfSTANBgkqhkiG9w0BAQsFADBcMQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3d3cuZGlnaWNlcnQuY29tMRswGQYDVQQDExJUaGF3dGUgUlNBIENBIDIwMTgwHhcNMjIwOTI2MDAwMDAwWhcNMjMxMDI3MjM1OTU5WjCBijELMAkGA1UEBhMCS1IxDjAMBgNVBAgTBVNlb3VsMREwDwYDVQQHEwhOb3dvbi1ndTE8MDoGA1UEChMzU2VvdWwgTmF0aW9uYWwgVW5pdmVyc2l0eSBvZiBTY2llbmNlIGFuZCBUZWNobm9sb2d5MRowGAYDVQQDDBEqLnNlb3VsdGVjaC5hYy5rcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAM9cq64bDhwtrjjefXLpT1IFY0PkXGuiyEIyKaLV4w8bWz5lE/kI6wVuNiBbqVMfklELheEHjuahRs8hCbuBBq5VUiDekfYUpxs9KqgyrLckNVIXorkqhaZeS4tERV/D0F8Aap3p5UX3HaxgGsJLUn/YeDZIsPkoVttKTHAIg5LGR7l3bt6bkmbWROQ2iAcgmtks7dtIVhV4SNXzKCO5AojG2BMjFK2rQDU7Ks929SVmNg7M31Vo8E77YxoWY2cs2sbfUFctffN7tvTRVsWtm1X5fybO3n3GU0uleWa9S6OwsX2ms+ePKngFUOwnGoA+Rkqbf0hrSMu/FEUa9ooTqx8CAwEAAaOCAxowggMWMB8GA1UdIwQYMBaAFKPIXmVU5TB4wQXqBwpqWcy5/t5aMB0GA1UdDgQWBBT5h7QGk6OlN48FtEAxuXc7o9BufjAtBgNVHREEJjAkghEqLnNlb3VsdGVjaC5hYy5rcoIPc2VvdWx0ZWNoLmFjLmtyMA4GA1UdDwEB/wQEAwIFoDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwOgYDVR0fBDMwMTAvoC2gK4YpaHR0cDovL2NkcC50aGF3dGUuY29tL1RoYXd0ZVJTQUNBMjAxOC5jcmwwPgYDVR0gBDcwNTAzBgZngQwBAgIwKTAnBggrBgEFBQcCARYbaHR0cDovL3d3dy5kaWdpY2VydC5jb20vQ1BTMG8GCCsGAQUFBwEBBGMwYTAkBggrBgEFBQcwAYYYaHR0cDovL3N0YXR1cy50aGF3dGUuY29tMDkGCCsGAQUFBzAChi1odHRwOi8vY2FjZXJ0cy50aGF3dGUuY29tL1RoYXd0ZVJTQUNBMjAxOC5jcnQwCQYDVR0TBAIwADCCAXwGCisGAQQB1nkCBAIEggFsBIIBaAFmAHYA6D7Q2j71BjUy51covIlryQPTy9ERa+zraeF3fW0GvW4AAAGDeBdYRQAABAMARzBFAiAlIENcae43vHhc1tGSzPlpd/64eoSFgCdVLh9DUCh4agIhAJny7jIfscfg8jbEZF6kRQsTRdNpxtRjQUeEmZSiGxTRAHUANc8ZG7+xbFe/D61MbULLu7YnICZR6j/hKu+oA8M71kwAAAGDeBdYKQAABAMARjBEAiAMCTWbYY4zZ9bfnEznrbrVdbsWHfesgJlzEPWAih/BIgIgNwHBtH/3Bt7SMH2fPrU6Jr0JlDT8+e8DH/WQdpLJDmEAdQCzc3cH4YRQ+GOG1gWp3BEJSnktsWcMC4fc8AMOeTalmgAAAYN4F1ihAAAEAwBGMEQCIHLUiJAmw1W9q7WUa0XXsV/swoaYa8Q/nAOVxtg/I3efAiAZAeUlRHlWCvReH3eZ4R37xitUe4xPXiSXAkxc8JLfszANBgkqhkiG9w0BAQsFAAOCAQEARtHHfdcROUi9IZKuj/k5cWB1kgXXmgxIYmufUbu6nM27mEDLSCyeC28L/RYA7kHzth+FtlcjLBnrSNsfLVgP8gMOTZWhMPk2BKjMTdSj60/b/3oWAeD5gg76h2ExRV+1+M279Zp8R0v80smAMQOI7NlsaF4+VsXtMUe3rZEo10JoO2Dwxxb73zcK2qm6xipCci9QwGKmxqrPB/jbv9EN6AJW9PtGhj9du9efQk0/b3qN4w9WO++1+uXpCjzZROVHOsUDQmWDRbuiGVimVf816CuW/xF6e1/9DC9DDxxvjb/h/IHY0e+llY6HBm1VUpxbFk1b0XsolRzE6MWqgxXxaxMCAAQAAAAAAAEBAAAAAAAABngyNTUxOQAAAA5SU0EtUFNTLVNIQTI1NgADZgoyJpFcT/u7IImFpjLfBb3Dl5pUIkzVhYlpa26W6oMAAAAAAAAGkTCCBo0wggV1oAMCAQICEAK0CNLqN8PLNYATrEGY30kwDQYJKoZIhvcNAQELBQAwXDELMAkGA1UEBhMCVVMxFTATBgNVBAoTDERpZ2lDZXJ0IEluYzEZMBcGA1UECxMQd3d3LmRpZ2ljZXJ0LmNvbTEbMBkGA1UEAxMSVGhhd3RlIFJTQSBDQSAyMDE4MB4XDTIyMDkyNjAwMDAwMFoXDTIzMTAyNzIzNTk1OVowgYoxCzAJBgNVBAYTAktSMQ4wDAYDVQQIEwVTZW91bDERMA8GA1UEBxMITm93b24tZ3UxPDA6BgNVBAoTM1Nlb3VsIE5hdGlvbmFsIFVuaXZlcnNpdHkgb2YgU2NpZW5jZSBhbmQgVGVjaG5vbG9neTEaMBgGA1UEAwwRKi5zZW91bHRlY2guYWMua3IwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDPXKuuGw4cLa443n1y6U9SBWND5FxroshCMimi1eMPG1s+ZRP5COsFbjYgW6lTH5JRC4XhB47moUbPIQm7gQauVVIg3pH2FKcbPSqoMqy3JDVSF6K5KoWmXkuLREVfw9BfAGqd6eVF9x2sYBrCS1J/2Hg2SLD5KFbbSkxwCIOSxke5d27em5Jm1kTkNogHIJrZLO3bSFYVeEjV8ygjuQKIxtgTIxStq0A1OyrPdvUlZjYOzN9VaPBO+2MaFmNnLNrG31BXLX3ze7b00VbFrZtV+X8mzt59xlNLpXlmvUujsLF9prPnjyp4BVDsJxqAPkZKm39Ia0jLvxRFGvaKE6sfAgMBAAGjggMaMIIDFjAfBgNVHSMEGDAWgBSjyF5lVOUweMEF6gcKalnMuf7eWjAdBgNVHQ4EFgQU+Ye0BpOjpTePBbRAMbl3O6PQbn4wLQYDVR0RBCYwJIIRKi5zZW91bHRlY2guYWMua3KCD3Nlb3VsdGVjaC5hYy5rcjAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMDoGA1UdHwQzMDEwL6AtoCuGKWh0dHA6Ly9jZHAudGhhd3RlLmNvbS9UaGF3dGVSU0FDQTIwMTguY3JsMD4GA1UdIAQ3MDUwMwYGZ4EMAQICMCkwJwYIKwYBBQUHAgEWG2h0dHA6Ly93d3cuZGlnaWNlcnQuY29tL0NQUzBvBggrBgEFBQcBAQRjMGEwJAYIKwYBBQUHMAGGGGh0dHA6Ly9zdGF0dXMudGhhd3RlLmNvbTA5BggrBgEFBQcwAoYtaHR0cDovL2NhY2VydHMudGhhd3RlLmNvbS9UaGF3dGVSU0FDQTIwMTguY3J0MAkGA1UdEwQCMAAwggF8BgorBgEEAdZ5AgQCBIIBbASCAWgBZgB2AOg+0No+9QY1MudXKLyJa8kD08vREWvs62nhd31tBr1uAAABg3gXWEUAAAQDAEcwRQIgJSBDXGnuN7x4XNbRksz5aXf+uHqEhYAnVS4fQ1AoeGoCIQCZ8u4yH7HH4PI2xGRepEULE0XTacbUY0FHhJmUohsU0QB1ADXPGRu/sWxXvw+tTG1Cy7u2JyAmUeo/4SrvqAPDO9ZMAAABg3gXWCkAAAQDAEYwRAIgDAk1m2GOM2fW35xM56261XW7Fh33rICZcxD1gIofwSICIDcBwbR/9wbe0jB9nz61Oia9CZQ0/PnvAx/1kHaSyQ5hAHUAs3N3B+GEUPhjhtYFqdwRCUp5LbFnDAuH3PADDnk2pZoAAAGDeBdYoQAABAMARjBEAiBy1IiQJsNVvau1lGtF17Ff7MKGmGvEP5wDlcbYPyN3nwIgGQHlJUR5Vgr0Xh93meEd+8YrVHuMT14klwJMXPCS37MwDQYJKoZIhvcNAQELBQADggEBAEbRx33XETlIvSGSro/5OXFgdZIF15oMSGJrn1G7upzNu5hAy0gsngtvC/0WAO5B87YfhbZXIywZ60jbHy1YD/IDDk2VoTD5NgSozE3Uo+tP2/96FgHg+YIO+odhMUVftfjNu/WafEdL/NLJgDEDiOzZbGhePlbF7TFHt62RKNdCaDtg8McW+983CtqpusYqQnIvUMBipsaqzwf427/RDegCVvT7RoY/XbvXn0JNP296jeMPVjvvtfrl6Qo82UTlRzrFA0Jlg0W7ohlYplX/Negrlv8Rentf/QwvQw8cb42/4fyB2NHvpZWOhwZtVVKcWxZNW9F7KJUcxOjFqoMV8WtmCjImkVxP+7sgiYWmMt8FvcOXmlQiTNWFiWlrbpbqgwAAAAAAAASNMIIEiTCCA3GgAwIBAgIQAlqK7xlvfg1sIQSyGuZwKzANBgkqhkiG9w0BAQsFADBhMQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBDQTAeFw0xNzExMDYxMjIzNTJaFw0yNzExMDYxMjIzNTJaMFwxCzAJBgNVBAYTAlVTMRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xGzAZBgNVBAMTElRoYXd0ZSBSU0EgQ0EgMjAxODCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMoIXuVTipccHkMvtoqnVumLhEOorJ16VYJ6FEuGty+PUp8cyrEgW2+6It2mnC142ukGCE6+E6bry7s+uQUMPkrh8DIfE071BsVHc4k+gKOL8QEkm6OZZpJraK0NLbTNcqL0+ThaZaa0jFPBCBqE+P0u8xF1btxqMSmsDYfMk2B43yW6JlmRxoNSNabKnLgoGs7XHO4Uv3ZcZas4HnnpfMxJIyaiUlBm0Flh/6D+mkwMn/nojt4Ji7gVwaQITCacewbb/Yp0W1h+zWOkkS9F8Ho8lAuKfLIFqWeTn2jllWNg2FiVX+BV75OnETt85pLYZkTgq72nj82khXhBJFTn2AMCAwEAAaOCAUAwggE8MB0GA1UdDgQWBBSjyF5lVOUweMEF6gcKalnMuf7eWjAfBgNVHSMEGDAWgBQD3lA1VtFMu2bwo+IbG8OXsj3RVTAOBgNVHQ8BAf8EBAMCAYYwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMBIGA1UdEwEB/wQIMAYBAf8CAQAwNAYIKwYBBQUHAQEEKDAmMCQGCCsGAQUFBzABhhhodHRwOi8vb2NzcC5kaWdpY2VydC5jb20wQgYDVR0fBDswOTA3oDWgM4YxaHR0cDovL2NybDMuZGlnaWNlcnQuY29tL0RpZ2lDZXJ0R2xvYmFsUm9vdENBLmNybDA9BgNVHSAENjA0MDIGBFUdIAAwKjAoBggrBgEFBQcCARYcaHR0cHM6Ly93d3cuZGlnaWNlcnQuY29tL0NQUzANBgkqhkiG9w0BAQsFAAOCAQEARE2F5d0cgozhZNWokCLfdhhl6mXSOyU3SoPamYcWfLH1CzMwD8a1+pFvwHIQfvlwXFH8MrjB3C+jVobNbVWRrgqS3Jsa0ltRH/Ffs6ZTgP4WJYm1SNpUbgR7LWUD2F+PTvKBM/gf9eSyqP4OiJslYaa38NU1aVAxZI15o+4xX4RZMqKXIIBTG2V+oPBjQ1oPmHGAC/yWt2eThvb8/re7OpSpUdJyfGf97XeM4PiJAl6+4HQXhjwN7ZPZKrQv9Ay33MgmYLVQA+x9HONZXx9vvy8pl9bu+NVYWKGxzGxBK0CBozmVUCeXQPJKPTZleYuNM18pU1P8Xh1CDguM+ZEoe2YKMiaRXE/7uyCJhaYy3wW9w5eaVCJM1YWJaWtuluqDAAAAAAAAA7MwggOvMIICl6ADAgECAhAIO+BWkEJGsaF1aslZkcdKMA0GCSqGSIb3DQEBBQUAMGExCzAJBgNVBAYTAlVTMRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5jb20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IENBMB4XDTA2MTExMDAwMDAwMFoXDTMxMTExMDAwMDAwMFowYTELMAkGA1UEBhMCVVMxFTATBgNVBAoTDERpZ2lDZXJ0IEluYzEZMBcGA1UECxMQd3d3LmRpZ2ljZXJ0LmNvbTEgMB4GA1UEAxMXRGlnaUNlcnQgR2xvYmFsIFJvb3QgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDiO+ERct6opNOjV6pQoo8Ld5DJoqXuEs6WWwEJIMwBk6dOMLdT90PEaQBXneKNIt2HBkAAgQnOzhuDv9/NO3FG4tZmxwWzdicWj3ueHpV97rdIowja1q96DDkGZX9KXR+8F/irvu4o13R/eniZWYVoblwjMku/TsDoWm3jcL93EL/8AfaF2ahEEFgyqXUY1dGivkfiJ2r0mjP4SQhgi9RftDqEv6GqSkx9Ps9PX2x2XqBLN5Ge3CLmbc4UGo5qy/7NsxRkF8dbKZ4yv/Lu+tMLQtSrt0Ey2gzU7/iB1buNWD+1G+hJKKJw2jEE3feyFvJMCk4HqO1KPV61f6OQw68nAgMBAAGjYzBhMA4GA1UdDwEB/wQEAwIBhjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBQD3lA1VtFMu2bwo+IbG8OXsj3RVTAfBgNVHSMEGDAWgBQD3lA1VtFMu2bwo+IbG8OXsj3RVTANBgkqhkiG9w0BAQUFAAOCAQEAy5w3qkgTEgr63UScT1Kw9N+uBPV5eQijJBj8SyuEwC251cf+9MEfWMu4bZx6dOeYKasRteNwoKHNTIiZk4yRcOKrDxy+k6n/Y9XkB2DTo7+dWwnx1Y7jU/SOY/o/p9u0Zt9iZtbRbkGN8i216ndKn51Y4itZwEAj7S0ogkU+eVSSJpjggEioN+/w1nlgFt6s6A7NbqxEFzgvSdrhRT4quTZTzzpQBvcu6MRXSWxhIRjVBK14PCw6gGun668VFOnYicG5OGzikWyK/2S5dyVXMMAbJKPh3OnfR3y1tCQIBTDsLb0Lv0W/ULmp8+uYARKtyIjGmDRfjQo8xunVlZVt3gAAAAEAAAAIaHR0cC8xLjEAAQAAAABVdGxzZmxhZ3MweDAwMDAwMDAwOnd3dy5zZW91bHRlY2guYWMua3I6NDQzXnBhcnRpdGlvbktleT0lMjhodHRwcyUyQ3Nlb3VsdGVjaC5hYy5rciUyOQEA request-method GET response-head HTTP/1.1 200 OK
+Date: Wed, 01 Feb 2023 07:56:59 GMT
+Content-Type: text/html; charset=UTF-8
+X-Cache: MISS from cf4.seoultech.ac.kr
+X-Cache-Lookup: HIT from cf4.seoultech.ac.kr:3128
+ original-response-headers Date: Wed, 01 Feb 2023 07:56:59 GMT
+Content-Type: text/html; charset=UTF-8
+X-Cache: MISS from cf4.seoultech.ac.kr
+X-Cache-Lookup: HIT from cf4.seoultech.ac.kr:3128
+Transfer-Encoding: chunked
+Via: 
+Connection: keep-alive
+ ctid 1 uncompressed-len 0 net-response-time-onstart 11 net-response-time-onstop 12   FO

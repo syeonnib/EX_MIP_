@@ -1,0 +1,488 @@
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html lang="ko"><html class="ie8" lang="ko"><![endif]-->
+<!--[if IE 7]><html lang="ko"><html class="ie7" lang="ko"><![endif]-->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+	
+		
+	
+
+<title>
+		서울과학기술대학교 웹메일 |
+	 로그인</title>
+<link rel="shortcut icon" href="img/login/favicon.png"
+	type="image/x-icon" />
+<style type="text/css">
+@charset "utf-8";
+
+/* Default Style
+---------------------------------------------------------------------------------- */
+* {
+	margin: 0;
+	padding: 0
+}
+
+body {
+	width: 100%;
+	font-family: Dotum, "돋움", Arial, Tahoma;
+	font-size: 14px;
+	color: #636363;
+	line-height: 18px
+}
+
+img {
+	border: 0 none
+}
+
+ul, li {
+	list-style: none
+}
+
+a {
+	color: #7f7f7f;
+	text-decoration: none
+}
+
+a:hover {
+	color: #000;
+	text-decoration: none
+}
+
+caption, fieldset, legend {
+	display: none
+}
+
+strong {
+	font-weight: bold
+}
+
+table {
+	border-collapse: collapse;
+	border-spacing: 0
+}
+
+button, label {
+	cursor: pointer
+}
+
+input[type=text], input[type=password], input[type=submit] {
+	border: 2px solid #d0d0d0;
+	color: #999;
+	height: 46px;
+	font-size: 16px;
+	line-height: 46px;
+	padding: 0 15px;
+	width: 100%;
+	font-family: Dotum, "돋움", sans-serif
+}
+
+input[type=submit] {
+	background: #4d7be5;
+	border: 1px solid #3e6dda;
+	height: 52px;
+	color: #fff;
+	font-weight: bold;
+	cursor: pointer
+}
+
+.check {
+	position: relative;
+	display: block;
+	margin: 30px 0 25px
+}
+
+.check input {
+	position: absolute;
+	height: 25px;
+	-webkit-appearance: none;
+	z-index: 1;
+	left: 0;
+	top: 0;
+	visibility: hidden
+}
+
+.check label, .check input:checked+label {
+	background: url(img/login/ico_chk.png) no-repeat;
+	width: 100%;
+	height: 25px;
+	top: 0;
+	left: 0;
+	z-index: 2;
+	display: block;
+	font-weight: bold;
+	color: #636363;
+	padding: 4px 0 0 36px
+}
+
+.check input:checked+label {
+	background: url(img/login/ico_chk_on.png) no-repeat
+}
+
+/* Layout Style
+---------------------------------------------------------------------------------- */
+#wrap {
+	width: 100%;
+	overflow: hidden
+}
+
+.login_wrap, .login_foot {
+	width: 507px;
+	margin: 0 auto;
+	border-bottom: 1px solid #e0e0e0;
+	padding: 98px 0 24px
+}
+
+.login_wrap>h1 {
+	text-align: center;
+	margin-bottom: 50px
+}
+
+.login_wrap .login_input {
+	padding-right: 34px;
+	margin-bottom: 25px
+}
+
+.login_wrap .login_input input {
+	margin-top: 16px
+}
+
+.login_wrap .login_input input:first-child, .login_wrap .btn_list li:first-child
+	{
+	margin: 0
+}
+
+.login_wrap .btn_list {
+	font-size: 12px;
+	font-weight: bold;
+	text-align: right
+}
+
+.login_wrap .btn_list a {
+	color: #5d5b5b
+}
+
+.login_wrap .btn_list li {
+	display: inline-block;
+	*display: inline;
+	*zoom: 1;
+	background: url(img/login/bu_btn.gif) no-repeat 0 6px;
+	padding-left: 12px;
+	margin-left: 12px
+}
+
+.login_wrap .btn_list li:hover {
+	background: url(img/login/bu_btn_on.gif) no-repeat 0 6px
+}
+
+.login_wrap .btn_list li:hover a, .hlt {
+	color: #3e6dda
+}
+
+.login_foot {
+	padding: 17px 0 0 0;
+	border: 0;
+	text-align: right
+}
+
+.login_foot .address {
+	letter-spacing: -0.5px;
+	font-size: 11px;
+}
+
+/* Common Class
+---------------------------------------------------------------------------------- */
+.ic_login, .address {
+	position: relative;
+	display: inline-block;
+	*zoom: 1;
+	*display: inline
+}
+
+.ic_login {
+	background: url(img/login/spr_login.png) no-repeat;
+}
+
+.ic_logo {
+	
+}
+
+.blind {
+	visibility: hidden;
+	overflow: hidden;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 0;
+	height: 0;
+	display: block
+}
+
+.ie8 .check label, .ie7 .check label {
+	font-weight: bold;
+	padding-left: 26px;
+	background: none
+}
+
+.ie8 .check input, .ie7 .check input {
+	visibility: visible;
+	top: -4px
+}
+
+.inf_txt { display:block; margin-bottom:10px; font-size:12px}
+.bt_refresh { background:#f2f2f2 ; border:1px solid #000; border-left:0; box-sizing:border-box; width:111px; height:50px; text-align:center; color:#666; vertical-align:middle; line-height:48px;overflow:hidden; margin-left:-5px}
+.ico_refresh { background:url(img/login/ico_refresh.png) no-repeat 0 0; width:16px; height:17px; display:inline-block; vertical-align:-3px}
+.captcha {margin-top:10px;margin-bottom:25px}
+.captcha_inp { position:relative}
+.captcha_inp img { vertical-align:middle}
+.captcha_inp input {box-sizing:border-box; position:absolute; right:0; top:0; width:37%; height:50px}
+</style>
+
+<script>
+	var _ua = window.navigator.userAgent.toLowerCase();
+
+	var mobileB = {
+		model: _ua.match(/(sch-m490|sonyericssonx1i|ipod|ipad|iphone)/) ? _ua.match(/(sch-m490|sonyericssonx1i|ipod|ipad|iphone)/)[0] : "",
+		skt : /msie/.test( _ua ) && /nate/.test( _ua ),
+		lgt : /msie/.test( _ua ) && /([010|011|016|017|018|019]{3}\d{3,4}\d{4}$)/.test( _ua ),
+		opera : (/opera/.test( _ua ) && /(ppc|skt)/.test(_ua)) || /opera mobi/.test( _ua ),
+		ipod : /webkit/.test( _ua ) && /\(ipod/.test( _ua ) ,
+		ipad : /webkit/.test( _ua ) && /\(ipad/.test( _ua ) ,
+		iphone : /webkit/.test( _ua ) && /\(iphone/.test( _ua ),
+		lgtwv : /wv/.test( _ua ) && /lgtelecom/.test( _ua ),
+		android : /android/.test( _ua )
+	};
+
+	try {
+		if ( mobileB.model || mobileB.skt || mobileB.lgt||
+			mobileB.opera || mobileB.ipod || mobileB.iphone || mobileB.ipad||mobileB.lgtwv|| mobileB.android){
+			location.href = "/mobile";
+		}
+	} catch (e) {}
+</script>
+<script type="text/javascript">
+		function listenEvent(eventObj, event, eventHandler) {
+			if (eventObj.addEventListener) {
+				eventObj.addEventListener(event, eventHandler, false);
+			} else if (eventObj.attachEvent) {
+				event = "on" + event;
+				eventObj.attachEvent(event, eventHandler);
+			} else {
+				eventObj["on" + event] = eventHandler;
+			}
+		}
+
+		function cancelEvent(event) {
+			if (event.preventDefault) {
+				event.preventDefault();
+			} else {
+				event.returnValue = false;
+			}
+		}
+
+		window.onload = function() {
+			var form = document.forms[0];
+			listenEvent(form, "submit", validateSubmit);
+			loginFocus();
+		}
+
+		var inprocess = false;
+
+		function validateSubmit(event) {
+			event = event ? event : window.event;
+
+			if (inprocess)
+			return;
+			inprocess = true;
+
+			var form = document.forms[0];
+
+			var captcha = form.elements["captcha"];
+			if (captcha && (!captcha.value || captcha.value.length == 0)) {
+				alert("자동입력 방지문자를 입력해 주세요.");
+				inprocess = false;
+				cancelEvent(event);
+				return;
+			}
+
+			var username = form.elements["username"];
+			var j_username = form.elements["j_username"];
+			if (!username || !username.value || username.value.length == 0) {
+				alert('아이디를 입력하세요.');
+				inprocess = false;
+				cancelEvent(event);
+				return;
+			}
+			var select = form.elements["domain"];
+			var domain = select[select.selectedIndex].value;
+			
+			if(username.value.indexOf("@" + domain) > -1){
+            	j_username.value = username.value.split("@")[0] + "@" + domain;
+            } else {
+            	j_username.value = username.value + "@" + domain;
+            }
+
+			var password = form.elements["password"];
+			var j_password = form.elements["j_password"];
+			if (!password || !password.value || password.value.length == 0) {
+				alert('패스워드를 입력하세요.');
+				inprocess = false;
+				cancelEvent(event);
+				return;
+			}
+			j_password.value = password.value;
+			if (false) {
+				var rsa = new RSAKey();
+				rsa.setPublic('', '');
+				// 비밀번호를 RSA로 암호화한다.
+				j_password.value = rsa.encrypt(j_password.value);
+			}
+			password.value = '';
+
+			form.submit();
+			return true;
+		}
+
+		function signup() {
+			var domain = 'seoultech.ac.kr';
+			location.href = '/mail/signup/' + domain + '/agree';
+		}
+
+		function find(type) {
+			location.href = '/mail/find/' + type;
+		}
+
+		function loginFocus() {
+			var form = document.forms[0];
+			var username = form.elements["username"];
+			var password = form.elements["j_password"];
+			if(!username.value || username.value.length == 0) {
+				username.focus();
+			} else {
+				password.focus();
+			}
+		}
+
+		function captchaRefresh() {
+			var captchaImg = document.getElementById('captcha-image');
+			captchaImg.src = 'img/captcha?_=' + new Date().getTime();
+		}
+</script>
+
+<script type="text/javascript">
+	function getCookie(name, value) {
+		if (name)
+			name += '=';
+		var isCookie = false;
+		var cookies = document.cookie;
+		var pos = cookies.indexOf(name);
+		if (pos != -1) {
+			var start = pos + name.length;
+			var end = cookies.indexOf(';', start);
+			if (end == -1)
+				end = cookies.length;
+			var cvalue = cookies.substring(start, end);
+			cvalue = decodeURIComponent(cvalue);
+			if (value === cvalue) {
+				isCookie = true;
+				return isCookie;
+			}
+		}
+		return isCookie;
+	}
+
+	
+</script>
+</head>
+<body>
+
+	<div id="wrap">
+		
+		<form action="/mail/j_spring_security_check" method="post" autocomplete="off" onsubmit="return false;">
+			<fieldset>
+				<legend>로그인</legend>
+			</fieldset>
+			<input type="hidden" name="_csrf" value="b054ce0f-b8e3-446b-9961-bf7cfb652d2a" />
+			<div class="login_wrap">
+				<h1>
+					<img src="img/login/login_logo.png" alt="에어즈락">
+				</h1>
+				<div class="login_input">
+					<input type="hidden" name="j_username"> <input type="text"
+						name="username" id="member_id" placeholder="아이디"
+						onfocus="this.style.borderColor = '#3e6dda'"
+						onblur="this.style.borderColor = '#d0d0d0'"
+						style="ime-mode:inactive;" />
+					<div style="display: none">
+						<select name="domain">
+							
+								<option value="seoultech.ac.kr"
+									selected=&#034;selected&#034;>seoultech.ac.kr</option>
+							
+						</select>
+					</div>
+					<input type="hidden" name="j_password">
+					<input type="password" name="password" id="member_pw"
+						placeholder="비밀번호" onfocus="this.style.borderColor = '#3e6dda'"
+						onblur="this.style.borderColor = '#d0d0d0'" />
+				</div>
+				<table>
+					<tr>
+						<td colspan="2">
+							<p><font color="red">
+						
+							</font></p>
+						</td>
+					</tr>
+				</table>
+				
+				<div>
+					<input type="submit" value="로그인" title="로그인" />
+				</div>
+				<div class="check">
+					<input type="checkbox" name="remember-me" id="save_id" /> <label
+						for="save_id">로그인 상태 유지</label>
+				</div>
+				<ul class="btn_list">
+					
+						<li><a href="#" onclick="find('id');">아이디 찾기</a></li>
+						<li><a href="#" onclick="find('password');">비밀번호 찾기</a></li>
+					
+					
+						<li><a href="#" onclick="signup();">회원가입</a></li>
+					
+				</ul>
+			</div>
+			<div class="login_foot">
+				<p class="address">
+					
+						
+							Copyright (c) 2019 SEOUL NATIONAL UNIVERSITY OF SCIENCE AND TECHNOLOGY. All Rights Reserved.
+						
+					
+				</p>
+			</div>
+		</form>
+	</div>
+
+</body>
+</html>ە��0�      d߶d߶EUUd߶   U    O^partitionKey=%28https%2Cseoultech.ac.kr%29,:https://mail.seoultech.ac.kr/mail/login necko:classified 1 strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+X-Authenticate: Form realm="Mail"
+Content-Type: text/html;charset=UTF-8
+Content-Language: en-US
+Date: Tue, 07 Mar 2023 06:54:46 GMT
+ original-response-headers X-Authenticate: Form realm="Mail"
+Content-Type: text/html;charset=UTF-8
+Content-Language: en-US
+Transfer-Encoding: chunked
+Date: Tue, 07 Mar 2023 06:54:46 GMT
+ ctid 1 uncompressed-len 0 net-response-time-onstart 132 net-response-time-onstop 148   +�

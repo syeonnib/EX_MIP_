@@ -1,0 +1,41 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/mipev/mip_ws/devel/include/**",
+        "/opt/ros/melodic/include/**",
+        "/home/mipev/mip_ws/src/controller/ros_canopen/canopen_402/include/**",
+        "/home/mipev/mip_ws/src/controller/ros_canopen/canopen_chain_node/include/**",
+        "/home/mipev/mip_ws/src/controller/ros_canopen/canopen_master/include/**",
+        "/home/mipev/mip_ws/src/controller/ros_canopen/canopen_motor_node/include/**",
+        "/home/mipev/mip_ws/src/perception/check/include/**",
+        "/home/mipev/mip_ws/src/controller/control/include/**",
+        "/home/mipev/mip_ws/src/perception/darknet_ros/darknet_ros/include/**",
+        "/home/mipev/mip_ws/src/perception/lidar/lidar_obstacle_detector/include/**",
+        "/home/mipev/mip_ws/src/perception/lidar/line_detector/include/**",
+        "/home/mipev/mip_ws/src/sensor/ouster_example/ouster_ros/include/**",
+        "/home/mipev/mip_ws/src/sensor/perception_pcl/pcl_conversions/include/**",
+        "/home/mipev/mip_ws/src/sensor/perception_pcl/pcl_ros/include/**",
+        "/home/mipev/mip_ws/src/perception/lidar/pointcloud_to_laserscan/include/**",
+        "/home/mipev/mip_ws/src/estimation/robot_localization/include/**",
+        "/home/mipev/mip_ws/src/controller/ros_canopen/socketcan_bridge/include/**",
+        "/home/mipev/mip_ws/src/controller/ros_canopen/socketcan_interface/include/**",
+        "/home/mipev/mip_ws/src/sensor/ublox_f9p/ublox_gps/include/**",
+        "/home/mipev/mip_ws/src/sensor/ublox_f9p/ublox_msgs/include/**",
+        "/home/mipev/mip_ws/src/sensor/ublox_f9p/ublox_serialization/include/**",
+        "/home/mipev/mip_ws/src/sensor/usb_cam/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

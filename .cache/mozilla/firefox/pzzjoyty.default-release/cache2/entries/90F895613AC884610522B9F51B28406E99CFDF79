@@ -1,0 +1,365 @@
+define([ 'app', 'i18n!app/contact/nls/contact-i18n', 'app/app-init', 'app/contact/contact-models',
+		'app/contact/contact-views', 'app/org/org-models' ], function(app, i18n) {
+
+	app.module('contact', function(contact, app, Backbone, Marionette, $, _) {
+
+		contact.Controller = Backbone.Marionette.Controller.extend({
+			initialize : function(options) {
+
+				contact.groupCollection = new contact.GroupCollection();
+				contact.groupCollection.addAllContactsGroup();
+				contact.groupModel = contact.groupCollection.getGroupModel('GROUP_TYPE', 'A');
+				contact.selectedAddressCollection = new contact.SelectedAddressCollection();
+				contact.selectedGroupCollection = new contact.GroupCollection();
+				contact.sharedGroupCollection = new contact.SharedGroupCollection();
+				contact.sharedGroupCollection.addSharedAllGroup();
+				contact.sharedGroupModel = contact.sharedGroupCollection.getGroupModel('GROUP_TYPE', 'A');
+				contact.shareCollection = new contact.ShareCollection();
+				contact.shareConfigCollection = new contact.ShareConfigCollection();
+				contact.paginator = new contact.ContactPaginator();
+				contact.orgPaginator = new app.org.OrgEntryPaginator();
+				contact.sharedPaginator = new contact.SharedContactPaginator();
+
+				this.showSidebarView();
+				this.showContentLayout();
+				this.showContactFormLayout();
+			},
+
+			onClose : function() {
+				this.sidebarView.close();
+				this.contentLayout.close();
+			},
+
+			showSidebarView : function() {
+				this.sidebarView = new contact.SidebarView({
+					groupCollection : contact.groupCollection,
+				});
+				app.snbRegion.show(this.sidebarView);
+			},
+
+			showContentLayout : function() {
+				this.contentLayout = new contact.ContentLayout({
+					model : contact.groupModel,
+					paginator : contact.paginator,
+					userModel : contact.contactUserModel,
+				});
+				app.contactContentRegion.show(this.contentLayout);
+			},
+
+			showContactFormLayout : function() {
+				var $body = $('body');
+				if ($body.find('#contactMan').length == 0) {
+					this.contactFormLayout = new contact.ContactFormLayout();
+					this.contactFormLayout.render();
+					$body.append(this.contactFormLayout.$el.children());
+				}
+			},
+
+			paginateContacts : function(groupId, params) {
+				if (!groupId) {
+					return;
+				}
+				contact.overlayView.showLoading();
+				var homeType = contact.contactUserModel.get('HOME_TYPE');
+				if (params && params == 'init' && homeType == 'IMPORTANT') {
+					params = {};
+					params.hometype = homeType;
+					groupId = 'important';
+				}
+				var syncGroupCollection = contact.groupCollection.size() == 1
+						&& contact.groupCollection.getGroupModel('GROUP_TYPE', 'A');
+				if (!contact.groupModel || syncGroupCollection) {
+					this.listenToOnce(contact.groupCollection, 'sync', function() {
+						this.paginateContacts(groupId, params);
+					});
+					return;
+				}
+				var contactList = this.contentLayout.contactListRegion;
+				if (!contactList)
+					this.showContentLayout();
+				var listView = contactList && contactList.currentView;
+				if (listView && listView.$itemViewContainer) {
+					listView.$itemViewContainer.empty();
+				}
+				if (groupId) {
+					contact.groupModel = this.getGroupModel(groupId);
+				}
+				contact.params = params;
+				if (contact.groupModel && contact.groupModel.get('GROUP_TYPE') == 'T') {
+					app.vent.trigger('paginate:trash-contacts', contact.groupModel, params);
+				} else {
+					app.vent.trigger('paginate:contacts', contact.groupModel, params);
+				}
+				app.vent.trigger('change:group', contact.groupModel);
+				app.vent.trigger('change:contact-views', 'contact', contact.groupModel);
+				app.vent.trigger('activate:contacts-tab', 'contact');
+			},
+
+			showSettingsView : function(params) {
+				var syncGroupCollection = contact.groupCollection.size() == 1
+						&& contact.groupCollection.getGroupModel('GROUP_TYPE', 'A');
+				if (!contact.groupModel || syncGroupCollection) {
+					this.listenToOnce(contact.groupCollection, 'sync', function() {
+						this.showSettingsView(params);
+					});
+					return;
+				}
+				this.settingsLayout = new contact.SettingsLayoutView({
+					model : contact.groupModel,
+					collection : contact.groupCollection,
+					userModel : contact.contactUserModel,
+					params : params,
+				});
+				app.contactContentRegion.show(this.settingsLayout);
+				app.vent.trigger('activate:contacts-tab', 'contact');
+				contact.overlayView.hideLoading();
+			},
+
+			showImportView : function() {
+				this.importLayout = new contact.ContactImportLayoutView({
+					model : contact.groupModel,
+					collection : contact.groupCollection,
+					userModel : contact.contactUserModel,
+				});
+				app.contactContentRegion.show(this.importLayout);
+				app.vent.trigger('activate:contacts-tab', 'contact');
+				contact.overlayView.hideLoading();
+			},
+
+			showFileExportView : function() {
+				var syncGroupCollection = contact.groupCollection.size() == 1
+						&& contact.groupCollection.getGroupModel('GROUP_TYPE', 'A');
+				if (!contact.groupModel || syncGroupCollection) {
+					this.listenToOnce(contact.groupCollection, 'sync', function() {
+						this.showFileExportView();
+					});
+					return;
+				}
+				this.fileExportLayout = new contact.FileExportLayoutView({
+					model : contact.groupModel,
+					collection : contact.groupCollection,
+				});
+				app.contactContentRegion.show(this.fileExportLayout);
+				app.vent.trigger('activate:contacts-tab', 'contact');
+				contact.overlayView.hideLoading();
+			},
+
+			paginateOrgEntries : function(groupId, params) {
+				contact.overlayView.showLoading();
+				var orgList = this.contentLayout.orgListRegion;
+				if (!orgList)
+					this.showContentLayout();
+				var listView = orgList && orgList.currentView;
+				if (listView && listView.$itemViewContainer) {
+					listView.$itemViewContainer.empty();
+				}
+				if (!params)
+					params = {};
+				if (groupId) {
+					var orgEntryModel = new app.org.OrgEntryModel({
+						id : groupId
+					})
+					var urlRoot = 'org/' + app.userModel.get('DOMAIN') + '/groups/';
+					orgEntryModel.urlRoot = urlRoot;
+					var url = _.result(orgEntryModel, 'url') + '/entries';
+					params.url = url;
+				}
+				app.vent.trigger('paginate:org-entries', params);
+				app.vent.trigger('change:contact-views', 'org');
+				app.vent.trigger('activate:contacts-tab', 'org');
+			},
+
+			paginateSharedContacts : function(groupId, params) {
+				if (!groupId) {
+					return;
+				}
+				contact.overlayView.showLoading();
+				var syncGroupCollection = contact.sharedGroupCollection.size() == 1
+						&& contact.sharedGroupCollection.getGroupModel('GROUP_TYPE', 'A');
+				if (!contact.sharedGroupCollection || syncGroupCollection) {
+					this.listenToOnce(contact.sharedGroupCollection, 'sync', function() {
+						this.paginateSharedContacts(groupId, params);
+					});
+					return;
+				}
+				var sharedContactList = this.contentLayout.sharedContactListRegion;
+				if (!sharedContactList)
+					this.showContentLayout();
+				var listView = sharedContactList && sharedContactList.currentView;
+				if (listView && listView.$itemViewContainer) {
+					listView.$itemViewContainer.empty();
+				}
+				if (groupId) {
+					contact.sharedGroupModel = this.getSharedGroupModel(groupId);
+				}
+				app.vent.trigger('paginate:shared-contacts', contact.sharedGroupModel, params);
+				app.vent.trigger('change:shared-group', contact.sharedGroupModel);
+				app.vent.trigger('change:contact-views', 'share');
+				app.vent.trigger('activate:contacts-tab', 'share');
+			},
+
+			showSharedGroupSettingsView : function() {
+				contact.shareConfigCollection.fetch({
+					async : false,
+				});
+				this.settingsLayout = new contact.SharedGroupSettingsLayout({
+					collection : contact.shareConfigCollection,
+					sharedGroupCollection : contact.sharedGroupCollection,
+				});
+				app.contactContentRegion.show(this.settingsLayout);
+				app.vent.trigger('activate:contacts-tab', 'share');
+				contact.overlayView.hideLoading();
+			},
+
+			getGroupModel : function(groupId) {
+				var groupName, groupType, groupModel;
+				switch (groupId) {
+				case 'all':
+					// 내 연락처(휴지통 제외 전체)
+					groupName = i18n.allContact;
+					groupType = 'A';
+					break;
+				case 'important':
+					// 중요주소록
+					groupName = i18n.important;
+					groupType = 'I';
+					break;
+				case 'recent':
+					// 최근등록
+					groupName = i18n.recentReg;
+					groupType = 'R';
+					break;
+				case 'trash':
+					// 휴지통
+					groupModel = contact.groupCollection.getGroupModel('GROUP_TYPE', 'T');
+					break;
+				default:
+					// 주소록 리스트
+					groupModel = contact.groupCollection.getGroupModel('GROUP_IDX', groupId);
+					break;
+				}
+				if (!groupModel) {
+					groupModel = new contact.GroupModel({
+						GROUP_IDX : 0,
+						USERS_IDX : contact.contactUserModel.get('USERS_IDX'),
+						GROUP_NM : groupName,
+						GROUP_SORT_NO : 0,
+						REF_GROUP_IDX : 0,
+						GROUP_STMT : groupName,
+						GROUP_TYPE : groupType,
+					});
+				}
+				return groupModel;
+			},
+
+			getSharedGroupModel : function(groupId) {
+				var groupName, groupType, groupModel;
+				switch (groupId) {
+				case 'all':
+					// 공유받은 그룹
+					groupName = i18n.sharedGroup;
+					groupType = 'A';
+					break;
+				default:
+					// 공유주소록
+					groupModel = this.getSharedSubGroupModel(contact.sharedGroupCollection, groupModel, groupId);
+					break;
+				}
+				if (!groupModel) {
+					groupModel = new contact.SharedGroupModel({
+						GROUP_IDX : 0,
+						USERS_IDX : contact.contactUserModel.get('USERS_IDX'),
+						GROUP_NM : i18n.sharedGroup,
+						GROUP_SORT_NO : 0,
+						REF_GROUP_IDX : 0,
+						GROUP_STMT : i18n.sharedGroup,
+						GROUP_TYPE : 'A',
+					});
+				}
+				return groupModel;
+			},
+
+			getSharedSubGroupModel : function(collection, groupModel, groupId) {
+				var self = this;
+				var sharedGroupCollection = collection;
+				groupModel = sharedGroupCollection.getGroupModel('GROUP_IDX', groupId);
+				if (!groupModel) {
+					sharedGroupCollection.each(function(model) {
+						if (model.groups && model.groups.length > 0 && !groupModel) {
+							sharedGroupCollection = new contact.SharedGroupCollection(model.groups.models);
+							groupModel = self.getSharedSubGroupModel(sharedGroupCollection, groupModel, groupId);
+						}
+					});
+				}
+				return groupModel;
+			}
+
+		}); // contact.Controller = Marionette.Controller.extend({...});
+
+		contact.addInitializer(function(options) {
+			app.log("contact.addInitializer(function(options) {");
+
+			$.datepicker.setDefaults(i18n.datepicker.options);
+
+			if (!contact.overlayView) {
+				contact.overlayView = new contact.OverlayView();
+				contact.overlayView.render();
+			}
+			// contact.overlayView.showLoading();
+
+			app.vent.trigger('activate:gnb-item', 'contact');
+
+			contact.contactUserModel = new contact.ContactUserModel();
+			contact.fetchUserModel = function() {
+				contact.contactUserModel.fetch();
+			};
+			contact.fetchUserModel();
+
+			contact.controller = new contact.Controller({
+				contentRegion : options.contentRegion,
+			});
+
+		}); // contact.addInitializer(function(options) {...});
+
+		contact.addFinalizer(function(options) {
+			if (contact.groupCollection) {
+				delete contact.groupCollection;
+			}
+			if (contact.selectedAddressCollection) {
+				delete contact.selectedAddressCollection;
+			}
+			if (contact.selectedGroupCollection) {
+				delete contact.selectedGroupCollection;
+			}
+			if (contact.sharedGroupCollection) {
+				delete contact.sharedGroupCollection;
+			}
+			if (contact.shareCollection) {
+				delete contact.shareCollection;
+			}
+			if (contact.shareConfigCollection) {
+				delete contact.shareConfigCollection;
+			}
+			if (contact.controller) {
+				contact.controller.close();
+				delete contact.controller;
+			}
+		}); // contact.addFinalizer(function(options) {...});
+
+	}); // app.module('contact', function(){ ... });
+
+}); // define(['app'], function(app) { ... });
+��[Y�      c�[c�[E6Mcc�U�   ~    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app/contact/contact-controller.js?v=202301181454 necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"12208-1664418072000"
+Last-Modified: Thu, 29 Sep 2022 02:21:12 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 12208
+Date: Wed, 01 Feb 2023 07:57:14 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"12208-1664418072000"
+Last-Modified: Thu, 29 Sep 2022 02:21:12 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 12208
+Date: Wed, 01 Feb 2023 07:57:14 GMT
+ ctid 2 uncompressed-len 0 net-response-time-onstart 18 net-response-time-onstop 18   /�

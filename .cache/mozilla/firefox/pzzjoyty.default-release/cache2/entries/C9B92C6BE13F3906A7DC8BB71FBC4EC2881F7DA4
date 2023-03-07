@@ -1,0 +1,1921 @@
+(function($) {
+	$.widget('kebi.inputbox', {
+		options : {
+			inputType : 'email',
+			separators : [ ',', ';', '\n' ],
+			containment : false,
+			blankImgSrc : 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAQAICRAEAOw==',
+			maxWidth : 300,
+			autoCommit : true,
+			editable : true,
+			removable : true,
+			confirmRemove : false,
+			confirmRemovePrefix : 'Are you sure you want to remove ',
+			confirmRemoveSuffix : '?',
+			autocompleteOptions : {
+				source : function(request, response) {
+					$.ajax({
+						url : "http://gd.geobytes.com/AutoCompleteCity",
+						dataType : "jsonp",
+						data : {
+							q : request.term
+						},
+						success : function(data) {
+							response(data);
+						}
+					});
+				},
+				appendTo : '.ui-front',
+				open : function(event, ui) {
+					var $ul = $(this).autocomplete('widget');
+					$ul.css({
+						position : 'relative',
+						top : '0px',
+						left : '0px',
+					});
+					$ul.children().css({
+						border : '1px',
+					});
+				},
+			},
+			// callbacks
+			focus : null,
+			keydown : null,
+		},
+		_create : function() {
+			if (!this.element.length)
+				return;
+			if (this.element.attr('type') == 'email') {
+				this.options.inputType = 'email';
+			}
+			if (this.options.containment) {
+				switch (this.options.containment) {
+				case 'parent':
+					this.container = this.element.parent();
+					break;
+				case 'document':
+					this.container = $(document);
+					break;
+				case 'window':
+					this.container = $(window);
+					break;
+				default:
+					this.container = $(this.options.containment);
+				}
+			}
+			if (!this.container.length) {
+				this.container = this._createContainer();
+			}
+			if (!this.container.length) {
+				return;
+			}
+			this.element.hide();
+			var list = this._createList();
+			this.container.append(list);
+
+			this.lastKey = null;
+			this.inputValueLength = 0;
+		},
+		_log : function(message) {
+			var debug = false;
+			if (typeof console !== "undefined" && debug)
+				console.log(message);
+		},
+		destroy : function() {
+			this._log("$.inputbox('destroy') Called");
+			$.Widget.prototype.destroy.call(this, arguments);
+		},
+		disable : function() {
+			this._log("$.inputbox('disable') Called");
+			$.Widget.prototype.disable.call(this, arguments);
+		},
+		enable : function() {
+			this._log("$.inputbox('enable') Called");
+			$.Widget.prototype.enable.call(this, arguments);
+		},
+		input : function() {
+			var input = this.container.children('.inputbox-list').children('.inputbox-item.input').children(
+					'.input-wrapper').children('textarea');
+			return input;
+		},
+		focus : function() {
+			var input = this.input();
+			input.focus();
+		},
+		add : function(value) {
+			var input = this.input();
+			input.val(value);
+			// Chrome needs a timeout
+			setTimeout(function() {
+				input.blur();
+			}, 250);
+		},
+		on : function(eventType, input) {
+			this._log('$.inputbox.on("' + eventType + '") ++++++++++++');
+			input = input || this.input();
+			switch (eventType) {
+			case 'focus':
+				input.on('focus.inputbox', $.proxy(this._onFocusInput, this));
+				break;
+			case 'keydown':
+				input.on('keydown.inputbox', $.proxy(this._onKeydownInput, this));
+				break;
+			case 'keyup':
+				input.on('keyup.inputbox', $.proxy(this._onKeyupInput, this));
+				break;
+			case 'blur':
+				input.on('blur.inputbox', $.proxy(this._onBlurInput, this));
+				break;
+			case 'click':
+				input.on('click.inputbox', $.proxy(this._onClickInput, this));
+				break;
+			}
+		},
+		off : function(eventType) {
+			this._log('$.inputbox.off("' + eventType + '") -----------');
+			var input = this.input();
+			input.off(eventType + '.inputbox');
+		},
+		size : function() {
+			var items = this.container.find('.inputbox-list .inputbox-item');
+			var size = items.not('.input').length;
+			return size;
+		},
+		commit : function() {
+			var text = this.container.find('.text-wrapper span');
+			var inputValue = '';
+			var separator = this.options.separators[0];
+			separator = separator && typeof separator === 'string' ? separator : ',';
+			separator = separator.indexOf(' ') === -1 ? separator + ' ' : separator;
+			text.each(function(index, element) {
+				var $this = $(this); // $(element)
+				var personal = $this.data('inputbox-personal');
+				var address = $this.data('inputbox-address');
+				if (!personal && !address)
+					return;
+				if (index > 0)
+					inputValue += separator;
+				if (personal) {
+					inputValue += '"' + personal + '" <' + address + '>';
+				} else if (address) {
+					inputValue += address;
+				} else {
+					inputValue += $this.text();
+				}
+			});
+			this.element.val(inputValue);
+			var msg = '$.inputbox.commit(){ inputValue: "' + inputValue + '" }';
+			this._log(msg);
+		},
+		_createContainer : function() {
+			var parent = this.element.parent();
+			if (parent.hasClass('inputbox-container'))
+				return parent;
+			this.element.wrap('<div class="inputbox-container"></div>');
+			return this.element.parent();
+		},
+		_createList : function() {
+			var list = $(document.createElement('ul'));
+			list.addClass('inputbox-list');
+			if (this.options.inputType == 'email') {
+				var addrs = [];
+				try {
+					var addresslist = this.element.val();
+					addrs = InternetAddress.parseHeader(addresslist, false);
+				} catch (error) {
+					// ignore
+				}
+				for (var i = 0; i < addrs.length; i++) {
+					var textItem = this._createItem(addrs[i]);
+					list.append(textItem);
+				}
+				var inputItem = this._createItem();
+				list.append(inputItem);
+			} else {
+				// TODO: this.options.inputType != 'email'
+			}
+			list.on('click', $.proxy(this._onClickList, this));
+			list.on('keyup', $.proxy(this._onKeyupList, this));
+			return list;
+		},
+		_createItem : function(source) {
+			var item = $(document.createElement('li'));
+			if (source) {
+				item.addClass('inputbox-item text');
+			} else {
+				item.addClass('inputbox-item input');
+			}
+
+			var textWrapper = $(document.createElement('div'));
+			textWrapper.addClass('text-wrapper');
+			var text = $(document.createElement('span'));
+			if (source instanceof InternetAddress) {
+				this._setMailAddress(text, source);
+			} else if (typeof source === 'string') {
+				text.text(source);
+			}
+			textWrapper.append(text);
+			if (this.options.editable) {
+				var editBtn = $(document.createElement('a'));
+				editBtn.addClass('btn edit');
+				editBtn.attr('href', '#');
+				var editImg = $(document.createElement('img'));
+				editImg.attr('src', this.options.blankImgSrc);
+				editBtn.append(editImg);
+				editBtn.on('click', $.proxy(this._onClickEditBtn, this));
+				textWrapper.append(editBtn);
+			}
+			if (this.options.removable) {
+				var removeBtn = $(document.createElement('a'));
+				removeBtn.addClass('btn remove');
+				removeBtn.attr('href', '#');
+				var removeImg = $(document.createElement('img'));
+				removeImg.attr('src', this.options.blankImgSrc);
+				removeBtn.append(removeImg);
+				removeBtn.on('click', $.proxy(this._onClickRemoveBtn, this));
+				textWrapper.append(removeBtn);
+			}
+
+			var inputWrapper = $(document.createElement('div'));
+			inputWrapper.addClass('input-wrapper');
+			var input = $(document.createElement('textarea'));
+			input.attr('rows', '1');
+			this.on('focus', input);
+			this.on('keydown', input);
+			this.on('keyup', input);
+			this.on('blur', input);
+			this.on('click', input);
+			if (this.options.autocompleteOptions) {
+				input.autocomplete(this.options.autocompleteOptions);
+			}
+			inputWrapper.append(input);
+
+			if (source) {
+				textWrapper.show();
+				inputWrapper.hide();
+			} else {
+				textWrapper.hide();
+				inputWrapper.show();
+			}
+
+			item.append(textWrapper).append(inputWrapper);
+			item.on('click', $.proxy(this._onClickItem, this));
+
+			if (source instanceof InternetAddress) {
+				if (!this._isValidMailAddress(source.getAddress())) {
+					item.addClass('invalid');
+				}
+			}
+
+			return item;
+		},
+		_removeItem : function(itemChild) {
+			var item = itemChild.parents('.inputbox-item');
+			var list = item.parent('.inputbox-list');
+
+			var textWrapper = item.children('.text-wrapper');
+			var editBtn = textWrapper.children('.btn.edit');
+			editBtn.off('click');
+			var removeBtn = textWrapper.children('.btn.remove');
+			removeBtn.off('click');
+
+			var inputWrapper = item.children('.input-wrapper');
+			var input = inputWrapper.children('textarea');
+			input.off('.inputbox');
+
+			item.remove();
+
+			var inputItem = list.children('.inputbox-item.input');
+			if (!inputItem.length) {
+				inputItem = this._createItem();
+				list.append(inputItem);
+			}
+			this._focusOnInput(inputItem);
+
+			if (this.options.autoCommit) {
+				var that = this;
+				setTimeout(function() {
+					that.commit();
+				}, 250);
+			}
+		},
+		_setMailAddress : function(element, mailAddress) {
+			var personal = mailAddress.getPersonal();
+			personal = (personal ? personal : '');
+			var address = mailAddress.getAddress();
+			address = (address ? address : '');
+			element.data('inputbox-personal', personal);
+			element.data('inputbox-address', address);
+			if (personal) {
+				element.text('"' + personal + '" <' + address + '>');
+			} else {
+				element.text(address);
+			}
+		},
+		_setInputValue : function(element, input) {
+			var personal = element.data('inputbox-personal');
+			var address = element.data('inputbox-address');
+			if (personal) {
+				input.val('"' + personal + '" <' + address + '>');
+			} else if (address) {
+				input.val(address);
+			}
+		},
+		_isValidMailAddress : function(address) {
+			if (!address)
+				return false;
+			var group = address.substring(0, 1);
+			if (group == "$" || group == "!" || group == "#")
+				return true;
+			if (address.indexOf('@') == -1)
+				return false;
+			var user = address.substring(0, address.indexOf('@'));
+			if (!user || user.indexOf(' ') > -1)
+				return false;
+			var domain = address.substring(address.indexOf('@') + 1);
+			if (!domain || domain.indexOf('.') == -1 || domain.indexOf(' ') > -1)
+				return false;
+			return true;
+		},
+		_measureTextWidth : function(text) {
+			var span = $(document).find('#inputboxMesureSpan');
+			if (!span.length) {
+				var container = $(document.createElement('div'));
+				container.addClass('inputbox-list inputbox-item text-wrapper');
+				container.css({
+					position : 'absolute',
+					width : '300px',
+					top : '-2000px',
+					left : '-2000px',
+				});
+				span = $(document.createElement('span'));
+				span.attr('id', 'inputboxMesureSpan');
+				container.append(span);
+				$('body').append(container);
+			}
+			span.text(text);
+			var width = span.width();
+			if (width > this.options.maxWidth) {
+				width = this.options.maxWidth;
+			}
+			return width;
+		},
+		_focusOnInput : function(item, disableFocus) {
+			this._log("$.inputbox._focusOnInput(item, " + disableFocus + ") {...}");
+			var inputWrapper = item.children('.input-wrapper');
+			var input = inputWrapper.children('textarea');
+			if (item.hasClass('selected')) {
+				inputWrapper.show();
+			}
+			if (!disableFocus) {
+				input.focus();
+			}
+			return false;
+		},
+		_onFocusInput : function(event) {
+			this._log("$.inputbox._onFocusInput(event) {...}");
+			var focus = this.options.focus;
+			if (focus) {
+				var input = this.input();
+				focus.apply(this.element[0], [ event ].concat({
+					input : input
+				}));
+			}
+			return false;
+		},
+		_onClickList : function(event) {
+			var list = $(event.currentTarget);
+			var selectedItem = list.children('.inputbox-item.selected');
+			if (selectedItem.length) {
+				selectedItem.removeClass('selected');
+			}
+			var input = list.children('.inputbox-item.input').children('.input-wrapper').children('textarea');
+			input.focus();
+			return false;
+		},
+		_onClickInput : function(event) {
+			this._log("$.inputbox._onClickInput(event) {...}");
+			var click = this.options.click;
+			if (click) {
+				var input = this.input();
+				click.apply(this.element[0], [ event ].concat({
+					input : input
+				}));
+			}
+			return false;
+		},
+		_onClickEditBtn : function(event) {
+			var editBtn = $(event.currentTarget);
+
+			var item = editBtn.parents('.inputbox-item');
+			// item.removeClass('text').addClass('input');
+
+			var textWrapper = item.children('.text-wrapper');
+			var text = textWrapper.children('span');
+			var inputWrapper = item.children('.input-wrapper');
+			var input = inputWrapper.children('textarea');
+
+			textWrapper.hide();
+			inputWrapper.show();
+
+			this._setInputValue(text, input);
+			this.inputValueLength = input.val().length;
+			var width = this._measureTextWidth(text.text());
+			input.width(width + 30);
+			input.focus();
+
+			return false;
+		},
+		_onClickRemoveBtn : function(event) {
+			var removeBtn = $(event.currentTarget);
+			this._removeItem(removeBtn);
+			return false;
+		},
+		_onKeyupList : function(event) {
+			var list = $(event.currentTarget);
+
+			var key = this.lastKey = getKeySequence(event);
+
+			var selectedItem, inputItem, prevItem, nextItem;
+			var selectedInputWrapper, input;
+
+			switch (key) {
+			case "Backspace":
+				selectedItem = list.children('.inputbox-item.selected');
+				if (selectedItem.length) {
+					selectedInputWrapper = selectedItem.children('.input-wrapper');
+					this._removeItem(selectedInputWrapper);
+					inputItem = list.children('.inputbox-item.input');
+					this._focusOnInput(inputItem);
+				} else {
+					inputItem = list.children('.inputbox-item.input');
+					input = inputItem.find('.input-wrapper textarea');
+					if (input.val().length == 0) {
+						prevItem = inputItem.prev();
+						if (prevItem.length) {
+							prevItem.addClass('selected');
+							this._focusOnInput(prevItem);
+						}
+					}
+				}
+				break;
+			case "Left":
+				selectedItem = list.children('.inputbox-item.selected');
+				if (selectedItem.length) {
+					prevItem = selectedItem.prev();
+					if (prevItem.length) {
+						selectedInputWrapper = selectedItem.children('.input-wrapper');
+						selectedInputWrapper.hide();
+						selectedItem.removeClass('selected');
+						prevItem.addClass('selected');
+						this._focusOnInput(prevItem);
+					}
+				} else {
+					inputItem = list.children('.inputbox-item.input');
+					input = inputItem.find('.input-wrapper textarea');
+					if (input.val().length == 0) {
+						prevItem = inputItem.prev();
+						if (prevItem.length) {
+							prevItem.addClass('selected');
+							this._focusOnInput(prevItem);
+						}
+					}
+				}
+				break;
+			case "Right":
+				selectedItem = list.children('.inputbox-item.selected');
+				if (selectedItem.length) {
+					nextItem = selectedItem.next();
+					if (nextItem.length) {
+						if (nextItem.hasClass('text')) {
+							nextItem.addClass('selected');
+						}
+						selectedInputWrapper = selectedItem.children('.input-wrapper');
+						selectedInputWrapper.hide();
+						selectedInputWrapper.removeClass('selected');
+						this._focusOnInput(nextItem);
+					}
+				} else {
+					inputItem = list.children('.inputbox-item.input');
+					this._focusOnInput(inputItem);
+				}
+				break;
+			case "Del":
+				selectedItem = list.children('.inputbox-item.selected');
+				if (selectedItem.length) {
+					selectedInputWrapper = selectedItem.children('.input-wrapper');
+					selectedInputWrapper.hide();
+					this._removeItem(selectedInputWrapper);
+					inputItem = list.find('.inputbox-item.input');
+					this._focusOnInput(inputItem);
+				}
+				break;
+			} // switch (key)
+
+			return false;
+		},
+		_onKeydownInput : function(event) {
+			var key = this.lastKey = getKeySequence(event);
+			this._log('$.inputbox._onKeydownInput("' + key + '")');
+			var keydown = this.options.keydown;
+			if (keydown) {
+				var input = this.input();
+				keydown.apply(this.element[0], [ event ].concat({
+					input : input,
+					key : key
+				}));
+			}
+		},
+		_onKeyupInput : function(event) {
+			var input = $(event.currentTarget);
+			var key = this.lastKey = getKeySequence(event);
+			this._log('$.inputbox._onKeyupInput("' + key + '")');
+			var item = input.parents('.inputbox-item');
+			if (item.hasClass('selected')) {
+				return true;
+			}
+			switch (key) {
+			case "Backspace":
+				if (this.options.confirmRemove && this.inputValueLength == 0) {
+					var prevItem = item.prev('.inputbox-item');
+					if (prevItem.length) {
+						var prevText = prevItem.find('.text-wrapper span');
+						var message = '';
+						var personal = prevText.data('inputbox-personal');
+						var address = prevText.data('inputbox-address');
+						if (personal) {
+							message += '\'"' + personal + '" <' + address + ">'";
+						} else if (address) {
+							message += "'" + address + "'";
+						} else {
+							message += "'" + prevText.text() + "'";
+						}
+						message = this.options.confirmRemovePrefix + message;
+						message = message + this.options.confirmRemoveSuffix;
+						if (confirm(message)) {
+							this._removeItem(prevText);
+						}
+						event.stopPropagation();
+						break;
+					}
+				}
+				if (this.inputValueLength == 1) {
+					event.stopPropagation();
+				}
+				this.inputValueLength = input.val().length;
+			case "Left":
+			case "Right":
+			case "Del":
+				if (input.val().length > 0) {
+					event.stopPropagation();
+					break;
+				}
+			default:
+				var separator = null;
+				for (var i = 0; i < this.options.separators.length; i++) {
+					separator = this.options.separators[i];
+					switch (separator) {
+					case '\t':
+						separator = "Tab";
+						break;
+					case '\n':
+					case '\r':
+						separator = "Enter";
+						break;
+					}
+					if (key === separator) {
+						separator = this.options.separators[i];
+						break;
+					}
+					separator = null;
+				}
+				if (separator) {
+					if (input.val().length == 0 && item.hasClass('input')) {
+						break;
+					}
+					if (input.val().length === 1 && input.val() === separator) {
+						input.val('');
+						break;
+					}
+					input.blur();
+					break;
+				}
+				this.inputValueLength = input.val().length;
+				var width = this._measureTextWidth(input.val());
+				input.width(width + 30);
+				input.focus();
+				break;
+			}
+			return true;
+		},
+		_onBlurInput : function(event) {
+			this.inputValueLength = 0;
+			var input = $(event.currentTarget);
+			this._log('$.inputbox._onBlurInput("' + input.val() + '")');
+
+			var item = input.parents('.inputbox-item');
+			var list = item.parent('.inputbox-list');
+			var container = list.parent('.inputbox-container');
+
+			var textWrapper = item.children('.text-wrapper');
+			var text = textWrapper.children('span');
+			var inputWrapper = item.children('.input-wrapper');
+
+			if (this.options.inputType == 'email') {
+				var addrs = [];
+				try {
+					addrs = InternetAddress.parseHeader(input.val(), false);
+				} catch (error) {
+					// ignore
+				}
+				for (var i = 0; i < addrs.length; i++) {
+					if (i < addrs.length - 1) {
+						var newItem = this._createItem(addrs[i]);
+						newItem.insertBefore(item);
+						continue;
+					}
+					// last email address
+					this._setMailAddress(text, addrs[i]);
+					this._setInputValue(text, input);
+					if (this._isValidMailAddress(addrs[i].getAddress())) {
+						item.removeClass('invalid');
+					} else {
+						item.addClass('invalid');
+					}
+				}
+			} else {
+				// TODO: normal input type='text'
+			}
+			if (text.html().length == 0) {
+				if (item.hasClass('input')) {
+					input.val('');
+				} else {
+					this._removeItem(input);
+					var inputItem = list.children('.inputbox-item.input');
+					this._focusOnInput(inputItem, true);
+				}
+				return false;
+			}
+
+			// var width = this._measureTextWidth(text.text());
+			// text.width(width);
+			textWrapper.show();
+			inputWrapper.hide();
+
+			if (item.hasClass('selected')) {
+				item.removeClass('selected');
+				return false;
+			}
+
+			var inputItem = null;
+			if (item.hasClass('input')) {
+				item.removeClass('input').addClass('text');
+				inputItem = this._createItem();
+				list.append(inputItem);
+				switch (this.lastKey) {
+				case "Enter":
+				case ";":
+				case ",":
+					this._focusOnInput(inputItem);
+					break;
+				default:
+					// this._focusOnInput(inputItem, true);
+					this._focusOnInput(inputItem);
+				}
+			} else {
+				inputItem = list.children('.inputbox-item.input');
+				if (inputItem.length)
+					this._focusOnInput(inputItem, true);
+			}
+			if (this.options.autoCommit) {
+				this.commit();
+			}
+			return false;
+		},
+		_onClickItem : function(event) {
+			var item = $(event.currentTarget);
+			if (!item.hasClass('inputbox-item')) {
+				return false;
+			}
+			event.stopPropagation();
+			if (item.hasClass('input')) {
+				this._focusOnInput(item);
+				return false;
+			}
+			var list = item.parent('.inputbox-list');
+			var selectedItem = list.children('.inputbox-item.selected');
+			if (selectedItem.length) {
+				selectedItem.removeClass('selected');
+			}
+			item.addClass('selected');
+			this._focusOnInput(item);
+
+			return false;
+		},
+
+	});
+
+	function InternetAddress() {
+		this.address; // email address
+		this.personal; // The personal name.
+		this.encodedPersonal; // The RFC 2047 encoded version of the personal
+		// name.
+	}
+
+	InternetAddress.prototype.setAddress = function(address) {
+		this.address = address;
+	};
+
+	InternetAddress.prototype.setPersonal = function(name) {
+		this.encodedPersonal = name;
+	};
+
+	InternetAddress.prototype.getAddress = function() {
+		return this.address;
+	};
+
+	InternetAddress.prototype.getPersonal = function() {
+		return this.encodedPersonal;
+	};
+
+	InternetAddress.ignoreBogusGroupName = true;
+
+	InternetAddress.specialsNoDotNoAt = "()<>,;:\\\"[]";
+
+	InternetAddress.specialsNoDot = InternetAddress.specialsNoDotNoAt + "@";
+
+	InternetAddress.RFC822 = "()<>@,;:\\\"\t .[]";
+
+	InternetAddress.rfc822phrase = InternetAddress.RFC822.replace(' ', '\0').replace('\t', '\0');
+
+	InternetAddress.quotePhrase = function(phrase) {
+		var len = phrase.length;
+		var needQuoting = false;
+
+		for (var i = 0; i < len; i++) {
+			var c = phrase.charAt(i);
+			if (c == '"' || c == '\\') {
+				// need to escape them and then quote the whole string
+				var arr = [];
+				arr.push('"');
+				for (var j = 0; j < len; j++) {
+					var cc = phrase.charAt(j);
+					if (cc == '"' || cc == '\\')
+						// Escape the character
+						arr.push('\\');
+					arr.push(cc);
+				}
+				arr.push('"');
+				return arr.join('');
+			} else if ((c < 040 && c != '\r' && c != '\n' && c != '\t') || c >= 0177
+					|| InternetAddress.rfc822phrase.indexOf(c) >= 0)
+				// These characters cause the string to be quoted
+				needQuoting = true;
+		}
+
+		if (needQuoting) {
+			var arr = [];
+			arr.push('"');
+			arr.push(phrase);
+			arr.push('"');
+			return arr.join('');
+		} else
+			return phrase;
+	};
+
+	InternetAddress.indexOfAny = function(s, any, start) {
+		try {
+			if (start == null) {
+				start = 0;
+			}
+			var len = s.length;
+			for (var i = start; i < len; i++) {
+				if (any.indexOf(s.charAt(i)) >= 0)
+					return i;
+			}
+			return -1;
+		} catch (e) {
+			return -1;
+		}
+	};
+
+	InternetAddress.prototype.isSimple = function() {
+		return this.address == null || InternetAddress.indexOfAny(this.address, InternetAddress.specialsNoDotNoAt) < 0;
+	};
+
+	InternetAddress.prototype.isGroup = function() {
+		// quick and dirty check
+		return this.address != null && InternetAddress.endsWith(this.address, ";") && this.address.indexOf(':') > 0;
+	};
+
+	InternetAddress.unquote = function(s) {
+		if (InternetAddress.startsWith(s, "\"") && InternetAddress.endsWith(s, "\"")) {
+			s = s.substring(1, s.length - 1);
+			// check for any escaped characters
+			if (s.indexOf('\\') >= 0) {
+				var arr = []; // approx
+				for (var i = 0; i < s.length; i++) {
+					var c = s.charAt(i);
+					if (c == '\\' && i < s.length - 1)
+						c = s.charAt(++i);
+					arr.push(c);
+				}
+				s = arr.join('');
+			}
+		}
+		return s;
+	};
+
+	InternetAddress.trim = function(s) {
+		return s.replace(/^\s+/, "").replace(/\s+$/, "");
+	};
+
+	InternetAddress.startsWith = function(s, prefix) {
+		return s.indexOf(prefix) === 0;
+	};
+
+	InternetAddress.endsWith = function(s, suffix) {
+		return s.match(suffix + "$") == suffix;
+	};
+
+	InternetAddress.errorMessage = function(s, ref, pos) {
+		if (ref == null)
+			return s;
+		if (pos == null)
+			pos = -1;
+		s += " in string ``" + ref + "''";
+		if (pos < 0)
+			return s;
+		return s + " at position " + pos;
+	};
+
+	InternetAddress.checkAddress = function(addr, routeAddr, validate) {
+		var i, start = 0;
+
+		var len = addr.length;
+		if (len == 0)
+			throw new Error(InternetAddress.errorMessage("Empty address", addr));
+
+		/*
+		 * routeAddr indicates that the address is allowed to have an RFC 822
+		 * "route".
+		 */
+		if (routeAddr && addr.charAt(0) == '@') {
+			/*
+			 * Check for a legal "route-addr": [@domain[,@domain
+			 * ...]:]local@domain
+			 */
+			for (start = 0; (i = indexOfAny(addr, ",:", start)) >= 0; start = i + 1) {
+				if (addr.charAt(start) != '@')
+					throw new Error(errorMessage("Illegal route-addr", addr));
+				if (addr.charAt(i) == ':') {
+					// end of route-addr
+					start = i + 1;
+					break;
+				}
+			}
+		}
+
+		/*
+		 * The rest should be "local@domain", but we allow simply "local" unless
+		 * called from validate.
+		 * 
+		 * local-part must follow RFC 822 - no specials except '.' unless
+		 * quoted.
+		 */
+		var c = -1;
+		var lastc = -1;
+		var inquote = false;
+		for (i = start; i < len; i++) {
+			lastc = c;
+			c = addr.charAt(i);
+			// a quoted-pair is only supposed to occur inside a quoted string,
+			// but some people use it outside so we're more lenient
+			if (c == '\\' || lastc == '\\')
+				continue;
+			if (c == '"') {
+				if (inquote) {
+					// peek ahead, next char must be "@"
+					if (validate && i + 1 < len && addr.charAt(i + 1) != '@')
+						throw new Error(InternetAddress.errorMessage("Quote not at end of local address", addr));
+					inquote = false;
+				} else {
+					if (validate && i != 0)
+						throw new Error(InternetAddress.errorMessage("Quote not at start of local address", addr));
+					inquote = true;
+				}
+				continue;
+			}
+			if (inquote)
+				continue;
+			if (c == '@') {
+				if (i == 0)
+					throw new Error(InternetAddress.errorMessage("Missing local name", addr));
+				break; // done with local part
+			}
+			if (c <= 040 || c >= 0177)
+				throw new Error(InternetAddress.errorMessage("Local address contains control or whitespace", addr));
+			if (InternetAddress.specialsNoDot.indexOf(c) >= 0)
+				throw new Error(InternetAddress.errorMessage("Local address contains illegal character", addr));
+		}
+		if (inquote)
+			throw new Error(InternetAddress.errorMessage("Unterminated quote", addr));
+
+		/*
+		 * Done with local part, now check domain.
+		 * 
+		 * Note that the MimeMessage class doesn't remember addresses as
+		 * separate objects; it writes them out as headers and then parses the
+		 * headers when the addresses are requested. In order to support the
+		 * case where a "simple" address is used, but the address also has a
+		 * personal name and thus looks like it should be a valid RFC822 address
+		 * when parsed, we only check this if we're explicitly called from the
+		 * validate method.
+		 */
+
+		if (c != '@') {
+			if (validate)
+				throw new Error(InternetAddress.errorMessage("Missing final '@domain'", addr));
+			return;
+		}
+
+		// check for illegal chars in the domain, but ignore domain literals
+
+		start = i + 1;
+		if (start >= len)
+			throw new Error(InternetAddress.errorMessage("Missing domain", addr));
+
+		if (addr.charAt(start) == '.')
+			throw new Error(InternetAddress.errorMessage("Domain starts with dot", addr));
+		for (i = start; i < len; i++) {
+			c = addr.charAt(i);
+			if (c == '[')
+				return; // domain literal, don't validate
+			if (c <= 040 || c >= 0177)
+				throw new Error(InternetAddress.errorMessage("Domain contains control or whitespace", addr));
+			// RFC 2822 rule
+			// if (specialsNoDot.indexOf(c) >= 0)
+			/*
+			 * RFC 1034 rule is more strict the full rule is:
+			 * 
+			 * <domain> ::= <subdomain> | " " <subdomain> ::= <label> |
+			 * <subdomain> "." <label> <label> ::= <letter> [ [ <ldh-str> ]
+			 * <let-dig> ] <ldh-str> ::= <let-dig-hyp> | <let-dig-hyp> <ldh-str>
+			 * <let-dig-hyp> ::= <let-dig> | "-" <let-dig> ::= <letter> |
+			 * <digit>
+			 */
+			if (!(Character.isLetterOrDigit(c) || c == '-' || c == '.'))
+				throw new Error(InternetAddress.errorMessage("Domain contains illegal character", addr));
+			if (c == '.' && lastc == '.')
+				throw new Error(InternetAddress.errorMessage("Domain contains dot-dot", addr));
+			lastc = c;
+		}
+		if (lastc == '.')
+			throw new Error(InternetAddress.errorMessage("Domain ends with dot", addr));
+	};
+
+	InternetAddress.parse = function(s, strict, parseHdr) {
+		if (strict == null)
+			strict = false;
+		if (parseHdr == null)
+			parseHdr = true;
+		var start, end, index, nesting;
+		var start_personal = -1, end_personal = -1;
+		var length = s.length;
+		var ignoreErrors = parseHdr && !strict;
+		var in_group = false; // we're processing a group term
+		var route_addr = false; // address came from route-addr term
+		var rfc822 = false; // looks like an RFC822 address
+		var c;
+		var arr = new Array();
+
+		var ma;
+
+		for (start = end = -1, index = 0; index < length; index++) {
+			c = s.charAt(index);
+
+			switch (c) {
+			/*
+			 * case '(': // We are parsing a Comment. Ignore everything inside. //
+			 * XXX - comment fields should be parsed as whitespace, // more than
+			 * one allowed per address rfc822 = true; if (start >= 0 && end ==
+			 * -1) end = index; var pindex = index; for (index++, nesting = 1;
+			 * index < length && nesting > 0; index++) { c = s.charAt(index);
+			 * switch (c) { case '\\': index++; // skip both '\' and the escaped
+			 * char break; case '(': nesting++; break; case ')': nesting--;
+			 * break; default: break; } } if (nesting > 0) { if (!ignoreErrors)
+			 * throw new Error(MailAddress.errorMessage("Missing ')'", s,
+			 * index)); // pretend the first paren was a regular character and //
+			 * continue parsing after it index = pindex + 1; break; } index--; //
+			 * point to closing paren if (start_personal == -1) start_personal =
+			 * pindex + 1; if (end_personal == -1) end_personal = index; break;
+			 * 
+			 * case ')': if (!ignoreErrors) throw new
+			 * Error(MailAddress.errorMessage("Missing '('", s, index)); //
+			 * pretend the left paren was a regular character and // continue
+			 * parsing if (start == -1) start = index; break;
+			 */
+			case '<':
+				rfc822 = true;
+				if (route_addr) {
+					if (!ignoreErrors)
+						throw new Error(InternetAddress.errorMessage("Extra route-addr", s, index));
+
+					// assume missing comma between addresses
+					if (start == -1) {
+						route_addr = false;
+						rfc822 = false;
+						start = end = -1;
+						break; // nope, nothing there
+					}
+					if (!in_group) {
+						// got a token, add this to our InternetAddress vector
+						if (end == -1) // should never happen
+							end = index;
+						var addr = InternetAddress.trim(s.substring(start, end));
+
+						ma = new InternetAddress();
+						ma.setAddress(addr);
+						if (start_personal >= 0) {
+							ma.encodedPersonal = InternetAddress.trim(s.substring(start_personal, end_personal));
+							ma.encodedPersonal = InternetAddress.unquote(ma.encodedPersonal);
+						}
+						arr.push(ma);
+
+						route_addr = false;
+						rfc822 = false;
+						start = end = -1;
+						start_personal = end_personal = -1;
+						// continue processing this new address...
+					}
+				}
+
+				var rindex = index;
+				var inquote = false;
+				outf: for (index++; index < length; index++) {
+					c = s.charAt(index);
+					switch (c) {
+					case '\\': // XXX - is this needed?
+						index++; // skip both '\' and the escaped char
+						break;
+					case '"':
+						inquote = !inquote;
+						break;
+					case '>':
+						if (inquote)
+							continue;
+						break outf; // out of for loop
+					default:
+						break;
+					}
+				}
+
+				// did we find a matching quote?
+				if (inquote) {
+					if (!ignoreErrors)
+						throw new Error(InternetAddress.errorMessage("Missing '\"'", s, index));
+					// didn't find matching quote, try again ignoring quotes
+					// (e.g., ``<"@foo.com>'')
+					outq: for (index = rindex + 1; index < length; index++) {
+						c = s.charAt(index);
+						if (c == '\\') // XXX - is this needed?
+							index++; // skip both '\' and the escaped char
+						else if (c == '>')
+							break;
+					}
+				}
+
+				// did we find a terminating '>'?
+				if (index >= length) {
+					if (!ignoreErrors)
+						throw new Error(InternetAddress.errorMessage("Missing '>'", s, index));
+					// pretend the "<" was a regular character and
+					// continue parsing after it (e.g., ``<@foo.com'')
+					index = rindex + 1;
+					if (start == -1)
+						start = rindex; // back up to include "<"
+					break;
+				}
+
+				if (!in_group) {
+					start_personal = start;
+					if (start_personal >= 0)
+						end_personal = rindex;
+					start = rindex + 1;
+				}
+				route_addr = true;
+				end = index;
+				break;
+
+			case '>':
+				if (!ignoreErrors)
+					throw new Error(InternetAddress.errorMessage("Missing '<'", s, index));
+				// pretend the ">" was a regular character and
+				// continue parsing (e.g., ``>@foo.com'')
+				if (start == -1)
+					start = index;
+				break;
+
+			case '"': // parse quoted string
+				var qindex = index;
+				rfc822 = true;
+				if (start == -1)
+					start = index;
+				outq: for (index++; index < length; index++) {
+					c = s.charAt(index);
+					switch (c) {
+					case '\\':
+						index++; // skip both '\' and the escaped char
+						break;
+					case '"':
+						break outq; // out of for loop
+					default:
+						break;
+					}
+				}
+				if (index >= length) {
+					if (!ignoreErrors)
+						throw new Error(InternetAddress.errorMessage("Missing '\"'", s, index));
+					// pretend the quote was a regular character and
+					// continue parsing after it (e.g., ``"@foo.com'')
+					index = qindex + 1;
+				}
+				break;
+
+			case '[': // a domain-literal, probably
+				rfc822 = true;
+				var lindex = index;
+				outb: for (index++; index < length; index++) {
+					c = s.charAt(index);
+					switch (c) {
+					case '\\':
+						index++; // skip both '\' and the escaped char
+						break;
+					case ']':
+						break outb; // out of for loop
+					default:
+						break;
+					}
+				}
+				if (index >= length) {
+					if (!ignoreErrors)
+						throw new Error(InternetAddress.errorMessage("Missing ']'", s, index));
+					// pretend the "[" was a regular character and
+					// continue parsing after it (e.g., ``[@foo.com'')
+					index = lindex + 1;
+				}
+				break;
+
+			case ';':
+				if (start == -1) {
+					route_addr = false;
+					rfc822 = false;
+					start = end = -1;
+					break; // nope, nothing there
+				}
+				if (in_group) {
+					in_group = false;
+					/*
+					 * If parsing headers, but not strictly, peek ahead. If next
+					 * var is "@", treat the group name like the local part of
+					 * the address, e.g.,
+					 * "Undisclosed-Recipient:;@java.sun.com".
+					 */
+					if (parseHdr && !strict && index + 1 < length && s.charAt(index + 1) == '@')
+						break;
+					ma = new InternetAddress();
+					end = index + 1;
+					ma.setAddress(InternetAddress.trim(s.substring(start, end)));
+					arr.push(ma);
+
+					route_addr = false;
+					rfc822 = false;
+					start = end = -1;
+					start_personal = end_personal = -1;
+					break;
+				}
+				if (!ignoreErrors)
+					throw new Error(InternetAddress.errorMessage("Illegal semicolon, not in group", s, index));
+
+				// otherwise, parsing a header; treat semicolon like comma
+				// fall through to comma case...
+
+			case ',': // end of an address, probably
+				if (start == -1) {
+					route_addr = false;
+					rfc822 = false;
+					start = end = -1;
+					break; // nope, nothing there
+				}
+				if (in_group) {
+					route_addr = false;
+					break;
+				}
+				// got a token, add this to our InternetAddress vector
+				if (end == -1)
+					end = index;
+
+				var addr = InternetAddress.trim(s.substring(start, end));
+				var pers = null;
+				if (rfc822 && start_personal >= 0) {
+					pers = InternetAddress.unquote(InternetAddress.trim(s.substring(start_personal, end_personal)));
+					if (InternetAddress.trim(pers).length == 0)
+						pers = null;
+				}
+
+				/*
+				 * If the personal name field has an "@" and the address field
+				 * does not, assume they were reversed, e.g., ``"joe doe"
+				 * (john.doe@example.com)''.
+				 */
+				if (parseHdr && !strict && pers != null && pers.indexOf('@') >= 0 && addr.indexOf('@') < 0
+						&& addr.indexOf('!') < 0) {
+					var tmp = addr;
+					addr = pers;
+					pers = tmp;
+				}
+				if (rfc822 || strict || parseHdr) {
+					if (!ignoreErrors)
+						InternetAddress.checkAddress(addr, route_addr, false);
+					ma = new InternetAddress();
+					ma.setAddress(addr);
+					if (pers != null)
+						ma.encodedPersonal = pers;
+					arr.push(ma);
+				} else {
+					// maybe we passed over more than one space-separated addr
+					var tokens = addr.split(/\s|\t|\n|\r|\f/);
+					for (var i = 0; i < tokens.length; i++) {
+						var a = tokens[i];
+						InternetAddress.checkAddress(a, false, false);
+						ma = new InternetAddress();
+						ma.setAddress(a);
+						arr.push(ma);
+					}
+				}
+
+				route_addr = false;
+				rfc822 = false;
+				start = end = -1;
+				start_personal = end_personal = -1;
+				break;
+
+			case ':':
+				rfc822 = true;
+				if (in_group)
+					if (!ignoreErrors)
+						throw new Error(InternetAddress.errorMessage("Nested group", s, index));
+				if (start == -1)
+					start = index;
+				if (parseHdr && !strict) {
+					/*
+					 * If next char is a special character that can't occur at
+					 * the start of a valid address, treat the group name as the
+					 * entire address, e.g., "Date:, Tue", "Re:@foo".
+					 */
+					if (index + 1 < length) {
+						var addressSpecials = ")>[]:@\\,.";
+						var nc = s.charAt(index + 1);
+						if (addressSpecials.indexOf(nc) >= 0) {
+							if (nc != '@')
+								break; // don't change in_group
+							/*
+							 * Handle a common error:
+							 * ``Undisclosed-Recipient:@example.com;''
+							 * 
+							 * Scan ahead. If we find a semicolon before one of
+							 * these other special characters, consider it to be
+							 * a group after all.
+							 */
+							for (var i = index + 2; i < length; i++) {
+								nc = s.charAt(i);
+								if (nc == ';')
+									break;
+								if (addressSpecials.indexOf(nc) >= 0)
+									break;
+							}
+							if (nc == ';')
+								break; // don't change in_group
+						}
+					}
+
+					// ignore bogus "mailto:" prefix in front of an address,
+					// or bogus mail header name included in the address field
+					var gname = s.substring(start, index);
+					if (ignoreBogusGroupName
+							&& (gname.equalsIgnoreCase("mailto") || gname.equalsIgnoreCase("From")
+									|| gname.equalsIgnoreCase("To") || gname.equalsIgnoreCase("Cc")
+									|| gname.equalsIgnoreCase("Subject") || gname.equalsIgnoreCase("Re")))
+						start = -1; // we're not really in a group
+					else
+						in_group = true;
+				} else
+					in_group = true;
+				break;
+
+			// Ignore whitespace
+			case ' ':
+			case '\t':
+			case '\r':
+			case '\n':
+				break;
+
+			default:
+				if (start == -1)
+					start = index;
+				break;
+			}
+		}
+
+		if (start >= 0) {
+			/*
+			 * The last token, add this to our InternetAddress vector. Note that
+			 * this block of code should be identical to the block above for
+			 * "case ','".
+			 */
+			if (end == -1)
+				end = length;
+
+			var addr = InternetAddress.trim(s.substring(start, end));
+			var pers = null;
+			if (rfc822 && start_personal >= 0) {
+				pers = InternetAddress.unquote(InternetAddress.trim(s.substring(start_personal, end_personal)));
+				if (InternetAddress.trim(pers).length == 0)
+					pers = null;
+			}
+
+			/*
+			 * If the personal name field has an "@" and the address field does
+			 * not, assume they were reversed, e.g., ``"joe doe"
+			 * (john.doe@example.com)''.
+			 */
+			if (parseHdr && !strict && pers != null && pers.indexOf('@') >= 0 && addr.indexOf('@') < 0
+					&& addr.indexOf('!') < 0) {
+				var tmp = addr;
+				addr = pers;
+				pers = tmp;
+			}
+			if (rfc822 || strict || parseHdr) {
+				if (!ignoreErrors)
+					InternetAddress.checkAddress(addr, route_addr, false);
+				ma = new InternetAddress();
+				ma.setAddress(addr);
+				if (pers != null)
+					ma.encodedPersonal = pers;
+				arr.push(ma);
+			} else {
+				// maybe we passed over more than one space-separated addr
+				var tokens = addr.split(/\s|\t|\n|\r|\f/);
+				for (var i = 0; i < tokens.length; i++) {
+					var a = tokens[i];
+					InternetAddress.checkAddress(a, false, false);
+					ma = new InternetAddress();
+					ma.setAddress(a);
+					arr.push(ma);
+				}
+			}
+		}
+
+		return arr;
+	};
+
+	InternetAddress.parseHeader = function(addresslist, strict) {
+		return InternetAddress.parse(addresslist, strict, true);
+	};
+
+	InternetAddress.prototype.toString = function() {
+		// if (this.encodedPersonal == null && this.personal != null)
+		// try {
+		// this.encodedPersonal = MimeUtility.encodeWord(this.personal);
+		// } catch (e) {
+		// }
+		if (this.encodedPersonal != null)
+			return InternetAddress.quotePhrase(this.encodedPersonal) + " <" + this.address + ">";
+		else if (this.isGroup() || this.isSimple())
+			return this.address;
+		else
+			return "<" + address + ">";
+	};
+
+	function getKeySequence(event) {
+		var modifiers = "";
+		var key = null;
+
+		if (event.ctrlKey)
+			modifiers += "Control+";
+		if (event.altKey)
+			modifiers += "Alt+";
+		if (event.metaKey)
+			modifiers += "Meta+";
+		if (event.shiftKey)
+			modifiers += "Shift+";
+
+		if (event.key) {
+			key = event.key;
+		} else if (event.keyIdentifier && event.keyIdentifier.substring(0, 2) !== "U+") {
+			key = event.keyIdentifier;
+		} else {
+			key = keyCodeToKey[event.keyCode];
+		}
+
+		if ((modifiers === "Shift+" || prevKey === "Shift") && printableKeyToKeyCode[key]) {
+			var keyCode = shiftedKeyToKeyCode[key];
+			if (!keyCode) {
+				keyCode = printableKeyToKeyCode[key];
+				key = keyCodeToShiftedKey[keyCode];
+				var element = event && event.currentTarget;
+				element = element ? element : event && event.srcElement;
+				var tagName = element && element.tagName;
+				if (tagName === "INPUT" || tagName === "TEXTAREA") {
+					var lastChar = element.value && element.value.charAt(element.value.length - 1);
+					if (key !== lastChar) {
+						key = keyCodeToKey[keyCode];
+					}
+				}
+			}
+			modifiers = (modifiers === "Shift+" ? "" : modifiers);
+		}
+
+		prevKey = key;
+
+		return modifiers + key;
+	}
+
+	var prevKey = null;
+
+	var keyCodeToKey = {
+		// Keys with words or arrows on them
+		8 : "Backspace",
+		9 : "Tab",
+		13 : "Enter",
+		16 : "Shift",
+		17 : "Control",
+		18 : "Alt",
+		19 : "Pause",
+		20 : "CapsLock",
+		27 : "Esc",
+		32 : "Spacebar",
+		33 : "PageUp",
+		34 : "PageDown",
+		35 : "End",
+		36 : "Home",
+		37 : "Left",
+		38 : "Up",
+		39 : "Right",
+		40 : "Down",
+		45 : "Insert",
+		46 : "Del",
+		// Number keys on main keyboard (not keypad)
+		48 : "0",
+		49 : "1",
+		50 : "2",
+		51 : "3",
+		52 : "4",
+		53 : "5",
+		54 : "6",
+		55 : "7",
+		56 : "8",
+		57 : "9",
+		// Letter keys. Note that we don't distinguish upper and lower case
+		65 : "a",
+		66 : "b",
+		67 : "c",
+		68 : "d",
+		69 : "e",
+		70 : "f",
+		71 : "g",
+		72 : "h",
+		73 : "i",
+		74 : "j",
+		75 : "k",
+		76 : "l",
+		77 : "m",
+		78 : "n",
+		79 : "o",
+		80 : "p",
+		81 : "q",
+		82 : "r",
+		83 : "s",
+		84 : "t",
+		85 : "u",
+		86 : "v",
+		87 : "w",
+		88 : "x",
+		89 : "y",
+		90 : "z",
+		// Keypad numbers and punctuation keys. (Opera does not support these.)
+		96 : "0",
+		97 : "1",
+		98 : "2",
+		99 : "3",
+		100 : "4",
+		101 : "5",
+		102 : "6",
+		103 : "7",
+		104 : "8",
+		105 : "9",
+		106 : "Multiply",
+		107 : "Add",
+		109 : "Subtract",
+		110 : "Decimal",
+		111 : "Divide",
+		// Function keys
+		112 : "F1",
+		113 : "F2",
+		114 : "F3",
+		115 : "F4",
+		116 : "F5",
+		117 : "F6",
+		118 : "F7",
+		119 : "F8",
+		120 : "F9",
+		121 : "F10",
+		122 : "F11",
+		123 : "F12",
+		124 : "F13",
+		125 : "F14",
+		126 : "F15",
+		127 : "F16",
+		128 : "F17",
+		129 : "F18",
+		130 : "F19",
+		131 : "F20",
+		132 : "F21",
+		133 : "F22",
+		134 : "F23",
+		135 : "F24",
+		// Punctuation keys
+		59 : ";",
+		61 : "=", // Firefox and Opera return 59,61
+		186 : ";",
+		187 : "=",
+		188 : ",",
+		189 : "-",
+		190 : ".",
+		191 : "/",
+		192 : "`",
+		219 : "[",
+		220 : "\\",
+		221 : "]",
+		222 : "'"
+	};
+	var keyCodeToShiftedKey = {
+		// Keys with words or arrows on them
+		8 : "Backspace",
+		9 : "Tab",
+		13 : "Enter",
+		16 : "Shift",
+		17 : "Control",
+		18 : "Alt",
+		19 : "Pause",
+		20 : "CapsLock",
+		27 : "Esc",
+		32 : "Spacebar",
+		33 : "PageUp",
+		34 : "PageDown",
+		35 : "End",
+		36 : "Home",
+		37 : "Left",
+		38 : "Up",
+		39 : "Right",
+		40 : "Down",
+		45 : "Insert",
+		46 : "Del",
+		// Shifted Number keys on main keyboard (not keypad)
+		48 : ")",
+		49 : "!",
+		50 : "@",
+		51 : "#",
+		52 : "$",
+		53 : "%",
+		54 : "^",
+		55 : "&",
+		56 : "*",
+		57 : "(",
+		// Letter keys
+		65 : "A",
+		66 : "B",
+		67 : "C",
+		68 : "D",
+		69 : "E",
+		70 : "F",
+		71 : "G",
+		72 : "H",
+		73 : "I",
+		74 : "J",
+		75 : "K",
+		76 : "L",
+		77 : "M",
+		78 : "N",
+		79 : "O",
+		80 : "P",
+		81 : "Q",
+		82 : "R",
+		83 : "S",
+		84 : "T",
+		85 : "U",
+		86 : "V",
+		87 : "W",
+		88 : "X",
+		89 : "Y",
+		90 : "Z",
+		// Keypad numbers and punctuation keys. (Opera does not support these.)
+		96 : "0",
+		97 : "1",
+		98 : "2",
+		99 : "3",
+		100 : "4",
+		101 : "5",
+		102 : "6",
+		103 : "7",
+		104 : "8",
+		105 : "9",
+		106 : "Multiply",
+		107 : "Add",
+		109 : "Subtract",
+		110 : "Decimal",
+		111 : "Divide",
+		// Function keys
+		112 : "F1",
+		113 : "F2",
+		114 : "F3",
+		115 : "F4",
+		116 : "F5",
+		117 : "F6",
+		118 : "F7",
+		119 : "F8",
+		120 : "F9",
+		121 : "F10",
+		122 : "F11",
+		123 : "F12",
+		124 : "F13",
+		125 : "F14",
+		126 : "F15",
+		127 : "F16",
+		128 : "F17",
+		129 : "F18",
+		130 : "F19",
+		131 : "F20",
+		132 : "F21",
+		133 : "F22",
+		134 : "F23",
+		135 : "F24",
+		// Punctuation keys
+		59 : ":",
+		61 : "+", // Firefox and Opera return 59,61
+		186 : ":",
+		187 : "+",
+		188 : "<",
+		189 : "_",
+		190 : ">",
+		191 : "?",
+		192 : "~",
+		219 : "{",
+		220 : "|",
+		221 : "}",
+		222 : "\""
+	};
+	var printableKeyToKeyCode = {
+		// Keys with words or arrows on them
+		"Tab" : 9,
+		"Enter" : 13,
+		"Spacebar" : 32,
+		// Number keys on main keyboard (not keypad)
+		"0" : 48,
+		")" : 48,
+		"1" : 49,
+		"!" : 49,
+		"2" : 50,
+		"@" : 50,
+		"3" : 51,
+		"#" : 51,
+		"4" : 52,
+		"$" : 52,
+		"5" : 53,
+		"%" : 53,
+		"6" : 54,
+		"^" : 54,
+		"7" : 55,
+		"&" : 55,
+		"8" : 56,
+		"*" : 56,
+		"9" : 57,
+		"(" : 57,
+		// Letter keys
+		"A" : 65,
+		"a" : 65,
+		"B" : 66,
+		"b" : 66,
+		"C" : 67,
+		"c" : 67,
+		"D" : 68,
+		"d" : 68,
+		"E" : 69,
+		"e" : 69,
+		"F" : 70,
+		"f" : 70,
+		"G" : 71,
+		"g" : 71,
+		"H" : 72,
+		"h" : 72,
+		"I" : 73,
+		"i" : 73,
+		"J" : 74,
+		"j" : 74,
+		"K" : 75,
+		"k" : 75,
+		"L" : 76,
+		"l" : 76,
+		"M" : 77,
+		"m" : 77,
+		"N" : 78,
+		"n" : 78,
+		"O" : 79,
+		"o" : 79,
+		"P" : 80,
+		"p" : 80,
+		"Q" : 81,
+		"q" : 81,
+		"R" : 82,
+		"r" : 82,
+		"S" : 83,
+		"s" : 83,
+		"T" : 84,
+		"t" : 84,
+		"U" : 85,
+		"u" : 85,
+		"V" : 86,
+		"v" : 86,
+		"W" : 87,
+		"w" : 87,
+		"X" : 88,
+		"x" : 88,
+		"Y" : 89,
+		"y" : 89,
+		"Z" : 90,
+		"z" : 90,
+		// Keypad numbers and punctuation keys. (Opera does not support these.)
+		"Multiply" : 106,
+		"Add" : 107,
+		"Subtract" : 109,
+		"Decimal" : 110,
+		"Divide" : 111,
+		// Punctuation keys
+		";" : 59,
+		":" : 59,
+		"=" : 61,
+		"+" : 61, // Firefox and Opera return 59,61
+		";" : 186,
+		":" : 186,
+		"=" : 187,
+		"+" : 187,
+		"," : 188,
+		"<" : 188,
+		"-" : 189,
+		"_" : 189,
+		"." : 190,
+		">" : 190,
+		"/" : 191,
+		"?" : 191,
+		"`" : 192,
+		"~" : 192,
+		"[" : 219,
+		"{" : 219,
+		"\\" : 220,
+		"|" : 220,
+		"]" : 221,
+		"}" : 221,
+		"'" : 222,
+		"\"" : 222
+	};
+	var shiftedKeyToKeyCode = {
+		// Keys with words or arrows on them
+		"Backspace" : 8,
+		"Tab" : 9,
+		"Enter" : 13,
+		"Shift" : 16,
+		"Control" : 17,
+		"Alt" : 18,
+		"Pause" : 19,
+		"CapsLock" : 20,
+		"Esc" : 27,
+		"Spacebar" : 32,
+		"PageUp" : 33,
+		"PageDown" : 34,
+		"End" : 35,
+		"Home" : 36,
+		"Left" : 37,
+		"Up" : 38,
+		"Right" : 39,
+		"Down" : 40,
+		"Insert" : 45,
+		"Del" : 46,
+		// Shifted Number keys on main keyboard (not keypad)
+		")" : 48,
+		"!" : 49,
+		"@" : 50,
+		"#" : 51,
+		"$" : 52,
+		"%" : 53,
+		"^" : 54,
+		"&" : 55,
+		"*" : 56,
+		"(" : 57,
+		// Letter keys
+		"A" : 65,
+		"B" : 66,
+		"C" : 67,
+		"D" : 68,
+		"E" : 69,
+		"F" : 70,
+		"G" : 71,
+		"H" : 72,
+		"I" : 73,
+		"J" : 74,
+		"K" : 75,
+		"L" : 76,
+		"M" : 77,
+		"N" : 78,
+		"O" : 79,
+		"P" : 80,
+		"Q" : 81,
+		"R" : 82,
+		"S" : 83,
+		"T" : 84,
+		"U" : 85,
+		"V" : 86,
+		"W" : 87,
+		"X" : 88,
+		"Y" : 89,
+		"Z" : 90,
+		// Keypad numbers and punctuation keys. (Opera does not support these.)
+		"0" : 96,
+		"1" : 97,
+		"2" : 98,
+		"3" : 99,
+		"4" : 100,
+		"5" : 101,
+		"6" : 102,
+		"7" : 103,
+		"8" : 104,
+		"9" : 105,
+		"Multiply" : 106,
+		"Add" : 107,
+		"Subtract" : 109,
+		"Decimal" : 110,
+		"Divide" : 111,
+		// Function keys
+		"F1" : 112,
+		"F2" : 113,
+		"F3" : 114,
+		"F4" : 115,
+		"F5" : 116,
+		"F6" : 117,
+		"F7" : 118,
+		"F8" : 119,
+		"F9" : 120,
+		"F10" : 121,
+		"F11" : 122,
+		"F12" : 123,
+		"F13" : 124,
+		"F14" : 125,
+		"F15" : 126,
+		"F16" : 127,
+		"F17" : 128,
+		"F18" : 129,
+		"F19" : 130,
+		"F20" : 131,
+		"F21" : 132,
+		"F22" : 133,
+		"F23" : 134,
+		"F24" : 135,
+		// Punctuation keys
+		":" : 59,
+		"+" : 61, // Firefox and Opera return 59,61
+		":" : 186,
+		"+" : 187,
+		"<" : 188,
+		"_" : 189,
+		">" : 190,
+		"?" : 191,
+		"~" : 192,
+		"{" : 219,
+		"|" : 220,
+		"}" : 221,
+		"\"" : 222
+	};
+
+})(jQuery);jù‰f¼      dß¸dß¸EUUd7   l    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/js/assets/inputbox/inputbox.js necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"50902-1659949286000"
+Last-Modified: Mon, 08 Aug 2022 09:01:26 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 50902
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"50902-1659949286000"
+Last-Modified: Mon, 08 Aug 2022 09:01:26 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 50902
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ ctid 2 uncompressed-len 0 net-response-time-onstart 51 net-response-time-onstop 55   ÆÖ

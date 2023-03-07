@@ -1,0 +1,8 @@
+<launch>
+    <node name="fake_check_node"        pkg="check"      type="fake_check.py">
+  
+    </node>
+
+
+    
+</launch>

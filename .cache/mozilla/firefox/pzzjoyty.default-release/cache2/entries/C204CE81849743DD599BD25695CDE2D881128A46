@@ -1,0 +1,381 @@
+define({
+	calendar : '캘린더',
+	// Sidebar ----------------------------------------------------------
+	showAllCalendar : '전체 캘린더 보기',
+	composeSchedule : '일정쓰기',
+	editSchedule : '일정수정',
+	composeTodo : '할일쓰기',
+	myCalendar : '내 캘린더',
+	groupCalendar : '그룹공유캘린더',
+	allShareCalendar : '전체공유캘린더',
+	todoList : '할 일 목록',
+	otherCalendar : '공유받은 캘린더',
+	add : '캘린더 추가',
+	fold : '접기',
+	unfold : '펼치기',
+	modify : '수정',
+	cancel : '취소',
+	close : '닫기',
+	remove : '삭제',
+	regist : '일정등록',
+	registDetail : '상세일정',
+	shareSetting : '공유설정',
+	calendarMenu : {
+		createCalendar : '내 캘린더 만들기',
+		createCalendarShare : '공유 캘린더 만들기',
+	},
+	calendarNameAlreadyExists : '이미 존재하는 캘린더명입니다.',
+	calendarNameTooLong : '캘린더 이름의 길이는 16자 이하로 가능합니다',
+	confirmRemove : '삭제하시겠습니까?',
+	newCalendar : '내 캘린더',
+	settings : '환경설정',
+	emptyTitle : '제목이 입력되지 않았습니다. 제목을 입력하여 주십시오.',
+	beforeDate : '종료날짜는 시작날짜 이후여야 합니다.',
+	notMatchedDomain : '내부 사용자만 공유 가능합니다.',
+	existUser : '중복된 사용자입니다.',
+	contextMenu : {
+		onlyDisplay : '이 캘린더만 표시',
+		thisCompose : '이 캘린더에 일정 쓰기',
+		renameCalendar : '이 캘린더 이름 변경하기',
+		shareCalendar : '이 캘린더 공유하기',
+		removeCalendar : '캘린더 삭제하기',
+	},
+	color : {
+		c9102a : {
+			bgColor : 'c9102a',
+			textColor : 'ffffff',
+			borderColor : 'b00019',
+			sort : 0
+		},
+		f74487 : {
+			bgColor : 'f74487',
+			textColor : 'ffffff',
+			borderColor : 'e33f7d',
+			sort : 1
+		},
+		f691b2 : {
+			bgColor : 'f691b2',
+			textColor : 'ffffff',
+			borderColor : 'ec87a8',
+			sort : 2
+		},
+		e6adb6 : {
+			bgColor : 'e6adb6',
+			textColor : '995e68',
+			borderColor : 'dba4ad',
+			backTextColor : 'ff7290',
+			sort : 3
+		},
+		ffdee6 : {
+			bgColor : 'ffdee6',
+			textColor : '9d6f79',
+			borderColor : 'f8d5dd',
+			backTextColor : 'ff94aa',
+			sort : 4
+		},
+		bd400f : {
+			bgColor : 'bd400f',
+			textColor : 'ffffff',
+			borderColor : 'a23e18',
+			sort : 5
+		},
+		f83a22 : {
+			bgColor : 'f83a22',
+			textColor : 'ffffff',
+			borderColor : 'e7351f',
+			sort : 6
+		},
+		f96a6f : {
+			bgColor : 'f96a6f',
+			textColor : 'ffffff',
+			borderColor : 'e86267',
+			sort : 7
+		},
+		ff9c71 : {
+			bgColor : 'ff9c71',
+			textColor : '995946',
+			borderColor : 'f3946b',
+			sort : 8
+		},
+		ffd5c2 : {
+			bgColor : 'ffd5c2',
+			textColor : 'a86956',
+			borderColor : 'f4c8b4',
+			backTextColor : 'ec9976',
+			sort : 9
+		},
+		'9d775f' : {
+			bgColor : '9d775f',
+			textColor : 'ffffff',
+			borderColor : '8e6b55',
+			sort : 10
+		},
+		b37e09 : {
+			bgColor : 'b37e09',
+			textColor : 'ffffff',
+			borderColor : '9f7007',
+			sort : 11
+		},
+		d19b22 : {
+			bgColor : 'd19b22',
+			textColor : 'ffffff',
+			borderColor : 'c08d1c',
+			sort : 12
+		},
+		f9bc23 : {
+			bgColor : 'f9bc23',
+			textColor : '85680f',
+			borderColor : 'e6b024',
+			sort : 13
+		},
+		ffeb65 : {
+			bgColor : 'ffeb65',
+			textColor : '85680f',
+			borderColor : 'f4df55',
+			sort : 14
+		},
+		'42d692' : {
+			bgColor : '42d692',
+			textColor : 'ffffff',
+			borderColor : '34c281',
+			sort : 15
+		},
+		'00bf36' : {
+			bgColor : '00bf36',
+			textColor : 'ffffff',
+			borderColor : '02a831',
+			sort : 16
+		},
+		'7bd148' : {
+			bgColor : '7bd148',
+			textColor : 'ffffff',
+			borderColor : '70c43d',
+			sort : 17
+		},
+		baf97b : {
+			bgColor : 'baf97b',
+			textColor : '6e863b',
+			borderColor : 'adec6e',
+			sort : 18
+		},
+		a9f2d4 : {
+			bgColor : 'a9f2d4',
+			textColor : '6e863b',
+			borderColor : 'a1ebcd',
+			sort : 19
+		},
+		'0f6adb' : {
+			bgColor : '0f6adb',
+			textColor : 'ffffff',
+			borderColor : '0d5ec2',
+			sort : 20
+		},
+		'4685f9' : {
+			bgColor : '4685f9',
+			textColor : 'ffffff',
+			borderColor : '3875e5',
+			sort : 21
+		},
+		'379ef4' : {
+			bgColor : '379ef4',
+			textColor : 'ffffff',
+			borderColor : '2d92e6',
+			sort : 22
+		},
+		'83bbff' : {
+			bgColor : '83bbff',
+			textColor : '246b85',
+			borderColor : '74adf1',
+			sort : 23
+		},
+		b4e6ff : {
+			bgColor : 'b4e6ff',
+			textColor : '328597',
+			borderColor : 'a5d8f2',
+			sort : 24
+		},
+		'705ae0' : {
+			bgColor : '705ae0',
+			textColor : 'ffffff',
+			borderColor : '5c48c2',
+			sort : 25
+		},
+		'9b65d9' : {
+			bgColor : '9b65d9',
+			textColor : 'ffffff',
+			borderColor : '8753c2',
+			sort : 26
+		},
+		cd74e6 : {
+			bgColor : 'cd74e6',
+			textColor : 'ffffff',
+			borderColor : 'bb65d3',
+			sort : 27
+		},
+		bba3ff : {
+			bgColor : 'bba3ff',
+			textColor : '605087',
+			borderColor : 'aa92f1',
+			sort : 28
+		},
+		d1c8ff : {
+			bgColor : 'd1c8ff',
+			textColor : '71658e',
+			borderColor : 'c1b7f4',
+			sort : 29
+		},
+		'333333' : {
+			bgColor : '333333',
+			textColor : 'ffffff',
+			borderColor : '1b1b1b',
+			sort : 30
+		},
+		'555555' : {
+			bgColor : '555555',
+			textColor : 'ffffff',
+			borderColor : '3f3f3f',
+			sort : 31
+		},
+		adadad : {
+			bgColor : 'adadad',
+			textColor : 'ffffff',
+			borderColor : '909090',
+			sort : 32
+		},
+		e0e0e0 : {
+			bgColor : 'e0e0e0',
+			textColor : '595959',
+			borderColor : 'c9c9c9',
+			sort : 33
+		},
+		ffffff : {
+			bgColor : 'ffffff',
+			textColor : '333333',
+			borderColor : 'dddddd',
+			sort : 34
+		}
+	},
+	compose : {
+		save : '저장',
+		regist : '등록',
+		cancle : '취소',
+		remove : '삭제',
+		calendar : '캘린더',
+		title : '제목',
+		date : '일시',
+		allDay : '종일',
+		repeat : '반복',
+		description : '내용',
+		alram : '알림',
+		mail : '메일',
+		sms : 'SMS',
+		addAlram : '알람추가',
+		descPlaceholder : '일정에 필요한 설명을 남기세요.',
+		failedToSave : '일정 등록에 실패 했습니다. 내용은 2000자 내로 작성해 주세요.',
+	},
+	category : {
+		personal : '개인일정',
+		visit : '방문',
+		task : '업무',
+		leave : '휴가',
+		inspection : '점검',
+		participation : '출장',
+		notice : '공지',
+		nationalHoliday : '국경일',
+		holiday : '공휴일',
+	},
+	repeat : {
+		everyDay : '매일',
+		everyWeek : '매주',
+		everyMonth : '매월',
+		everyYear : '매년',
+	},
+	alram : {
+		noAlarm : '알리지않음',
+		startTime : '시작시간',
+		oneHourAgo : '1시간전',
+		oneDayAgo : '1일전',
+		twoDayAgo : '2일전',
+		threeDayAgo : '3일전',
+		oneWeekAgo : '1주일전',
+	},
+	share : {
+		save : '저장',
+		cancel : '취소',
+		only : '혼자 사용하기',
+		shared : '공유하기',
+		desc : '함께 일정을 공유하며 캘린더를 같이 사용할 수 있습니다.',
+		add : '추가',
+		remove : '삭제',
+		org : '조직도',
+		example : '예) id@domain.com',
+	},
+	overlay : {
+		calendar : '캘린더',
+		leadingLoading : '',
+		trailingLoading : ' 로딩 중 입니다.',
+		leadingProcessing : '',
+		trailingProcessing : ' 처리 중 입니다.',
+	},
+	// 공유설정 ------------------------------------------------------------------
+	shareSettings : {
+		shareSetting : '공유설정',
+		addInternalUser : '내부 사용자 추가',
+		selectAll : '전체선택',
+		addRecipients : '공유대상으로 추가',
+		shareRecipients : '공유 대상',
+		removeRecipients : '선택 삭제',
+		orgUserSearch : '조직원 검색',
+		results : '검색결과',
+		sharing : '공유중',
+		save : '저장',
+		close : '닫기',
+		shareYourCurrentGroup : '현재 캘린더를 공유하시겠습니까?',
+		alertSelfCalendarShare : '자기자신은 공유할 수 없습니다.',
+	},
+	scheduleDetail : {
+		detail : '일정 상세보기',
+		calendar : '캘린더',
+		title : '제목',
+		date : '일시',
+		desc : '내용',
+		alram : '알림',
+		wirter : '작성자',
+		allDay : '종일',
+		mail : '메일',
+		sms : 'SMS',
+		repeat : '반복',
+	},
+
+	// Pagination --------------------------------------------------------------
+	firstPage : '처음',
+	previousPage : '이전',
+	nextPage : '다음',
+	lastPage : '끝',
+
+	// jQuery UI ---------------------------------------------------------------
+	datepicker : {
+		options : {
+			changeMonth : true,
+			changeYear : true,
+			showButtonPanel : false,
+			yearSuffix : '',
+			yearRange : 'c-99:c+99',
+			dateFormat : 'yy-mm-dd',
+		},
+	},
+// 일정관리
+});��X�z�      d߸d߸EUUd7   r    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app/calendar/nls/ko/calendar-i18n.js necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"8667-1659949284000"
+Last-Modified: Mon, 08 Aug 2022 09:01:24 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 8667
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"8667-1659949284000"
+Last-Modified: Mon, 08 Aug 2022 09:01:24 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 8667
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ ctid 2 uncompressed-len 0 net-response-time-onstart 52 net-response-time-onstop 52   !�

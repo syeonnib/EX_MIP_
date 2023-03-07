@@ -1,0 +1,12 @@
+<launch>
+  
+  
+  <node name="line_detector_node" pkg="line_detector" type="line_detector" output="screen">
+        <rosparam command="load" file="$(find line_detector)/config/line_detector.yaml" /> <!--Load parameters from config files-->
+    </node>
+  <node name="pub_lidar_goal"        pkg="teb_local_planner_tutorials"      type="pub_lidar_goal.py">
+  
+    </node>
+  
+  
+</launch>

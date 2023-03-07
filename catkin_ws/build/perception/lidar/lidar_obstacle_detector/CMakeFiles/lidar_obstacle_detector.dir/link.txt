@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -O3 -DNDEBUG  -shared -Wl,-soname,liblidar_obstacle_detector.so -o /home/kangsuyeon/catkin_ws/devel/lib/liblidar_obstacle_detector.so  

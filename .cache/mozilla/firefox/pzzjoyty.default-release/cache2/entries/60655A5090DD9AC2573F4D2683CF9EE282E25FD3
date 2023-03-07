@@ -1,0 +1,368 @@
+define([ 'app', 'app/app-models' ], function(app) {
+	app.module('user', function(user, app, Backbone, Marionette, $, _) {
+
+		function isPopup() {
+			try {
+				if (window.opener && window.opener.location.pathname != window.location.pathname)
+					return true;
+				if (/.*\/popup\/.*/.test(window.location.pathname))
+					return true;
+				else
+					return false;
+			} catch (error) {
+				if (/.*\/popup\/.*/.test(window.location.pathname))
+					return true;
+				else
+					return false;
+			}
+		}
+
+		user.UserModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../users';
+				else
+					return 'users';
+			},
+
+			idAttribute : 'USERS_IDX',
+
+			defaults : {
+				USERS_IDX : 'user',
+				USERS_ID : '',
+				DOMAIN : '',
+				USERS_PASSWD : '',
+				USERS_NAME : '',
+				USERS_ENGNAME : '',
+				USERS_HOMEDIR : '',
+				USERS_PERMIT : '',
+				USERS_AUTH : '',
+				USERS_NICKNAME : '',
+				USERS_JUMIN1 : '',
+				USERS_JUMIN2 : '',
+				USERS_SEX : '',
+				USERS_BIRTH : '',
+				USERS_ISSOLAR : '',
+				USERS_CELLNO : '',
+				USERS_FAXNO : '',
+				USERS_TELNO : '',
+				USERS_ZIPCODE : '',
+				USERS_ADDRESS1 : '',
+				USERS_ADDRESS2 : '',
+				USERS_JOBCODE : '',
+				USERS_COMPNAME : '',
+				USERS_DEPARTMENT : '',
+				USERS_PREVEMAIL : '',
+				USERS_SCHOOLING : '',
+				USERS_INTEREST : '',
+				USERS_LICENCENUM : '',
+				USERS_ISOPEN : '',
+				USERS_JOINDATE : '',
+				USERS_EXPIREDDATE : '',
+				USERS_LOGCOUNT : 0,
+				USERS_LASTHOST : '',
+				USERS_MAX_VOLUME : 0,
+				USERS_CUR_VOLUME : 0,
+				USERS_LASTDATE : '',
+				USERS_SIGNATURE : '',
+				USERS_SIGNATURESTMT : '',
+				USERS_AUTORE : '',
+				USERS_AUTORESTMT : '',
+				USERS_AUTORE_LIST : '',
+				USERS_OPT_AUTORE : '',
+				USERS_USENAME : '',
+				USERS_SENDBOX : '',
+				USERS_DELBOX : '',
+				USERS_AUTO_DEL : '',
+				USERS_LISTNUM : 0,
+				USERS_ISVOTE : '',
+				USERS_ABSENT : '',
+				USERS_ABSENT_SDATE : '',
+				USERS_ABSENT_EDATE : '',
+				USERS_ABSENT_RESTMT : '',
+				USERS_OPT_FWD : '',
+				USERS_OPT_FWD_SAVE : '',
+				USERS_FWD_LIST : '',
+				USERS_READDR : '',
+				USERS_SPAM_LEVEL : '',
+				USERS_DEL_WASTE : 0,
+				USERS_DEL_SPAM : 0,
+				USERS_DEL_INBOX : 0,
+				USERS_LANG : '',
+				USERS_MAIL_ALARM : 0,
+				USERS_ALARM_SOUND : 0,
+				USERS_INDEX_PAGE : '',
+				USERS_RECEIVE_INFOMAIL : '',
+				USERS_MAIL_VIEW : 0,
+				USERS_MAIL_INJURE : '',
+				USERS_ORGANIZE_IDX : 0,
+				USERS_AUTHORITY_IDX : 0,
+				USERS_SMS_QUOTA : 0,
+				USERS_SMS_MAX_QUOTA : 0,
+				USERS_MAIL_QUOTA : 0,
+				USERS_MEMO : '',
+				USERS_MSG_YN : '',
+				USERS_MENTO_YN : '',
+				USERS_USETAG : '',
+				USERS_USE_MAIL_PREVIEW : '',
+				MAX_BIG_UPLOAD_SIZE : 0,
+				USERS_PWD_FAIL_COUNT : 0,
+				USERS_PWD_FAIL_DATE : '',
+				USERS_PWD_LOCKED : '',
+				USERS_ACCOUNT_CHANGE_DATE : '',
+				USERS_BOARD_AUTH : '',
+				USERS_INFO_OPEN_AGREEMENT : '',
+				USERS_LOGIN_MODE : '',
+				USERS_BG_COLOR : '',
+				USERS_MAIL_VIEW_MODE : '',
+				TAG_FILTER_LEVEL : 0,
+				USERS_JOBTITLE : '',
+				USERS_TIMEZONE : '',
+				USERS_LIST_TYPE : '',
+				USERS_DEFAULT_MBOX : 0,
+				USERS_FONT_SIZE : '',
+				USERS_PAGEVIEW_TYPE : '',
+				USERS_NOTI_YN : '',
+				USERS_MOBILE_SIGN_YN : '',
+				USERS_MOBILE_SIGN_STMT : '',
+				LIST_FONT_SIZE : '',
+				AFTER_DELETING_MOVING : '',
+				SHOW_FIRST_MAIL : 0,
+				POP_ENABLED : 0,
+				POP_SINCE : '',
+				POP_AS_READ : 0,
+				POP_KEEP_COPY : 1,
+				POP_EXCLUDE_IMPORTED : 0,
+				IMAP_ENABLED : 0,
+				PREVIEW_BEFORE_SENDING : 'none',
+				SWITCHABLE : 0,
+				SKIP_TWO_FACTOR_AUTH : 0,
+				SEARCH_MBOX_ENABLED : 1,
+				LIST_GROUP_BY_DATE : 0,
+				MAIL_LABEL_ENABLED : 1,
+				SHOW_FROM_COUNTRY : 1,
+				FORWARDING_OPTION : 0,
+				ATTACHMENTS_POSITION : 0,
+				MAIL_FIRST_VIEW : 0,
+				USERS_PRIVACY : 0,
+				roles : [],
+				sso : false,
+			},
+
+			constructor : function() {
+				app.debug('  UserModel.constructor() {');
+				app.BackboneModel.apply(this, arguments);
+				app.debug('  } // UserModel.constructor() {...}');
+			},
+
+			initialize : function(attributes, options) {
+				app.debug('  UserModel.initialize(attributes, options) {...}');
+				app.BackboneModel.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.debug('  UserModel.parse(response, options) {...}');
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				app.debug('  UserModel.validate(attrs, options) {...}');
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+
+		}); // user.UserModel = Backbone.Model.extend({...});
+
+		user.AliasModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../aliases';
+				else
+					return 'aliases';
+			},
+
+			idAttribute : 'ACCOUNT_IDX',
+
+			defaults : {
+				ACCOUNT_IDX : '',
+				MBOX_IDX : 0,
+				ACCOUNT_ISVALID : 0,
+				ACCOUNT_ISDATED : 0,
+				ACCOUNT_SDATE : '',
+				ACCOUNT_EDATE : '',
+				DOMAIN : '',
+				USERS_IDX : '',
+			},
+
+			initialize : function() {
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+
+		}); // user.AliasModel
+
+		user.AliasCollection = app.BackboneCollection.extend({
+			url : function() {
+				if (isPopup())
+					return '../aliases';
+				else
+					return 'aliases';
+			},
+
+			model : user.AliasModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			getAliasModel : function(attribute, value) {
+				var model = _.find(this.models, function(model) {
+					return model.get(attribute) == value;
+				});
+				return model;
+			},
+		}); // user.AliasCollection
+
+		user.DomainModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../domain';
+				else
+					return 'domain';
+			},
+
+			initialize : function() {
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+
+		}); // user.DomainModel
+
+		user.DomainDetailsModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../domains/details';
+				else
+					return 'domains/details';
+			},
+
+			defaults : {
+				domain : '', // 도메인명
+				browserTitle : '', // 브라우저 타이틀 설정
+				approvalEnabled : 0, // 승인메일 사용여부(미사용:0, 사용:1)
+				overQuotaMailSendable : 0, // 발송여부 (0:사용안함, 1:사용) DEFAULT '0'
+				overQuotaMailUsagePercent : 0, // 사용량 % - DEFAULT '0'
+				overQuotaMailToAdmin : 0, // 관리자에게 메일 발송여부 (0:사용안함, 1:사용)
+				overQuotaMailFrom : '', // 보낸사람 (이메일 주소)
+				overQuotaMailSubject : '', // 메일 제목
+				overQuotaMailText : '', // 메일 내용
+				overQuotaMailInterval : 0, // 사용량 초과 메일 발송 주기 - DEFAULT '0'
+				cleanupTrashMail : -1, // 휴지통 자동삭제 시간 (-1:사용안함) DEFAULT '-1'
+				cleanupSpamMail : -1, // 스팸메일함 자동삭제 시간 (-1:사용안함) DEFAULT '-1'
+				cleanupInboxMail : -1, // 스팸메일함 자동삭제 시간 (-1:사용안함) DEFAULT '-1'
+				maxMailRecipients : 0, // 1회 메일 발송시 수신자수 제한 설정(0 : 무제한)
+				mailServiceEnabled : 1, // 메일 서비스 사용여부(미사용:0, 사용:1)
+				contactServiceEnabled : 1, // 주소록 서비스 사용여부(미사용:0, 사용:1)
+				diskServiceEnabled : 0, // 웹드라이브 서비스 사용여부(미사용:0, 사용:1)
+				boardServiceEnabled : 0, // 게시판 서비스 사용여부(미사용:0, 사용:1)
+				calendarServiceEnabled : 0, // 캘린더 서비스 사용여부(미사용:0, 사용:1)
+			},
+
+			initialize : function() {
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+		}); // user.DomainDetailsModel
+
+		user.SwitchUserModel = app.BackboneModel.extend({
+
+			urlRoot : 'switch-users',
+
+			defaults : {
+				exit_user : '',
+				switch_user : '',
+			},
+
+			initialize : function() {
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+		}); // user.SwitchUserModel
+
+		user.SwitchUserCollection = app.BackboneCollection.extend({
+			url : 'switch-users',
+
+			model : user.SwitchUserModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.debug('user.SwitchUserModel.parse(response, options) {...}');
+				return response;
+			},
+
+		}); // user.SwitchUserCollection
+
+	}); // app.module('user', function(){...});
+}); // define(['app'], function(app){...});
+����UN      d߸d߸EUUd7   e    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app/user/user-models.js necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"9497-1659949286000"
+Last-Modified: Mon, 08 Aug 2022 09:01:26 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 9497
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"9497-1659949286000"
+Last-Modified: Mon, 08 Aug 2022 09:01:26 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 9497
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ ctid 2 uncompressed-len 0 net-response-time-onstart 11 net-response-time-onstop 12   %

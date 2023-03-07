@@ -1,0 +1,477 @@
+
+
+// 탭 메뉴 
+function tab_menu(state){
+	var f = $('.bbs_con01').find('li');
+	for ( var i = 0; i < f.length; i++ ) {
+		if ( i == state) {			
+			f.eq(i).addClass('bm_on');	
+			$('.menu_tab0' + i ).show();
+			$('.portal_board0' + i).show();
+			$('.more0' + i).show();
+		} else {
+			f.eq(i).removeClass('bm_on');					
+			$('.menu_tab0' + i ).hide();
+			$('.portal_board0' + i).hide();
+			$('.more0' + i).hide();
+		}
+	}
+	
+	var boardId = "";
+	
+	switch(state) {
+		case 0:
+			boardId = "ptNotice";
+			break;
+		case 1:
+			boardId = "ptFaq";
+			break;
+		default:
+			boardId = "ptNotice";
+	}
+	
+	if(state != 1){
+		getBltn(state, boardId);
+	}
+}
+
+
+
+
+
+function getNewBltn(state, boardId) {
+	$.ajax({
+		url : "/getBltnLogin.face",
+		type : "post",
+		timeout : 5000,
+		data : {
+			boardId : boardId
+		},
+		dataType : 'xml',
+		error : function(xhr, status, error) {
+			alert(error);
+			$(".portal_board" + state).empty();
+			$(".portal_board" + state).append("<li>게시물이 존재하지 않습니다.</li>");	
+		},
+		success : function(portal) {
+			var liHtml = ""
+			var bltnList = $(portal).find("bltnList");
+			var bltn = $(bltnList).find("bltn");
+			
+			$(bltn).each(function(index){
+				if(index == 0){
+		    		try{
+			    		var date = $(this).find("regDatim").text();
+			    		var year = date.substr(0,4);
+			    		var month = date.substr(5,2);
+			    		var day = date.substr(8,2);
+			    		var dayName =  getTodayLabel(year+'-'+month+'-'+day);
+			    		liHtml += '<div class=\"date\">';					
+		    			liHtml += '<span class=\"day\">'+day+'</span>';
+		    			liHtml += '<span class=\"month\">'+month+'월&nbsp;'+dayName+'</span></div>';
+		    			liHtml += '<ul><li class=\"main_noti\"><a style=\"cursor:pointer;\" onclick=\"popBoardView(\'read\',\''+ $(this).find("boardId").text()+'\',\''+  $(this).find("bltnNo").text()+'\');\">' + $(this).find("bltnSubj").text() + '</a></li>';
+		    			liHtml += '<ul><li class=\"sub_noti\"><a style=\"cursor:pointer;\" onclick=\"popBoardView(\'read\',\''+ $(this).find("boardId").text()+'\',\''+  $(this).find("bltnNo").text()+'\');\">' + $(this).find("bltnCntt").text() + '</a></li></ul>';
+		    		}catch(err){
+		    			liHtml += '<li>게시물이 존재하지 않습니다.</li>';
+		    		}	 
+				}
+			});
+			$(".portal_board" + state).empty();
+	    	$(".portal_board" + state).append(liHtml);
+		}
+	});
+}
+
+
+function newHompBoardDom(state, tailUrl) {
+	//var fullUrl = "http://www.seoultech.ac.kr/hcm/bbs/rss.jsp?bidx=";
+	var fullUrl = "https://www.seoultech.ac.kr/hcm/bbs/rss.jsp?bidx=";
+	fullUrl += tailUrl;
+	
+	$.ajax({
+		url : "/domParsingLogin.face",
+		type : "post",
+		timeout : 5000,
+		data : {
+			url : fullUrl
+		},
+		dataType : 'xml',
+		error : function(xhr, status, error) {
+			alert(error);
+			$(".hompy_board" + state).empty();
+	    	$(".hompy_board" + state).append("<li>게시물이 존재하지 않습니다.</li>");			
+		},
+		success : function(hompy) {
+			var liHtml = "";
+			var bltnList = $(hompy).find("bltnList");
+			var bltn = $(bltnList).find("bltn");
+			
+			$(bltn).each(function(index){
+				if(index == 0){
+		    		try{
+			    		var date = $(this).find("pubdate").text();
+			    		var year = date.substr(0,4);
+			    		var month = date.substr(5,2);
+			    		var day = date.substr(8,2);
+			    		var dayName =  getTodayLabel(year+'-'+month+'-'+day);
+			    		liHtml += '<div class=\"date\">';					
+		    			liHtml += '<span class=\"day\">'+day+'</span>';
+		    			liHtml += '<span class=\"month\">'+month+'월&nbsp;'+dayName+'</span></div>';
+		    			liHtml += '<ul><li class=\"main_noti\"><a href=\"' + $(this).find("link").text() + '\" target=\"_blank\">' + $(this).find("title").text() + '</a></li>';
+		    			liHtml += '<ul><li class=\"sub_noti\"><a href=\"' + $(this).find("link").text() + '\" target=\"_blank\">' + $(this).find("content").text() + '</a></li></ul>';
+		    			
+		    		}catch(err){
+		    			liHtml += '<li>게시물이 존재하지 않습니다.</li>';
+		    		}	
+				}
+			});
+			$(".hompy_board" + state).empty();
+	    	$(".hompy_board" + state).append(liHtml);
+		
+		}
+	});
+}
+
+function getTodayLabel(fullday) {
+	
+    var week = new Array('SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT');
+    var today = new Date(fullday).getDay();
+    var todayLabel = week[today];
+    return todayLabel;
+
+}
+
+
+function getBltn(state, boardId) {
+	$.ajax({
+		url : "/getBltnLogin.face",
+		type : "post",
+		timeout : 5000,
+		data : {
+			boardId : boardId
+		},
+		dataType : 'xml',
+		error : function(xhr, status, error) {
+			alert(error);
+			$(".portal_board0" + state).empty();
+			$(".portal_board0" + state).append("<li>게시물이 존재하지 않습니다.</li>");	
+		},
+		success : function(portal) {
+			var liHtml = ""
+			var bltnList = $(portal).find("bltnList");
+			var bltn = $(bltnList).find("bltn");
+			
+			$(bltn).each(function(index){
+	    		try{
+	    			//liHtml += '<li><a href=#>' + $(this).find("bltnSubj").text() + '</a>';
+	    			//liHtml += '<li><a style=\"cursor:pointer;\" onclick=\"popBoardView("read","'+ $(this).find("boardId").text()+'","'+$(this).find("bltnNo").text()+'");">' + $(this).find("bltnSubj").text()  + '</a>';
+					liHtml += '<li><a style=\"cursor:pointer;\" onclick=\"popBoardView(\'read\',\''+ $(this).find("boardId").text()+'\',\''+  $(this).find("bltnNo").text()+'\');\">' + $(this).find("bltnSubj").text() + '</a>';
+
+					if ($(this).find("isNew").text() == "true") {
+						liHtml += '&nbsp;<img src="/seoultech/images/icon_new.png" alt="새로운 글" /></a>';
+					} 
+	    			liHtml += '<span>' + $(this).find("regDatim").text() + '</span></li>';
+	    		}catch(err){
+	    			liHtml += '<li>게시물이 존재하지 않습니다.</li>';
+	    		}	 			
+			});
+			$(".portal_board0" + state).empty();
+	    	$(".portal_board0" + state).append(liHtml);
+		}
+	});
+}	
+
+
+
+function tab_menu2(tailUrl, state){
+	var f = $('.bbs_con02').find('li');
+	for ( var i = 0; i < f.length; i++ ) {			
+		if ( i == state) {			
+			f.eq(i).addClass('bm_on');	
+			$('.menu_tab00' + i ).show();
+			$('.hompy_board00' + i).show();
+			$('.more00' + i).show();
+		} else {
+			f.eq(i).removeClass('bm_on');					
+			$('.menu_tab00' + i ).hide();
+			$('.hompy_board00' + i).show();
+			$('.more00' + i).hide();
+		}
+	}
+	hompyBoardDom(tailUrl, state);
+}
+
+function hompyBoardDom(tailUrl, state) {
+	var fullUrl = "http://www.seoultech.ac.kr/hcm/bbs/rss.jsp?bidx=";
+	fullUrl += tailUrl;
+	
+	$.ajax({
+		url : "/domParsingLogin.face",
+		type : "post",
+		timeout : 5000,
+		data : {
+			url : fullUrl
+		},
+		dataType : 'xml',
+		error : function(xhr, status, error) {
+			alert(error);
+			$(".hompy_board00" + state).empty();
+	    	$(".hompy_board00" + state).append("<li>게시물이 존재하지 않습니다.</li>");			
+		},
+		success : function(hompy) {
+			var liHtml = "";
+			var bltnList = $(hompy).find("bltnList");
+			var bltn = $(bltnList).find("bltn");
+			
+			$(bltn).each(function(index){
+	    		try{
+		    		var date = $(this).find("pubdate").text();
+		    		var year = date.substr(0,4);
+		    		var month = date.substr(5,2);
+		    		var day = date.substr(8,2);
+					liHtml += '<li><a href=\"' + $(this).find("link").text() + '\" target=\"_blank\">' + $(this).find("title").text() + '</a>';
+					if ($(this).find("isNew").text() == "true") {
+						liHtml += '&nbsp;<img src="/seoultech/images/icon_new.png" alt="새로운 글" /></a>';
+					} else {
+						liHtml += '</a>';
+					}
+					liHtml += '<span>' + year +'.' + month + '.' + day + '</span></li>';
+	    		}catch(err){
+	    			liHtml += '<li>게시물이 존재하지 않습니다.</li>';
+	    		}	 			
+			});
+			$(".hompy_board00" + state).empty();
+	    	$(".hompy_board00" + state).append(liHtml);
+		
+		}
+	});
+}
+function tab_login(state){
+	
+	var ssoLangKnd = document.getElementById("ssoLangKnd");
+			
+		if ( state == 1) {		
+			$("#enTab").addClass('here');	
+			$("#koTab").removeClass('here');
+			$("#saveIdKor").hide();
+			$("#saveIdEng").show();
+			$("#loginKor").hide();
+			$("#loginEng").show();
+			$("#certifiKor").hide();
+			$("#certifiEng").show();
+			$("#idFindKor").hide();
+			$("#idFindEng").show();
+			$("#pwFindKor").hide();
+			$("#pwFindEng").show();
+			$("#certiModKor").hide();
+			$("#certiModEng").show();
+			$("#helpKor").hide();
+			$("#helpEng").show();
+			
+		} else {
+			$("#enTab").removeClass('here');	
+			$("#koTab").addClass('here');	
+			$("#saveIdKor").show();
+			$("#saveIdEng").hide();
+			$("#loginKor").show();
+			$("#loginEng").hide();
+			$("#certifiKor").show();
+			$("#certifiEng").hide();
+			$("#idFindKor").show();
+			$("#idFindEng").hide();
+			$("#pwFindKor").show();
+			$("#pwFindEng").hide();
+			$("#certiModKor").show();
+			$("#certiModEng").hide();
+			$("#helpKor").show();
+			$("#helpEng").hide();
+		}
+	if(state  == '0'){
+		ssoLangKnd.value ="ko";
+	}else if(state  == '1'){
+		ssoLangKnd.value ="en";
+	} else ssoLangKnd.value ="ko";
+}
+
+//전체메뉴보기
+function allMenuAc(){
+	var obj = jQuery(".total_menu");
+	var objClose = jQuery(".allMenu_close");
+}
+function allMenuAc_view(){
+	var obj = jQuery(".total_menu");
+	obj.show().css({}).animate(
+			{top:0}
+			,1000
+	);
+}
+function allMenuAc_hide(){
+	var obj = jQuery(".total_menu");
+	obj.animate(
+			{top:-400}
+			,1000
+			,function(){
+				obj.hide().css({"height":"0"});
+			}
+	);
+}
+
+
+function popBoardView(flag, boardId, bltnNo){
+	
+	var url ="";
+	var name ="";
+	if(flag == 'list'){		
+		url = "/board/list.brd?boardId="+boardId;
+	
+	}else if(flag == 'read'){
+		url = "/board/read.brd?cmd=READ&boardId="+boardId+"&bltnNo="+bltnNo;
+	}
+	name ="seoulTech"+boardId;
+	
+	window.open(url,name, "width=960 height=700, scrollbars=yes");
+	
+	
+}
+
+
+
+// 로그인 : 팝업존
+PopupZone = function (initData) {
+	//this.init(initData);
+};
+
+PopupZone.prototype = {
+		setting : {
+			rollingSec: 5000,
+			effect: false
+		},
+		startIndex: 1,
+		curIndex: 1,
+		intervalObj: null,
+		isStop: false,
+		
+		init: function (initData) {
+			var index = this.startIndex;
+			
+			// 기본환경값 설정
+			if (initData != null && initData != "undefined") {
+				$.extend(this.setting, initData);
+			}
+			
+			$(".popup_img").css("cursor", "pointer");
+						
+			// 최대갯수 보다 데이터가 적다면 값을 변경
+			// 많을경우는 최대 갯수로 고정
+			if ($("#popupData").children("li").length <= this.setting.maxEle) {
+				this.setting.maxEle = $("#popupData").children("li").length;
+			}
+
+			this.move(index);
+
+			var t = this;
+			
+			// 데이터 갯수가 0 일경우 인터벌을 돌리지 않는다.
+			if (this.setting.maxEle > 0) {
+				this.intervalObj = setInterval(function() {t.next();}, this.setting.rollingSec);
+			}
+		},
+		next: function () {
+			var index = this.curIndex;
+			var max = this.setting.maxEle;
+			
+			if (this.setting.maxEle > 0) {
+				if (index < max) {
+					this.curIndex += 1;
+					index = this.curIndex;
+				} else if (index >= max) {
+					index = 1;
+					this.curIndex = 1;
+				}
+				
+				this.move(index);
+			} else {
+				return;
+			}
+		},
+		prev: function () {
+			
+			var index = this.curIndex;
+			var max = this.setting.maxEle;
+			
+			if (this.setting.maxEle > 0) {
+				if (index > 1) {
+					this.curIndex -= 1;
+					index = this.curIndex;
+				} else if (index <= 1) {
+					index = max;
+					this.curIndex = max;
+				}
+				
+				this.move(index);
+			} else {
+				return;
+			}
+			
+		},
+		move: function (index) {
+			var dataObj = {
+					title:$("#data-" + index).attr("data-title")
+				  , link:$("#data-" + index).attr("data-link")
+				  ,	imgUrl:$("#data-" + index).attr("data-imgUrl")
+			};
+			
+			if (dataObj.imgUrl != null || dataObj.imgUrl != "") {
+				// 이미지 교체
+				$("#slide_img").attr("src", dataObj.imgUrl);
+			}
+			
+			if (dataObj.link != null || dataObj.link != "") {
+				// 링크주소 변경
+				$(".popup_img > a").attr("href", dataObj.link);
+			}
+			
+			$(".pop_list").find(".pst").removeClass("pst");
+			$(".pop_list").find("#view-" + index).addClass("pst");
+			
+			if (index != this.curIndex) {
+				this.curIndex = index;
+
+				if(!this.isStop) {
+					this.stop();
+					this.start();
+				}
+			}
+		},
+		start: function () {
+			$("#play").hide();
+			$("#pause").show();			
+			
+			if(this.isStop == false) return;
+			
+			var t = this;
+			this.intervalObj = setInterval(function() {t.next();}, this.setting.rollingSec);
+			
+			this.isStop = false;
+		},	
+		stop: function () {
+			$("#pause").hide();
+			$("#play").show();
+			
+			clearInterval(this.intervalObj);
+			
+			this.isStop = true;
+		}
+	}x�%�      c�Nc�NE6MZc�U�   j    O^partitionKey=%28https%2Cseoultech.ac.kr%29,:https://portal.seoultech.ac.kr/seoultech/javascript/login.js necko:classified 1 strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 OK
+ETag: W/"12814-1611018523000"
+Last-Modified: Tue, 19 Jan 2021 01:08:43 GMT
+Content-Length: 12814
+Date: Wed, 01 Feb 2023 07:57:02 GMT
+Content-Type: text/javascript;charset=UTF-8
+ original-response-headers ETag: W/"12814-1611018523000"
+Connection: keep-alive
+Last-Modified: Tue, 19 Jan 2021 01:08:43 GMT
+Content-Length: 12814
+Date: Wed, 01 Feb 2023 07:57:02 GMT
+Content-Type: text/javascript;charset=UTF-8
+ ctid 2 uncompressed-len 0 net-response-time-onstart 82 net-response-time-onstop 83   2

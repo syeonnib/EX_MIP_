@@ -1,0 +1,2786 @@
+var saveBhvr = true;
+$(function(){
+	
+	$(document).on("click", "[data-bhvr-no]", function(){
+		if(saveBhvr && !$(this).hasClass("disable")){
+			var param = $(this).data();
+			insertBhvrLog(param);
+		}
+	});
+	
+	
+	
+	$('.rdp-close-btn').click(function(){
+		$('.relevant-data-pop').fadeOut('fast');
+	});
+	
+	$("#reSearch").click(function() {
+		$searchKeyword = $("#searchForm").find("input[name='searchKeyword']");
+		$oldSearchKeyword = $("#searchForm").find("input[name='oldSearchKeyword']");
+		if($(this).is(":checked") == true){
+			var oldKwrd = $searchKeyword.val();
+			$oldSearchKeyword.val(oldKwrd);
+			$searchKeyword.val('');
+		}else{
+			$searchKeyword.val($oldSearchKeyword.val());
+			$oldSearchKeyword.val('');
+		}
+	});
+	
+	$("input[name=scrapChkBox]").click(function() {
+		if($('input[name=scrapChkBox]:checked').length == $('input[name=scrapChkBox]').length){
+			$('.checkAll').prop("checked",true);
+		}else{
+			$('.checkAll').prop("checked",false);
+		}
+	});
+	
+	$(".checkAll").click(function() {
+		
+		if($(this).is(":checked") == true){
+			$('input[name=scrapChkBox]').prop("checked",true);
+			$('.checkAll').prop("checked",true);
+		}else{
+			$('input[name=scrapChkBox]').prop("checked",false);
+			$('.checkAll').prop("checked",false);
+		}
+		
+
+	});
+	
+	$("#checkAll").click(function() {
+		
+		if($(this).is(":checked") == true){
+			$('input[name=scrapChkBox]').prop("checked",true);
+		}else{
+			$('input[name=scrapChkBox]').prop("checked",false);
+		}
+
+/*		$("input[name=scrapChkBox]:checkbox").each(function() {
+			$(this).prop('checked',function(){
+		        return !$(this).prop('checked');
+		    });
+		});*/
+	});
+	
+	$(".xclose").click(function() {
+		$(this).parent().bPopup().close();
+	});
+	
+	
+	$("#boost_list .result_g_header .more_btn").click(function() {
+		if(!$(this).hasClass("less_btn")){
+			$('#boost_list .result_item').show();
+			
+			/* 검색인기콘텐츠 버튼명 변경 - 작업일-2022.04.13 */
+//			$(this).addClass("less_btn").text("줄이기");
+			$(this).addClass("less_btn").text($(this).attr("data-gubun")+" 닫기");
+		}else{
+			/*[운영업무]요청번호-SR-0010218, 작업자-나주현, 작업일-2022.04.08*/
+//			$('#boost_list .result_item:gt(1)').hide();
+			$('#boost_list .result_item').hide();
+			
+//			$(this).removeClass("less_btn").text("더보기");
+			$(this).removeClass("less_btn").text($(this).attr("data-gubun")+" 보기");
+		}
+	});
+	
+	if($(".exclamation_mark").length > 0){
+	      $('.exclamation_mark, .highlighting a').click(function(e){
+	         e.preventDefault();
+	         $('.highlighting').hide();
+	         $(this).next(".highlighting").fadeToggle('fast');
+	      });
+	   }
+});
+
+function valueChangeCode(value){
+	var keyAry = new Array("0000","0001","0002","0003","0004","0005","0006","0007", "0008", "0010");
+	var valAry = new Array("ALL", "PP", "PT", "RP", "TR", "RS", "FN", "SC", "RO", "IM");
+	var reValue = value;
+	if(keyAry.indexOf(value) != -1){
+	reValue = valAry[keyAry.indexOf(value)];
+	}
+	return reValue;
+	
+}
+
+function valueChange(value){
+	//[개발업무] 연구데이터 추가
+	var keyAry = new Array("0000","0001","0002","0003","0004","0005","0006","0007", "0008", "0010", "0011");
+	var valAry = new Array("전체", "논문", "특허", "보고서", "동향", "연구자", "기능", "서비스", "연구기관", "표/그림", "연구데이터");
+	var reValue = value;
+	if(keyAry.indexOf(value) != -1){
+	reValue = valAry[keyAry.indexOf(value)];
+	}
+	return reValue;
+}
+
+function langChange(value){
+	var keyAry = new Array("fre","kor","zzz","eng","ger","por","spa","ara","jpn","chi","ita","rus","etc");
+	var valAry = new Array("프랑스어", "한국어", "기타", "영어", "독일어", "포르투칼어", "스페인", "아랍어", "일본어", "중국어", "이탈리아어", "러시아어", "기타언어");
+	var reValue = value;
+	if(keyAry.indexOf(value) != -1){
+	reValue = valAry[keyAry.indexOf(value)];
+	}
+	return reValue;
+}
+
+function countryChange(value){
+	var keyAry = new Array("ru","gw","uk","us","fr","ca","ja","cc","ko","zzz");
+	var valAry = new Array("러시아","독일","영국","미국","프랑스","캐나다","일본","중국","한국","기타");
+	var reValue = value;
+	if(keyAry.indexOf(value) != -1){
+	reValue = valAry[keyAry.indexOf(value)];
+	}
+	return reValue;
+}
+
+
+function freeflagChange(value){
+	var keyAry = new Array("T","F");
+	var valAry = new Array("무료","유료");
+	var reValue = value;
+	if(keyAry.indexOf(value) != -1){
+	reValue = valAry[keyAry.indexOf(value)];
+	}
+	return reValue;
+}
+
+function patentChange(value){
+	var keyAry = new Array("KPAT","KUPA","KPTN","KUUM","KUMO","KODE","FPAT","UPAT","USPA","USAP","JEPA","WOPA","EUPA");
+	var valAry = new Array("한국특허전체","한국공개특허","한국등록특허","한국공개실용신안","한국등록실용신안","한국의장등록","해외특허전체","미국특허전체","미국등록특허","미국공개특허","일본특허","국제특허","유럽특허");
+	var reValue = value;
+	if(keyAry.indexOf(value) != -1){
+	reValue = valAry[keyAry.indexOf(value)];
+	}
+	return reValue;
+}
+
+function reportChange(value){
+	var keyAry = new Array("TRKO","RESEAT","KOSEN","KGPS","ICON","KMR");
+	var valAry = new Array("국가R&D보고서","ReSEAT 분석리포트","KOSEN 분석리포트","S&T GPS 국내정책리포트","iCON지식리포트","KISTI MARKET REPORT");
+	var reValue = value;
+	if(keyAry.indexOf(value) != -1){
+		reValue = valAry[keyAry.indexOf(value)];
+	}
+	return reValue;
+}
+
+function trendChange(value){
+	var keyAry = new Array("gtb","ecms","itrend","etrend","mgps");
+	var valAry = new Array("해외과학기술동향","과학향기","정보서비스글로벌동향","사이언스타임즈","과학기술정책동향");
+	var reValue = value;
+	if(keyAry.indexOf(value) != -1){
+		reValue = valAry[keyAry.indexOf(value)];
+	}
+	return reValue;
+}
+
+function subjectChange(value){
+	var keyAry = new Array("801","802","803","805","806","807","808","809","810","820","830","840","850","860","870","880","890","650","651","652","653","657","658","659","670","671","672","673","674","675","676","677","678","679","680","681","682","683","684","685","686","687","688","510","511","512","513","514","515","516","518","519","610","611","612","613","614","615","616","617","618","619","100","110","120","130","140","150","160","170","180","190","200","210","220","230","240","250","260","270","280","290","530","531","532","533","534","535","536","537","538","539","580","581","582","583","584","585","586","587","588","500","501","502","503","505","506","507","508","509","300","310","320","330","340","350","360","370","380","390","600","601","602","603","604","605","606","607","608","609","630","631","632","633","634","635","636","637","638","639","590","591","592","593","594","595","596","597","598","599","700","710","720","730","740","750","760","770","780","790","520","521","522","523","525","526","527","528","529","570","571","572","573","575","576","577","578","579","690","691","692","693","694","695","696","697","698","660","661","662","663","664","665","666","667","668","669","540","541","542","543","544","545","546","547","548","549","003","004","005","006","550","551","552","553","554","555","556","557","558","559","620","621","622","623","624","625","627","628","629","560","561","562","563","564","565","566","567","568","569","000","001","002","010","020","030","050","060","070","080","090","900","910","920","930","940","950","960","970","980","990","640","641","642","643","644","645","646","647","648","649","400","410","420","430","440","450","460","470","480","490","800");
+	var valAry = new Array("Philosophy and theory","Miscellany","Dictionaries, encyclopedias, concordances","Serial publications","Organizations and management","Education, research, related topics","Rhetoric and collections of literary texts from more than two literatures","History, description, critical appraisal of more than two literatures","American literature in English","English & Old English literatures","German & related literatures","French & related literatures","Italian, Romanian & related literatures","Spanish & Portuguese literatures","Latin & Italic literatures","Classical & modern Greek literatures","Other literatures","Management and auxiliary services","Office services","Processes of written communication","Shorthand","Accounting","General management","Advertising and public relations","Manufacturing","Metalworking processes and primary metal products","Iron, steel, other iron alloys","Nonferrous metals","Lumber processing, wood products, cork","Leather and fur processing","Pulp and paper technology","Textiles","Elastomers and elastomer products","Other products of specific kinds of materials","Manufacture of products for specific uses","Precision instruments and other devices","Small forge work (Blacksmithing)","Hardware and household appliances","Furnishings and home workshops","Leather and fur goods, and related products","Printing and related activities","Clothing and accessories","Other final products, and packaging technology","Mathematics","General principles of mathematics","Algebra","Arithmetic","Topology","Analysis","Geometry","Numerical analysis","Probabilities and applied mathematics","Medicine and health","Human anatomy, cytology, histology","Human physiology","Personal health and safety","Forensic medicine; incidence of injuries, wounds, disease; public preventive medicine","Pharmacology and therapeutics","Diseases","Miscellaneous branches of medicine Surgery","Other branches of medicine Gynecology and obstetrics","Experimental medicine","Philosophy","Metaphysics","Epistemology","Parapsychology & occultism","Philosophical schools of thought","Psychology","Logic","Ethics","Ancient, medieval & eastern philosophy","Modern western philosophy","Religion","Philosophy & theory of religion","The Bible","Christianity & Christian theology","Christian practice & observance","Christian pastoral practice & religious orders","Christian organization, social work & worship","History of Christianity","Christian denominations","Other religions","Physics","Classical mechanics Solid mechanics","Fluid mechanics Liquid mechanics","Pneumatics (Gas mechanics)","Sound and related vibrations","Light and infrared and ultraviolet phenomena","Heat","Electricity and electronics","Magnetism","Modern physics","Plants","Specific topics in natural history of plants","Plants noted for specific vegetative characteristics and flowers","Magnoliopsida (Dicotyledons)","Liliopsida (Monocotyledons)","Pinophyta (Gymnosperms) Coniferales (Conifers)","Cryptogamia (Seedless plants)","Pteridophyta","Bryophyta","Natural sciences and mathematics","Philosophy and theory","Miscellany","Dictionaries, encyclopedias, concordances","Serial publications","Organizations and management","Education, research, related topics","Natural history","Historical, geographic, persons treatment","Social sciences, sociology & anthropology","Statistics","Political science","Economics","Law","Public administration & military science","Social problems & social services","Education","Commerce, communications & transportation","Customs, etiquette & folklore","Technology (Applied sciences)","Philosophy and theory","Miscellany","Dictionaries, encyclopedias, concordances","Technical drawing, hazardous materials technology, history and description with respect to kinds of persons","Serial publications","Organizations","Education, research, related topics","Inventions and patents","Historical, geographic, persons treatment","Agriculture","Specific techniques; apparatus, equipment, materials","Plant injuries, diseases, pests","Field and plantation crops","Orchards, fruits, forestry","Garden crops (Horticulture) Vegetables","Animal husbandry","Processing dairy and related products","Insect culture","Hunting, fishing, conservation, related technologies","Animals (Zoology)","Specific topics in natural history of animals","Invertebrates","Miscellaneous marine and seashore invertebrates","Mollusca and Molluscoidea","Arthropoda","Chordata","Cold-blooded vertebrates","Aves (Birds)","Mammalia (Mammals)","Arts","Landscaping & area planning","Architecture","Sculpture, ceramics & metalwork","Drawing & decorative arts","Painting","Graphic arts","Photography, photographs, computer art","Music","Sports, games & entertainment","Astronomy","Celestial mechanics","Techniques, procedures, apparatus, equipment, materials","Specific celestial bodies and phenomena","Earth (Astronomical geography)","Mathematical geography","Celestial navigation","Ephemerides","Chronology","Life sciences; biology","Physiology and related subjects","Biochemistry","Specific physiological systems in animals, regional histology and physiology in animals","Specific parts of and physiological systems in plants","Genetics and evolution","Ecology","Natural history of organisms and related subjects","Microorganisms, fungi, algae","Buildings","Building materials","Auxiliary construction practices","Construction in specific types of materials and for specific purposes","Wood construction Carpentry","Roof covering","Utilities","Heating, ventilating, air-conditioning engineering","Detail finishing","Chemical engineering and related technologies","Technology of industrial chemicals","Technology of explosives, fuels, related products","Beverage technology","Food technology","Technology of industrial oils, fats, waxes, gases","Ceramic and allied technologies","Cleaning, color, coating, related technologies","Technology of other organic products","Metallurgy","Chemistry and allied sciences","Physical chemistry","Techniques, procedures, apparatus, equipment, materials","Analytical chemistry","Qualitative analysis","Quantitative analysis","Inorganic chemistry","Organic chemistry","Crystallography","Mineralogy","Systems","Data processing Computer science","Computer programming, programs, data","Special computer methods","Earth sciences","Geology, hydrology, meteorology","Petrology","Economic geology","Earth sciences of Europe","Earth sciences of Asia","Earth sciences of Africa","Earth sciences of North America","Earth sciences of South America","Earth sciences of other parts of world and of extraterrestrial worlds Of Pacific Ocean islands","Engineering and allied operations","Applied physics","Mining and related operations","Military and nautical engineering","Civil engineering","Engineering of railroads and roads","Hydraulic engineering","Sanitary and municipal engineering Environmental protection engineering","Other branches of engineering","Paleontology Paleozoology","Paleobotany; fossil microorganisms","Fossil invertebrates","Miscellaneous fossil marine and seashore invertebrates","Fossil Mollusca and Molluscoidea","Fossil Arthropoda","Fossil Chordata","Fossil cold-blooded vertebrates Fossil Pisces (fishes)","Fossil Aves (birds)","Fossil Mammalia","Computer science, information, general works","Knowledge","The book","Bibliographies","Library & information sciences","Encyclopedias & books of facts","Magazines, journals & serials","Associations, organizations & museums","News media, journalism & publishing","Quotations","Manuscripts & rare books","History","Geography & travel","Biography & genealogy","History of ancient world (to ca. 499)","History of Europe","History of Asia","History of Africa","History of North America","History of South America","History of other areas","Home and family management","Food and drink","Meals and table service","Housing and household equipment","Household utilities","Household furnishings","Sewing, clothing, management of personal and family life","Management of public households (Institutional housekeeping)","Housekeeping","Child rearing; home care of persons with disabilities and illnesses","Language","Linguistics","English & Old English languages","German & related languages","French & related languages","Italian, Romanian & related languages","Spanish & Portuguese languages","Latin & Italic languages","Classical & modern Greek languages","Other languages","Literature (Belles-lettres) and rhetoric");
+	var reValue = value;
+	if(keyAry.indexOf(value) != -1){
+		reValue = valAry[keyAry.indexOf(value)];
+	}
+	return reValue;
+}
+
+
+function aChange(value){
+	var keyAry = new Array("BI","TI","AU","AB","SO","SN","BN","PB","AO","DI","PF","KW","BC","VN", "FT");
+	var valAry = new Array("전체","논문명","저자","초록","저널명","ISSN","ISBN","발행기관","소속기관","DOI","지도교수","주제어","저널번호","권호정보","본문");
+	var reValue = "";
+	if(keyAry.indexOf(value) != -1){
+		reValue = valAry[keyAry.indexOf(value)];
+	}
+	return reValue;
+}
+
+function bChange(value){
+	var keyAry = new Array("BI","TI","AB","PA","IN","AG","AN","UN","RN","PRAN","IUN","IPN","IC");
+	var valAry = new Array("전체","발명의명칭","초록","출원인","발명자","대리인","출원번호","공개번호","등록번호","우선권번호","국제공개번호","국제출원번호","IPC");
+	var reValue = value;
+	if(keyAry.indexOf(value) != -1){
+		reValue = valAry[keyAry.indexOf(value)];
+	}
+	return reValue;
+}
+
+function cChange(value){
+	var keyAry = new Array("BI","TI","AU","PB","AB","KW","SU");
+	var valAry = new Array("전체","보고서명","작성자","발행기관","초록","키워드","주제분야");
+	var reValue = value;
+	if(keyAry.indexOf(value) != -1){
+		reValue = valAry[keyAry.indexOf(value)];
+	}
+	return reValue;
+}
+
+function dChange(value){
+	var keyAry = new Array("alltext","title","subject","keywords01","abk","country");
+	var valAry = new Array("전체","제목","주제분야","키워드","내용","국가");
+	var reValue = value;
+	if(keyAry.indexOf(value) != -1){
+		reValue = valAry[keyAry.indexOf(value)];
+	}
+	return reValue;
+}
+
+function eChange(value){
+	var keyAry = new Array("BI","TI","KW","DC","STI","SKW");
+	var valAry = new Array("전체","캡션명","키워드","설명","논문/보고서명","논문/보고서 키워드");
+	var reValue = value;
+	if(keyAry.indexOf(value) != -1){
+		reValue = valAry[keyAry.indexOf(value)];
+	}
+	return reValue;
+}
+
+//쿠키저장(검색 > 상세조회)
+function setSrchCookieDetail(se, title, cn){
+	var typeValue = $("#searchGubun option:selected").val();
+	var searchValue = title;
+	var tagHtml = "";
+	
+	if(searchValue != ""){
+		var dbt = "";
+		if(se == ""){
+			dbt = valueChange(typeValue);
+		}else{
+			dbt = valueChange(se);
+		}
+		
+		searchValue = replaceAll2(searchValue, '<em>','');
+		searchValue = replaceAll2(searchValue, '</em>','');
+		searchValue = replaceAll2(searchValue, '<TEX>','');
+		searchValue = replaceAll2(searchValue, '</TEX>','');
+		
+		$.ajax({
+			url : "/srch/modInqireList.do",
+			data : {'cType' : 'I', 'se':dbt, 'title':searchValue, 'cn':cn},
+			type:'post',
+			success: function(data){
+				/*콘텐츠 조회 이력 표시 ,2022-09-01*/
+				//동기로 보여줄 때
+				setContentsViewShow(data.inqireHistResult);
+				
+				/*if(data.inqireHistResult.overLappingYn!=='Y'){
+					*//**2022-09-02, 내가 본 자료 제일 마지막 내역 삭제*//*
+					var liHist = []
+					$('li.hist').each(function(index,item){
+						liHist.push($(this).attr('id'));
+					});
+					$('#srchViewList li.hist#'+liHist[19]).remove();
+					
+					*//**2022-09-02, 내가 본 자료 내역 추가*//*
+					$(result).each(function(index, item){
+						if(item.se==='연구자'||item.se==='연구기관'||item.se==='기능'||item.se==='표/그림'||item.se==='서비스'||item.delYn === 'N'){
+						}else{
+							tagHtml += "<li class=\"hist\" id=\""+item.cn+"\"><a href=\"javascript:fn_detail('"+item.se+"', '"+item.cn+"')\">";
+							tagHtml += "[" + item.se + "] " + item.title;
+							tagHtml += '</a> <button class="del" type="button" onclick="removeMySearchList2(\''+ item.cn + '\','+ item.sn + ', this)" value=\"'+item.title+'\" title="삭제"></button></li>';
+						}
+						$("#srchViewList").prepend(tagHtml);
+					});
+				}*/
+			},
+			error: function( jqXhr, textStatus, errorThrown ){
+				console.log( errorThrown );
+			}
+		});
+	}
+}
+//내가 본 자료
+function setMyViewhList(){
+	$("#srchViewList > *").remove();
+	var tagHtml = "";
+	var count = 0;
+	
+	$.ajax({
+		url : "/srch/getInqireList.do",
+		dataType: 'json',
+		type:'post',
+		success: function(data){
+			var result = data.resultList;
+			
+			if(result.length == 0){
+				if($("#srchViewList").length > 0){
+					tagHtml += "<li>자료가 없습니다.</li>";
+					$("#srchViewList").append(tagHtml);
+				}
+			}else{
+				if($("#srchViewList").length > 0){
+					$(result).each(function(index, item){
+						/**2022-08-31, 내가 본 자료에서 연구자/연기기관/기능/표그림/서비스 제외하고 노출*/
+						if(item.se !='연구자'&& item.se !='연구기관' && item.se !='기능' && item.se != '표/그림' && item.se != '서비스'){
+							tagHtml += "<li class=\"hist\" id=\""+item.cn+"\" ><a href=\"javascript:fn_detail('"+item.se+"', '"+item.cn+"')\">";
+							tagHtml += "[" + item.se + "] <span class='title'>" + item.title + "</span><span class='date' style=\"display: none;\">"+item.registDt+"</span></a>";
+							tagHtml += '<button class="del" type="button" onclick="removeMySearchList2(\''+ item.cn + '\','+ item.sn + ', this)" value=\"'+item.title+'\" title="삭제"></button>';
+							tagHtml += '</li>';
+							count++;
+						}
+						if(count>19){
+							return false;
+						}
+					});
+					if($("#tooltip").length == 0){
+						$("body").append("<div class='srchViewTooltip'><div>")
+					}
+					$("#srchViewList").append(tagHtml);
+					$("#srchViewList li.hist a").mouseover(function(e){
+						var title = $(this).find(".title").text();
+						var date = $(this).find(".date").text();
+						var top = $(this).offset().top;
+						var left = $(this).offset().left;
+						$(".srchViewTooltip").css("top", top + 30);
+						$(".srchViewTooltip").css("left", left - 18);
+						$(".srchViewTooltip").html("<p><b>"+title +"</b><br/>조회일은 "+ date +" 입니다.</p>");
+						$(".srchViewTooltip").show();
+					}).mouseleave(function(e){
+						$(".srchViewTooltip").hide();
+					})
+				}
+				/*콘텐츠 조회 이력 표시 ,2022-09-01*/
+				//다른 페이지 이동 시
+				setContentsViewShow(result);
+			}
+			MathJax.Hub.Queue(['Typeset',MathJax.Hub]);
+		},
+		error: function( jqXhr, textStatus, errorThrown ){
+			console.log( errorThrown );
+		}
+	});
+}
+
+
+//쿠키 한개를 삭제함
+function removeMySearchList2(cn, sn, obj){
+	
+	$(obj).parent().remove();
+	
+	ImageCn = cn
+	ImageCn=replaceAll2(cn,'.','');
+	$("div#result_item_"+cn + " a.title").removeClass("has");
+	$("div#result_item_"+cn).removeClass("has");
+	$("div#function_inner_"+cn ).removeClass("has");
+	$("div#researcher_item_"+cn ).removeClass("has");
+	$("li#thumb_list_"+ImageCn ).removeClass("has");
+	
+	$.ajax({
+		url : "/srch/modInqireList.do",
+		data : {'cType' : 'D', 'sn':sn},
+		type:'post',
+		success: function(data){
+			setMyViewhList();
+		},
+		error: function( jqXhr, textStatus, errorThrown ){
+			console.log( errorThrown );
+		}
+	});
+}
+
+// 콘텐츠 조회 이력 표시
+function setContentsViewShow(result){
+	$(result).each(function(index, item){
+		if(item.se == "논문" || item.se == "특허" || item.se == "보고서" || item.se == "동향" || item.se == "연구데이터"){
+			$("div#result_item_"+item.cn + " a.title").addClass("has");
+			//통합 검색, 특허, 보고서, 동향에 title 클래스 추가
+			$("div#result_item_"+item.cn + " div.highlighting" + " p").html("조회일은 "+item.registDt+" 입니다.<button type='button' class='del'>조회 이력 삭제</button>");
+			$("div#result_item_"+item.cn + " div.highlighting" + " p button").click(function(){
+				removeMySearchList2(item.cn,item.sn);
+				$('.highlighting').hide();
+			});
+			
+			$("div#result_item_t"+item.cn + " a.title").addClass("has");
+			$("div#result_item_t"+item.cn + " div.highlighting" + " p").html("조회일은 "+item.registDt+" 입니다.<button type='button' class='del'>조회 이력 삭제</button>");
+			$("div#result_item_t"+item.cn + " div.highlighting" + " p button").click(function(){
+				removeMySearchList2(item.cn,item.sn);
+				$('.highlighting').hide();
+			});
+		} else{
+			//통합 검색 수정
+			var itemCn = item.cn;
+			if(item.se == "표/그림"){
+				itemCn = replaceAll2(itemCn,'.','');
+			}
+			$(".highlight[data-id='"+itemCn+"']").addClass("has");
+			$(".highlight[data-id='"+itemCn+"'] div.highlighting" + " p").html("조회일은 "+item.registDt+" 입니다.<button type='button' class='del'>조회 이력 삭제</button>");
+			$(".highlight[data-id='"+itemCn+"'] div.highlighting" + " p button").click(function(){
+				removeMySearchList2(item.cn,item.sn);
+				$('.highlighting').hide();
+			});
+		} 
+		
+		
+	});
+}
+
+
+//쿠키 저장(검색조건)
+function setSrchCookie(searchText){
+	var typeValue = $("#searchGubun option:selected").val();
+	var searchValue = $("#searchForm").find("input[name='searchKeyword']").val();
+	var dbt = valueChangeCode(typeValue);
+	if(searchValue != ""){
+		dbt = valueChange(typeValue);
+		
+		$.ajax({
+			url : "/srch/modSearchKwrdList.do",
+			data : {'cType' : 'I', 'se':dbt, 'kwrd':searchValue},
+			type:'post',
+			success: function(data){
+				var result = data.result;
+				
+				$(result).each(function(index, item){
+					console.log(item.KWRD);
+				});
+			},
+			error: function( jqXhr, textStatus, errorThrown ){
+				console.log( errorThrown );
+			}
+		});
+	}
+	
+	
+	/*if(searchText=="" || typeof searchText == "undefined" && searchValue == "" || typeof searchValue == "undefined"){
+		searchText = "@";
+	}else{
+		if(searchText=="" || typeof searchText == "undefined"){
+			searchText = searchValue;
+		}
+	}
+	if(typeof cookie=="undefined"){
+		$.cookie("ScienceONSearch", searchValue, { expires: 30, path: '/' });
+	}else{
+		var cookieValue = $.cookie("ScienceONSearch");
+		if(cookieValue.indexOf("@") >= 0 ){
+			var split = cookieValue.split("@");
+			var flag = true;
+			for (var i = 0; i < split.length; i++) {
+				if(split[i]==searchValue){
+					flag = false;
+				}
+			}
+			if(flag){
+				$.cookie("ScienceONSearch",cookieValue+"@"+searchValue, { expires: 30, path: '/' });
+			}
+		}else{
+			if(cookieValue!=searchText){
+				$.cookie("ScienceONSearch",cookieValue+"@"+searchValue, { expires: 30, path: '/' });
+			}
+		}
+	}*/
+}
+//나의 최근검색어
+function setMySearchList(){
+	
+	$("#srchHisList > *").remove();
+	var tagHtml = "";
+	
+	$.ajax({
+		url : "/srch/getSearchKwrdList.do",
+		dataType: 'json',
+		type:'post',
+		success: function(data){
+			var result = data.resultList;
+			
+//			console.log(result);
+			
+			if(result.length == 0){
+				tagHtml += "<li>검색어가 없습니다.</li>";
+				$("#srchHisList").append(tagHtml);
+			}else{
+				$(result).each(function(index, item){
+					tagHtml += "<li><a href=\"javascript:searchTag('"+item.kwrd+"')\">";
+					tagHtml += item.kwrd;
+					tagHtml += '</a> <button class="del" type="button" onclick="removeMySearchList('+ item.sn + ', this)" value=\"'+item.kwrd+'\" title="삭제"></button></li>';
+				});
+				$("#srchHisList").append(tagHtml);
+			}
+			
+		},
+		error: function( jqXhr, textStatus, errorThrown ){
+			console.log( errorThrown );
+		}
+	});
+}
+
+// 쿠키 한개를 삭제함
+function removeMySearchList(sn, obj){
+	
+	$(obj).parent().remove();
+	
+	$.ajax({
+		url : "/srch/modSearchKwrdList.do",
+		data : {'cType' : 'D', 'sn':sn},
+		type:'post',
+		success: function(data){
+		},
+		error: function( jqXhr, textStatus, errorThrown ){
+			console.log( errorThrown );
+		}
+	});
+	
+	//setMySearchList();
+}
+
+function fn_autocomplete() {
+    
+    var back_cnt = 0;
+    var response_keyword = "";
+    var response_keyword2 = "";
+    
+    
+     $( ".inp_srch" ).autocomplete({
+        
+       source : function( request, response ) {
+              $.ajax({
+                     type: 'POST',
+                     url: "/srch/autocomplete.do",
+                     data: { keyword : request.term },
+                     dataType: "json",
+                     success: function(data) {
+                     	//debugger;
+                        back_cnt = 0;
+                        response_keyword = data.keyword;
+                        response_keyword2 = data.keyword.replace(/ /g,"");
+                        
+                        //console.log(data);
+                        response(         
+                              
+                            $.map(data.allHitList.slice(0,20), function(item) {
+                                 var labelItem = item._source.item;
+                                 var valueItem = (item._source.item).replace(/\t/g,"");
+                                 
+                                 return {
+                                     label: labelItem,
+                                     value: valueItem,
+                                     searchType: item._searchType
+                                 }
+                             })
+
+                        );
+                     }
+                });
+             },
+         minLength: 1,
+         delay: 0,
+			focus: function(event, ui) {
+				return false;
+			},
+			select: function( event, ui ) {
+				$("#searchTypeInp").val(ui.item.value);
+				$("#searchTypeBtn").trigger("click");
+			}
+     })
+     .data('ui-autocomplete')._renderItem = function(ul, item) {
+           var classString = ' class="ui_highlight"';
+	          var regexp = new RegExp('(' + response_keyword + '|'+response_keyword2+')', 'gi');
+	          var labelItem = item.label.replace(regexp, '<span' + classString + '>$1</span>');
+	          var appendLi = '<div>'+ labelItem +'</div>';
+              
+	          if(item.searchType === "after"){
+	        	  back_cnt++;
+	        	  return $('<li>').addClass("autoSearch_back_" + back_cnt).append(appendLi).appendTo(ul);
+	          }else{
+	        	  return $('<li>').append(appendLi).appendTo(ul);
+	          }
+     }
+}
+
+function fn_totalSearch(){
+	var no = $('#searchGubun option:selected').val();
+	
+	var url = "";
+	if(no == "0000") url = "/srch/selectPORSrchTotal.do";
+	if(no == "0001") url = "/srch/selectPORSrchArticleList.do";
+	if(no == "0002") url = "/srch/PORSrchPatentList.do";
+	if(no == "0003") url = "/srch/PORSrchReportList.do";
+	if(no == "0004") url = "/srch/selectPORSrchTrendList.do";
+	if(no == "0005") url = "/srch/selectPORSrchRsrchmanList.do";
+	if(no == "0006") url = "/srch/selectPORSrchFnctList.do";
+	if(no == "0007") url = "/srch/selectPORSrchSrvcList.do";
+	if(no == "0008") url = "/srch/selectPORSrchOrganList.do";
+	if(no == "0010") url = "/srch/selectPORSrchImageList.do";
+	if(no == "0011") url = "/srch/selectPORSrchRsrchDataList.do";
+	
+	document.searchForm.action = url;
+	
+	if($('#reSearch').is(":checked") != true){
+		$("#searchForm").find("input[name='oldSearchKeyword']").val();
+	}
+	
+	var srchTxt = $("#searchForm").find("input[name='searchKeyword']").val();
+	var singleChk = /\w|[~!@#$%^&*()_+|<>?:{}\\"]/; 
+	srchTxt = $.trim(srchTxt);
+	
+	if(srchTxt == ""){
+		$.alert({
+			title: '알림',
+			content: '검색어를 입력하세요'
+		});
+		return false;
+	}
+	
+	if(srchTxt.replace(/(\s*)/g, "").length == 1 && singleChk.test(srchTxt) == true){
+		$.alert({
+			title: '알림',
+			content: '단일 문자(영문, 숫자, 기호)는 원활한 검색을 위해 사용이 제한됩니다.<br/>다른 검색어를 넣어 주세요.'
+		});
+		return false;
+	}
+	
+	var strByteLength = function(s,b,i,c){
+	  for(b=i=0;c=s.charCodeAt(i++);b+=c>>11?3:c>>7?2:1);
+	  return b;
+	};
+	
+	/*if(strByteLength(srchTxt) > 256){
+		$.alert({
+			title: '알림',
+			content: '원활한 검색을 위해 256byte이상의 검색어의 사용이 제한됩니다.<br/>다른 검색어를 넣어 주세요.'
+		});
+		return false;
+	}
+	*/
+	
+	setSrchCookie(srchTxt);
+	
+	return true;
+}
+
+
+function fn_header_search(){
+	
+	var no = $('#searchGubun option:selected').val();
+	
+	var url = "";
+	if(no == "0000") url = "/srch/selectPORSrchTotal.do";
+	if(no == "0001") url = "/srch/selectPORSrchArticleList.do";
+	if(no == "0002") url = "/srch/PORSrchPatentList.do";
+	if(no == "0003") url = "/srch/PORSrchReportList.do";
+	if(no == "0004") url = "/srch/selectPORSrchTrendList.do";
+	if(no == "0005") url = "/srch/selectPORSrchRsrchmanList.do";
+	if(no == "0006") url = "/srch/selectPORSrchFnctList.do";
+	if(no == "0007") url = "/srch/selectPORSrchSrvcList.do";
+	if(no == "0008") url = "/srch/selectPORSrchOrganList.do";
+	if(no == "0010") url = "/srch/selectPORSrchImageList.do";
+	if(no == "0011") url = "/srch/selectPORSrchRsrchDataList.do";
+	
+	document.searchForm.action = url;
+	
+	
+	var srchTxt = document.searchForm.searchKeyword.value;
+	var singleChk = /\w|[~!@#$%^&*()_+|<>?:{}\\"]/; 
+	
+	if($.trim(srchTxt) == ""){
+		$.alert({
+			title: '알림',
+			content: '검색어를 입력하세요'
+		});
+		document.searchForm.searchKeyword.value = $.trim(srchTxt);
+		return false;
+	}
+	
+	if(srchTxt.replace(/(\s*)/g, "").length == 1 && singleChk.test(srchTxt) == true){
+		$.alert({
+			title: '알림',
+			content: '단일 문자(영문, 숫자, 기호)는 원활한 검색을 위해 사용이 제한됩니다.<br/>다른 검색어를 넣어 주세요.'
+		});
+		return false;
+	}
+	
+	var strByteLength = function(s,b,i,c){
+	  for(b=i=0;c=s.charCodeAt(i++);b+=c>>11?3:c>>7?2:1);
+	  return b;
+	};
+	
+	if(strByteLength(srchTxt) > 256){
+		$.alert({
+			title: '알림',
+			content: '원활한 검색을 위해 256byte이상의 검색어의 사용이 제한됩니다.<br/>다른 검색어를 넣어 주세요.'
+		});
+		return false;
+	}
+	
+	
+	setSrchCookie(srchTxt);
+	
+	return true;
+}
+
+function scrap(type){
+	
+	var test = "";
+	var msg = "";
+	var len = $("input:checkbox[name=scrapChkBox]:checked").length;
+	var resultCnt = 0;
+	var resultMsg = "";
+	var messagetype = "";
+	
+	$.ajax({
+		url : "/com/checkLogin.do",
+		dataType: 'json',		
+		success: function(data){
+			var result = data.result;
+			console.log(result);
+			
+			if(result == "true"){
+				$.alert({
+					title: '알림',
+					content: '로그인이 필요한 서비스 입니다.<br>로그인하시겠습니까?',
+					buttons: {
+						specialKey : {
+							text: '확인',
+							action: function(){
+								$('#searchServiceForm').attr('action',"/logn/PORLonForm.do");
+								$('#searchServiceForm').submit();  									
+							}
+						},
+						alphabet: {
+							text: '취소'
+						}
+					}
+				});
+			}else{
+				if(len > 0){
+					$("input[name=scrapChkBox]:checked").each(function(i) {
+						var obj = $(this)
+						test = $(this).val();
+						
+						test = replaceAll2(test, '<em>','');
+						test = replaceAll2(test, '</em>','');
+						test = replaceAll2(test, '<TEX>','');
+						test = replaceAll2(test, '</TEX>','');
+						
+						var sp = test.split("@@");
+						var pkgnNo = $(this).data("pkgnno");
+						console.log(pkgnNo);
+						
+						var _param = {
+								"fnctId" : sp[0]
+							  , "bkmkSj" : sp[1]
+							  , "bkmkCd" : type
+							  , "pkgnNo" : pkgnNo
+							};
+						
+						$.ajax({
+								url: "/bkmk/insertUsrFnct.do",
+								dataType: 'text',
+								type: 'post',
+								async: false,
+								contentType: 'application/x-www-form-urlencoded',
+								data: _param,
+								success: function( data, textStatus, jQxhr ){
+									var objData = JSON.parse(data);
+									messagetype = objData.messagetype;
+									
+									if(objData.check == "-1"){
+										
+										resultCnt = -1;
+										return false;
+										
+									}else{
+										resultCnt = resultCnt + 1;
+										resultMsg = objData.msg;
+										
+										obj.parent().children('.scrap').addClass('icon_bookmark2');
+										obj.parent().children('.scrap').removeClass('icon_bookmark');
+									}
+									
+								},
+								error: function( jqXhr, textStatus, errorThrown ){
+									console.log( errorThrown );
+								}
+							});
+					});
+					
+					if(resultCnt > 0){
+						if(messagetype == '1'){
+								$.alert({
+									title: '알림',
+									content: resultMsg
+								});
+						}else{
+							$.alert({
+								title: '알림',
+								content: resultMsg,
+								buttons: {
+									specialKey : {
+										text: '예',
+										action: function(){ 										
+											location.href = "/bkmk/PORBkmkMgr.do";
+										}
+									},
+									alphabet: {
+										text: '아니오'
+									}
+								}
+							});			
+						}
+					}
+				}else{
+					msg = "선택된 항목이 없습니다.";
+					
+					if(msg != ""){
+						$.alert({
+							title: '알림',
+							content: msg
+						});
+					}
+				}
+			}
+			
+			
+		},
+		error: function( jqXhr, textStatus, errorThrown ){
+			console.log( errorThrown );
+		}
+	});
+	
+}
+
+function snsOpen(snsType, title){
+	
+	var contentUrl = window.location.href;
+	
+	$.ajax({
+		url : "/srch/shorturl.do",
+		dataType: 'json',
+		data : {'contentUrl' : contentUrl},
+		//async: false,
+		success: function(data){
+			console.log(data);
+			var url = data.result;
+			
+			switch(snsType){
+			case "facebook":
+				window.open("http://www.facebook.com/sharer/sharer.php?u="+url+"&t="+encodeURIComponent(title), "_blank", "width=570, height=450, scrollbars=yes, toolbar=no, menubar=no, location=no");
+				break;
+			case "twitter":
+				window.open("https://twitter.com/intent/tweet?url="+url+"&text="+encodeURIComponent(title), "_blank", "width=570, height=450, scrollbars=yes, toolbar=no, menubar=no, location=no");
+				break;
+			}
+			
+		},
+		error: function( jqXhr, textStatus, errorThrown ){
+			console.log( errorThrown );
+		}
+	});
+}
+/**	[운영업무]요청번호-0010128, 커밋자-박창현, 커밋일-2022-03-18, 작업내용 : 논문,특허,보고서,동향 카카오톡 공유 기능 추가 */
+
+function shareKakao(title) {
+    try {
+        if (Kakao) {
+        	Kakao.init('f570ad7ac19474da859dcb615795777e'); //사용할 앱의 JavaScript 키 설정
+        };
+    } catch(e) {};
+	var contentUrl = window.location.href;
+	
+	// 카카오링크 버튼 생성
+	Kakao.Link.sendDefault({
+		objectType: 'feed',
+		content: {
+			title: title, // 보여질 제목
+			imageUrl: "https://scienceon.kisti.re.kr/images/usr/scienceon_og.png", // 콘텐츠 URL
+			imageWidth: 1200,
+			imageHeight: 630,
+			link: {
+				mobileWebUrl: contentUrl,
+				webUrl: contentUrl
+			}
+		}
+	});
+}
+
+function shareKakao_trend(title, type) {
+    try {
+        if (Kakao) {
+        	Kakao.init('f570ad7ac19474da859dcb615795777e'); //사용할 앱의 JavaScript 키 설정
+        };
+    } catch(e) {};
+	var contentUrl = window.location.href;
+//	var newText = contents.replace(/(<([^>]+)>)/ig,"");
+	
+	// 카카오링크 버튼 생성
+	Kakao.Link.sendDefault({
+		objectType: 'feed',
+		content: {
+			title: title, // 보여질 제목
+			imageUrl: "https://scienceon.kisti.re.kr/images/usr/scienceon_og.png", // 콘텐츠 URL
+			imageWidth: 1200, 
+			imageHeight: 630,
+			link: {
+				mobileWebUrl: contentUrl,
+				webUrl: contentUrl
+			}
+		},
+		itemContent: {
+			profileText: type
+		}
+	});
+}
+
+function addMyON(){
+	
+	$.ajax({
+		url : "/com/checkLogin.do",
+		dataType: 'json',		
+		success: function(data){
+			var result = data.result;
+			console.log(result);
+			
+			if(result == "true"){
+				
+				$.alert({
+					title: '알림',
+					content: '로그인이 필요한 서비스 입니다.<br>로그인하시겠습니까?',
+					buttons: {
+						specialKey : {
+							text: '확인',
+							action: function(){
+								setCookie("myOnPopup", "Y", 1);
+								$('#searchServiceForm').attr('action',"/logn/PORLonForm.do");
+								$('#searchServiceForm').submit();  									
+							}
+						},
+						alphabet: {
+							text: '취소'
+						}
+					}
+				});
+				
+			}else{
+				
+				var html = "";
+				$('#myonAddVO').empty();
+				var check = 0;
+				
+				if($('.fnAddMyon:checked').length != 0){
+				
+					$('.fnAddMyon:checked').each(function(index, item){			
+						var infraCd = $(this).data("infracd");
+						var tapCode = $(this).data("tapcode");
+						var title = $(this).data("title");			
+						var infraNo = $(this).data("infrano");
+						var bkmkCd ;
+						
+						if (tapCode == 'ARTI') {
+							bkmkCd = '02'
+						}else if(tapCode == 'PATENT'){
+							bkmkCd = '03'
+						}else if(tapCode == 'REPORT'){
+							bkmkCd = '04'
+						}else if(tapCode == 'TECH'){
+							bkmkCd = '05'
+						}else if(tapCode == 'RSRCHMAN'){
+							bkmkCd = '06'
+						}else if(infraCd == "PKGN"){
+							bkmkCd = '01'
+						}else if(tapCode == ''){
+							bkmkCd = '01'
+						}
+						
+						title = replaceAll2(title, '<em>','');
+						title = replaceAll2(title, '</em>','');
+						
+						html += '<input type="hidden" name="myonInfraList['+index+'].infraCd" value="' + infraCd + '" />';
+						html += '<input type="hidden" name="myonInfraList['+index+'].tapCode" value="' + tapCode + '" />';
+						html += '<input type="hidden" name="myonInfraList['+index+'].myonTitle" value="' + title + '" />';
+						html += '<input type="hidden" name="myonInfraList['+index+'].fnctId" value="' + infraNo + '" />';
+						html += '<input type="hidden" name="myonInfraList['+index+'].bkmkCd" value="' + bkmkCd + '" />';
+					});
+					
+					if(check < 0){
+//						$.alert({
+//							title: '알림',
+//							content: 'MyON 담기는 [기능] 항목만 가능합니다.'
+//						});
+						
+					}else{
+						$('#myonAddVO').append(html);		
+						window.open("","myonAddPopUp","menubar=no, scrollbars=no, resizable=yes, directories=no, location=no, fullscreen=no, toolbar=no, status=no, width=1152, height=775");
+						$("#myonAddVO").submit();
+					}
+				}else{
+					$.alert({
+				    	title: '알림',
+					    content: '선택된 항목이 없습니다.'
+					});
+				}
+				
+			}
+			
+			
+			
+		},
+		error: function( jqXhr, textStatus, errorThrown ){
+			console.log( errorThrown );
+		}
+	});
+	
+}
+
+function cgf_CenterWindow(as_url, as_name, as_w, as_h, as_scroll, as_resize, sCn){
+	var PosLeft;
+	var PosTop;
+
+	PosLeft = (window.screen.width/2) - (as_w/2 + 10);
+	PosTop = (window.screen.height/2) - (as_h/2 + 50);
+
+	if(window.screen.width < as_w+10){
+		PosLeft = 0;
+		as_w = window.screen.width - 10;
+		as_scroll = 1;
+	}
+
+	if(window.screen.height < as_h+60){
+		PosTop = 0;
+		if(window.screen.width>as_w+10){
+			as_w +=15;
+		}
+
+		as_h = window.screen.height - 60;
+		as_scroll = 1;
+	}
+
+	
+	var keyword = "";
+	if($("#detailForm input[name='logKeyword']").length > 0){ //검색 목록화면
+		keyword = $("#detailForm input[name='logKeyword']").val();
+	}else{ //상세 화면
+		keyword = $("#logForm input[name='keyword']").val();
+	}
+	
+	
+	if(sCn.substring(0, 3) == "IWR") {
+		//icon 일때
+		var newWindow  = window.open("about:blank", "newWin");
+
+		if(newWindow){
+			var url = "/commons/util/originalView.do";
+			url += "?cn=" + sCn + "&dbt=ICON&url=" + as_url;
+			window.open(url, "newWin");
+			
+		}
+	} else {
+		
+		if(as_url.indexOf("kosen") > 0) {		//kosen분석리포트 PAGECODE = RP03
+			cttCode2 = "RP03";
+		} else if(as_url.indexOf("reseat") > 0) {		//ReSEAT 분석리포트 PAGECODE = RP02
+			cttCode2 = "RP02";
+		}
+		
+		var _param =
+		{
+			"cn"	: sCn,
+			"cttCode1"	: "RP",
+			"cttCode2"	: cttCode2,
+			"svcCode1"	: "OV",
+			"svcCode2" 	: "OV03",
+			"pageCode" 	: "",
+			"keyword" 	: keyword,
+			"rUrl" 		: document.location.href
+		};
+		logSummton(_param);
+		
+		var objWin = window.open(as_url,as_name,"status,height=" + as_h + ",width=" + as_w + ", scrollbars=" + as_scroll + ",resizable=" + as_resize + ",left=" + PosLeft + ",top=" + PosTop + ",screenX=" + PosLeft + ",screenY=" + PosTop + ",status=no");
+		if(objWin == null){
+			alert("팝업창이 차단되었습니다.\n\n팝업창 차단 설정을 해제하여주십시요.\n\n팝업창 차단 설정은\n웹페이지 상단에 나타나는 [알림 표시줄]에서 설정이 가능합니다.\n\n또는 [도구 > 인터넷옵션 > 개인정보 > 팝업차단 > 설정]에서\n설정이 가능합니다.");
+		}
+	}
+}
+
+function fn_closeItemContent(cn, item){
+	$("#result_item_"+cn).find(".item_content").each(function(){
+		if(!$(this).hasClass(item)){
+			if(!$(this).hasClass('hidden')){
+				$(this).addClass('hidden');
+			}
+		}
+	});
+	$("#result_item_"+cn).find(".result_itembtn button").each(function(){
+		if(!$(this).hasClass(item)){
+			if($(this).hasClass('on')){
+				$(this).removeClass('on');
+			}
+		}
+	});
+	
+	if(item != "original"){
+		if(!$("#result_item_"+cn).find(".read_original").hasClass('none')){
+			$("#result_item_"+cn).find(".read_original").addClass('none');
+		}
+	}
+}
+
+function fn_showDownload(cn){
+	fn_closeItemContent(cn, 'original');
+	if($("#read_original"+cn).hasClass('none')){
+		$("#read_original"+cn).removeClass('none');
+		$("#result_item_"+cn).find(".result_itembtn button.original").addClass("on");
+	}else{
+		$("#read_original"+cn).addClass('none');
+		$("#result_item_"+cn).find(".result_itembtn button.original").removeClass("on");
+	}
+}
+//초록 펼치기
+function fn_showAbs(no){
+	var $result_item = $('#abs'+no).closest(".result_item");
+	var id = $result_item.prop("id");
+	var cn = id.replace("result_item_","");
+	fn_closeItemContent(cn, 'abs');
+	
+	if($('#abs'+no).hasClass('hidden')){
+		$('#abs'+no).removeClass('hidden');
+		$result_item.find(".result_itembtn button.abs").addClass("on");
+	}else{
+		$('#abs'+no).addClass('hidden');
+		$result_item.find(".result_itembtn button.abs").removeClass("on");
+	}
+	
+}
+function fn_showFltx(div, cn){
+	fn_closeItemContent(div+cn, 'fltx');
+	$("#result_item_"+div+cn).find(".result_itembtn button.fltx").toggleClass("on");
+	$fltxDiv = $("#result_item_"+div+cn).find(".item_content.fltx");
+	var check = $fltxDiv.html() == ""; //이미 조회 했는지
+	var hidden = $fltxDiv.hasClass("hidden");
+	if(check){
+		$.ajax({
+			url : "/srch/selectArtiFltxList.do",
+			dataType: 'json',
+			type:'post',
+			data:$("#searchServiceForm").serialize()+"&cn="+cn,
+			success: function(data){
+				var html = "";
+				if(data.result.snippets.length == 0){
+					html = "<p>본문에 검색하신 키워드가 포함되어있지 않습니다.</p>";
+				}else{
+					html +=" <div class=\"ic-type1\">";
+					html +=" <h4>본문 미리보기<a href=\"javascript:;\" onclick=\"fn_showFltx('"+div+"','"+cn+"')\">접기</a></h4>";
+					html +=" <p>";
+					html +="     <ul class=\"nopm\">";
+					
+					var length = 5;
+					var total = data.result.snippets.length;
+					if(data.result.snippets.length < 5){
+						length = data.result.snippets.length;
+					}
+					for(var i=0;i<total;i++) {
+						if(i < 5){
+							html += "<li>";
+						}else{
+							html += "<li style='display:none'>";
+						}
+						html += "<p style=\"white-space: nowrap;text-overflow: ellipsis;overflow: hidden;\"> - " +  data.result.snippets[i].snippet + "</p>";
+						html += "<p class='snippet_full' style='display:none'> - " +  data.result.snippets[i].snippet_full + "</p>";
+						html += "</li>";
+					}
+					html +="     </ul>";
+					html +=" </p>";
+					html +=" 	<div class=\"p_btn_wrap\">";
+					html +=" 		<button type=\"button\" class=\"btn middle btn_blue\" onclick=\"fn_showFltxMore('"+div+"','"+cn+"')\">더보기</button>";
+					html +=" 	</div>";
+					html +=" </div>";
+				}
+				$fltxDiv.html(html).removeClass("hidden");
+			},
+			error: function( jqXhr, textStatus, errorThrown ){
+				console.log( errorThrown );
+			}
+		});
+	}else{
+		if(hidden){
+			$fltxDiv.removeClass("hidden");
+		}else{
+			$fltxDiv.addClass("hidden");
+		}
+	}
+}
+function fn_showFltxMore(div, cn){
+	var title = $("#result_item_"+div+cn).find("h3 a").html();
+	var info = $("#result_item_"+div+cn).find(".result_item_info").html();
+	var $list = $("#result_item_"+div+cn).find(".item_content.fltx .ic-type1 ul li p.snippet_full");
+	var list = "";
+	$list.each(function(){
+		list += "<li>" + $(this).html().substring(3) + "</li>";
+	})
+	$("#fltxMore .fltx_arti_title").html(title);
+	$("#fltxMore .result_item_info").html(info);
+	$("#fltxMore .result_item_info a").contents().unwrap();
+	$("#fltxMore .fltx_list").html(list);
+	$('#fltxMore').bPopup();
+	
+	insertBhvrLog(
+		{
+			 'cn': cn
+			,'sourceId':''
+			,'bhvrNo': '2'
+			,'param' : document.querySelector("#detailForm input[name='logKeyword']").value
+			,'logNo' : document.querySelector("#logForm input[name='logNo']").value
+			,'urlNo' : document.querySelector("#logForm input[name='urlNo']").value
+		}
+	);
+}
+
+//질의응답 펼치기
+/*function fn_showArtiQA(cn){
+	fn_closeItemContent(cn, 'qa');
+	$("#result_item_"+cn).find(".result_itembtn button.qa").toggleClass("on");
+	$qaDiv =  $("#result_item_"+cn).find(".item_content.qa");
+	var check = $qaDiv.html() == ""; //이미 조회 했는지
+	var hidden = $qaDiv.hasClass("hidden");
+	
+	if(check){
+		$.ajax({
+			url : "/srch/selectArtiQAList.do",
+			dataType: 'json',
+			type:'post',
+			data:{'cn': cn},
+			success: function(data){
+				if(data.result.list.length >0){
+					var qaListTb = "";
+					
+					qaListTb+= "<div class=\"ic-type1\">";
+					qaListTb+= "	<h4>질의응답<a href=\"javascript:;\" onclick=\"fn_showArtiQA('"+cn+"')\">접기</a></h4>";
+					qaListTb+= "</div>";
+					qaListTb+= "<div class=\"detail_jilu\">";
+					qaListTb+= "	<table class=\"mt20 mb0\">";
+					qaListTb+= "	<caption>";
+					qaListTb+= "	키워드에 따른 질의응답 제공";
+					qaListTb+= "	</caption>";
+					qaListTb+= "	<colgroup>";
+					qaListTb+= "		<col>";
+					qaListTb+= "		<col style=\"width:40%;\">";
+					qaListTb+= "		<col style=\"width:40%;\">";
+					qaListTb+= "	</colgroup>";
+					qaListTb+= "	<thead>";
+					qaListTb+= "		<tr>";
+					qaListTb+= "			<th scope=\"col\">키워드</th>";
+					qaListTb+= "			<th scope=\"col\">질의</th>";
+					qaListTb+= "			<th scope=\"col\">응답</th>";
+					qaListTb+= "		</tr>";
+					qaListTb+= "	</thead>";
+					qaListTb+= "	<tbody>";
+					for(var i=0; i<data.result.list.length;i++){
+						qaListTb +=		"<tr>";
+						qaListTb +=		"<td><div>"+data.result.list[i].kwrdCn+"<div></td>";
+						qaListTb +=		"<td><div>"+data.result.list[i].qstnCn+"</div></td>";
+						qaListTb +=		"<td class=\"ans\"><div>"+data.result.list[i].answCn+"</div>";
+						qaListTb +=		"	<div class=\"scPackageList_pop\">";
+						qaListTb +=		"	<p>"+data.result.list[i].answHglt+"</p>";
+						qaListTb +=		"	</div>";
+						qaListTb +=		"</td>";
+						qaListTb +=		"</tr>";
+					}
+					qaListTb+= "	</tbody>";
+					qaListTb+= "	</table>";
+					qaListTb+= "</div>";
+					$qaDiv.html(qaListTb).removeClass("hidden");
+				}
+			},
+			error: function( jqXhr, textStatus, errorThrown ){
+				console.log( errorThrown );
+			}
+		});
+	}else{
+		if(hidden){
+			$qaDiv.removeClass("hidden");
+		}else{
+			$qaDiv.addClass("hidden");
+		}
+	}
+
+}*/
+/*//본문요약 펼치기
+function fn_showArtiMnng(cn){
+	fn_closeItemContent(cn, 'mnng');
+	$("#result_item_"+cn).find(".result_itembtn button.mnng").toggleClass("on");
+	$mnngDiv =  $("#result_item_"+cn).find(".item_content.mnng");
+	var check = $mnngDiv.html() == ""; //이미 조회 했는지
+	var hidden = $mnngDiv.hasClass("hidden");
+	if(check){
+		$.ajax({
+			url : "/srch/selectMnngTag.do",
+			dataType: 'json',
+			type:'post',
+			data:{'artId': cn},
+			success: function(data){
+				var resultList = data.result.list;
+				var html = "";
+				html += "<div class=\"ic-type1\">";
+				html += "	<h4>본문요약<a href=\"javascript:;\" onclick=\"fn_showArtiMnng('"+cn+"')\">접기</a></h4>";
+				html += "</div>";
+				html += "<div class=\"schdetail_body schdetail_body3 visible\">";
+				html += "	<ul class=\"schtab_btn\">";
+				for(var i=0; i<resultList.length;i++){
+					if(resultList[i].upperCd == "0"){
+						
+						tagCount = resultList[i].tagCount;
+						
+						html += "	<li class=\"btn_cell\">";
+						html += "	<button type=\"button\" class=\""+(tagCount > 0? "action":"")+" tag"+resultList[i].tagCd+"\"";
+						html += "	onclick=\"fncSelectMnngTag('"+cn+"', '"+resultList[i].tagCd+"')\">";
+						html += resultList[i].codeNm+"("+resultList[i].tagCount+")";
+						html += "	</button>";
+						html += "</li>";
+					}
+				}
+				html += "	</ul>";
+				html += "	<div class=\"detailconbox\">";
+				
+				for(var i=0; i<resultList.length;i++){
+					if(resultList[i].upperCd != "0"){
+						if(resultList[i].tagCount > 0){
+							html += "		<dl class=\"detail_yoyack hidden tag"+resultList[i].upperCd+"\">";
+							html += "			<dt>"+resultList[i].codeNm+"("+resultList[i].tagCount+")</dt>";
+							html += "			<dd>";
+							html += "				<ul>";
+							for(var j=0; j<resultList[i].tagList.length;j++){
+								html += "					<li><span class=\"text\">"+resultList[i].tagList[j]+"</span>";
+								html += "<div class=\"scPackageList_pop\">";
+								html += "					<p>";
+								html += resultList[i].sentenceList[j]
+								html += "					</p>";
+								html += "				</div>";
+								html += "		</li>";
+							}
+							html += "				</ul>";
+							html += "			</dd>";
+							html += "		</dl>";
+						}
+					}
+				}
+				html += "	</div>";
+				html += "</div>";
+				$mnngDiv.html(html);
+				$mnngDiv.find(".schtab_btn .btn_cell button.action:eq(0)").addClass("on");
+				$mnngDiv.find(".detail_yoyack:eq(0)").removeClass("hidden");
+				$mnngDiv.removeClass("hidden"); 
+			},
+			error: function( jqXhr, textStatus, errorThrown ){
+				console.log( errorThrown );
+			}
+		});
+	}else{
+		if(hidden){
+			$mnngDiv.removeClass("hidden");
+		}else{
+			$mnngDiv.addClass("hidden");
+		}
+	}
+}
+function fncSelectMnngTag(cn, tagCd){
+	$mnngDiv =  $("#result_item_"+cn).find(".item_content.mnng");
+	$mnngDiv.find(".schtab_btn .btn_cell button").removeClass("on");
+	$mnngDiv.find(".detail_yoyack").addClass("hidden")
+
+	$mnngDiv.find(".schtab_btn .btn_cell .tag"+tagCd).addClass("on");
+	$mnngDiv.find(".detail_yoyack.tag"+tagCd).removeClass("hidden");
+}*/
+function gf_citeinfomake(citegubun,flag,cn,url,target,onlylog){
+	if(target == '_blank'){
+		window.open(url);
+	}else{
+		location.target = target;
+		location.href = url;
+	}
+}
+
+function windowOpen(url) {
+	window.open(url);
+}
+
+/**
+ * 새창(내가본 자료 저장)
+ * @param url
+ * @param se
+ * @param title
+ * @param cn
+ */
+function windowOpen2(url, se, title, cn) {
+	setSrchCookieDetail(se, title, cn);
+	window.open(url);
+}
+
+function fn_nextTab(no){
+	var url = "";
+	if(no == "ALL") url = "/srch/selectPORSrchTotal.do";
+	if(no == "thesis") url = "/srch/selectPORSrchArticleList.do";
+	if(no == "patent") url = "/srch/PORSrchPatentList.do";
+	if(no == "report") url = "/srch/PORSrchReportList.do";
+	if(no == "trends") url = "/srch/selectPORSrchTrendList.do";
+	if(no == "researcher") url = "/srch/selectPORSrchRsrchmanList.do";
+	if(no == "function") url = "/srch/selectPORSrchFnctList.do";
+	if(no == "service") url = "/srch/selectPORSrchSrvcList.do";
+	if(no == "organ") url = "/srch/selectPORSrchOrganList.do";
+	if(no == "image") url = "/srch/selectPORSrchImageList.do";
+	if(no == "researchData") url = "/srch/selectPORSrchRsrchDataList.do";
+	
+	$("#searchServiceForm input[name^='searchReduce'").each(function(){
+		var name = $(this).prop("name");
+		var val = $(this).val();
+		$("#searchForm").append("<input type='hidden' name='"+name+"' value='"+val+"'/>");
+	});
+	document.searchForm.action = url;
+   	document.searchForm.submit();
+}
+
+function replaceAll2(str, searchStr, replaceStr) {
+	return str.split(searchStr).join(replaceStr);
+}
+
+//학위논문 원문보기
+function fncLogSave(linkUrl, cn){
+	insertSystemLogInfo("linkYn=Y&useContCd=0001&linkURL="+ linkUrl + "&cn="+cn);
+	window.open(linkUrl, "newWin");
+	
+	var _param =
+	{
+		"cn" : cn,
+		"svcCode1"	: "OV",
+		"svcCode2" 	: "OV03",
+		"rUrl" 		:document.location.href
+	};
+	logSummton(_param)
+}
+
+//로그 체인지 이벤트
+function reloadLog(cn, gu){
+	
+	/* 2021.08.23 저녁 장애발생, SO_COM_LOG Select 하는 부분 소요시간 오래 걸림, 주석처리 후 확인을 해야함*/
+	fulltextTermSelect(cn, gu);
+	detailTermSelect(cn);
+}
+
+//ndsl 상세로그
+function detailTermSelect(cn){
+	var selBox = $('#logGubun option:selected').val();
+	var _param = {"cn" : cn
+		  , "siteCode" : "WEB"
+		  , "svcCode" : "DV"
+		  , "gubun" : selBox};
+	
+	$.ajax({
+		url : "/srch/getNdslStatsChart.do",
+		dataType: 'json',
+		data : _param,
+		//async: false,
+		success: function(data){
+			
+			var list = data.result2;
+			var list2 = data.result; //sci
+			
+			var sum = 0;
+			var items= [];
+			var lable = [];
+			/*$.each(list, function (index, item) {
+				sum = sum + item.COUNT;
+				if(index == 0){
+					items.push('NDSL');
+				}
+					items.push(item.COUNT);
+					lable.push(item.TITLE);
+			});
+			*/
+			var sum2 = 0;
+			var items2= [];
+			var lable2 = [];
+			$.each(list2, function (index, item) {
+				sum2 = sum2 + item.COUNT + list[index].COUNT;
+				if(index == 0){
+					items2.push('ScienceON');
+				}
+					items2.push(item.COUNT + list[index].COUNT);
+					lable.push(item.TITLE);
+			});
+			
+			if(selBox == "year"){
+				var count = sum + sum2;
+				$('#detailCnt').text("상세조회" + count + "건");
+			}
+			
+			var chart = c3.generate({
+			    bindto: '#lineChartArea1',
+			    data: {
+//			      columns: [items,items2]
+			    	columns: [items2]
+			    },
+			    axis: {
+			        x: {
+			        	type: 'category',
+			        	categories:lable
+			        },
+			        y: {
+			        	tick: {
+			        		format: d3.format("d") 
+			        	}
+			        }
+			    },
+			    size : {
+			    	width : 900,
+			    	height : 200
+			    }
+			});
+			
+		},
+		error: function( jqXhr, textStatus, errorThrown ){
+			console.log( errorThrown );
+		}
+	});
+}
+
+
+//ndsl 원문로그
+function fulltextTermSelect(cn, gu){
+	var selBox = $('#logGubun option:selected').val();
+	var _param = {"cn" : cn
+		  , "siteCode" : "WEB"
+		  , "svcCode" : "OV"
+		  , "gubunCd" : gu
+		  , "gubun" : selBox};
+	
+	$.ajax({
+		url : "/srch/getNdslStatsChart.do",
+		dataType: 'json',
+		data : _param,
+		//async: false,
+		success: function(data){
+			
+			var list = data.result2;
+			var list2 = data.result;
+			
+			
+			var sum = 0;
+			var items= [];
+			var lable = [];
+			/*$.each(list, function (index, item) {
+				sum = sum + item.COUNT;
+				if(index == 0){
+					items.push('NDSL');
+				}
+					items.push(item.COUNT);
+					lable.push(item.TITLE);
+			});
+			*/
+			var sum2 = 0;
+			var items2= [];
+			var lable2 = [];
+			$.each(list2, function (index, item) {
+				sum2 = sum2 + item.COUNT + list[index].COUNT;
+				if(index == 0){
+					items2.push('ScienceON');
+				}
+					items2.push(item.COUNT + list[index].COUNT);
+					lable.push(item.TITLE);
+			});
+			
+			if(selBox == "year"){
+				var count = sum + sum2;
+				$('#orgCnt').text("원문조회" + count + "건");
+			}
+			
+			var chart = c3.generate({
+			    bindto: '#lineChartArea2',
+			    data: {
+//			      columns: [items,items2]
+			    	columns: [items2]
+			    },
+			    axis: {
+			        x: {
+			        	type: 'category',
+			        	categories:lable
+			        },
+			        y: {
+			        	tick: {
+			        		format: d3.format("d") 
+			        	}
+			        }
+			    },
+			    size : {
+			    	width : 900,
+			    	height : 200
+			    }
+			});
+			
+		},
+		error: function( jqXhr, textStatus, errorThrown ){
+			console.log( errorThrown );
+		}
+	});
+	
+}
+
+function searchTag(keyword){
+	var no = $('#searchGubun option:selected').val();
+	var url = "";
+	if(no == "0000") url = "/srch/selectPORSrchTotal.do";
+	if(no == "0001") url = "/srch/selectPORSrchArticleList.do";
+	if(no == "0002") url = "/srch/PORSrchPatentList.do";
+	if(no == "0003") url = "/srch/PORSrchReportList.do";
+	if(no == "0004") url = "/srch/selectPORSrchTrendList.do";
+	if(no == "0005") url = "/srch/selectPORSrchRsrchmanList.do";
+	if(no == "0006") url = "/srch/selectPORSrchFnctList.do";
+	if(no == "0007") url = "/srch/selectPORSrchSrvcList.do";
+	if(no == "0008") url = "/srch/selectPORSrchOrganList.do";
+	
+	document.searchForm.action = url;
+	document.searchForm.searchKeyword.value = $.trim(keyword);
+   	document.searchForm.submit();
+}
+
+function fn_myon_move(){
+	window.location.href = "/aiq/myon/insertBasisInfoForm.do";
+}
+
+
+function fn_detail(se, cn){
+	
+	if(se == "논문") url = "/srch/selectPORSrchArticle.do";
+	if(se == "특허") url = "/srch/selectPORSrchPatent.do";
+	if(se == "보고서") url = "/srch/selectPORSrchReport.do";
+	if(se == "동향") url = "/srch/selectPORSrchTrend.do";
+	if(se == "연구자") url = "/srch/selectPORSrchRsrchman.do";
+	if(se == "기능") url = "/srch/selectPORSrchFnct.do";
+	//[개발업무] 연구데이터 추가 - 2022.09.19
+	if(se == "연구데이터") url = "/srch/selectPORSrchRsrchData.do";
+	
+	var newWindow  = window.open("about:blank", "newWin");
+	if(newWindow){
+		url += "?cn=" + cn;
+		window.open(url, "newWin");
+	}
+}
+
+function setEmail(num){
+	if(num == 1){
+		var text = $('#domainOpt1').val();
+		if(text == "직접선택") text = "";
+		$('#toMailDomain').val(text);
+	}else if(num == 2){
+		var text = $('#domainOpt2').val();
+		if(text == "직접선택") text = "";
+		$('#fromMailDomain').val(text);
+	}
+}
+
+function fn_srchDetailMove() {
+	var no = $('#searchGubun option:selected').val();
+	var url = "thesis";
+	if(no == "0001") url = "thesis";
+	if(no == "0002") url = "patent";
+	if(no == "0003") url = "report";
+	if(no == "0004") url = "trends";
+	if(no == "0010") url = "image";
+	/*[운영업무]요청번호-SR-0009297, 작업자-이태현, 작업일-2021.02.24 상세검색 검색조건 유지*/
+	if($("#searchServiceForm").length){
+		$("#searchCondition").val(url);
+		$("#searchServiceForm").attr("action","/srch/searchPORSrchDetailForm.do");
+		$("#searchServiceForm").submit();
+	} else {
+		location.href = "/srch/searchPORSrchDetailForm.do?searchCondition=" + url;
+	}
+}
+
+function srchJournal(filed, val1, val2){
+	
+	document.searchForm.action = "/srch/selectPORSrchArticleList.do";
+	$("#searchForm").find("input[name='searchKeyword']").val("");
+	if(filed == "bibctrlno"){
+		$("#searchForm").append("<input type=\"hidden\" name=\"srchFlag\" value=\"detail\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dselect\" value=\"BC\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dsearch\" value=\""+val2+"\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dandor\" value=\"AND\">");
+		document.searchForm.submit();
+	}else if(filed == "volumename"){
+		$("#searchForm").append("<input type=\"hidden\" name=\"srchFlag\" value=\"detail\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dselect\" value=\"BC\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dsearch\" value=\""+val1+"\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dandor\" value=\"AND\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dselect\" value=\"VN\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dsearch\" value=\""+val2+"\">");
+		document.searchForm.submit();
+	}
+}
+
+function srchJournalNew(filed, dbt,  val1, val2){
+	
+	document.searchForm.action = "/srch/selectPORSrchArticleList.do";
+	$("#searchForm").find("input[name='searchKeyword']").val("");
+	if(filed == "bibctrlno"){
+		$("#searchForm").append("<input type=\"hidden\" name=\"srchFlag\" value=\"detail\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dselect\" value=\"BC\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dsearch\" value=\""+val2+"\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dandor\" value=\"AND\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dselect\" value=\"DB\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dsearch\" value=\""+dbt+"\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dandor\" value=\"AND\">");
+		document.searchForm.submit();
+	}else if(filed == "volumename"){
+		$("#searchForm").append("<input type=\"hidden\" name=\"srchFlag\" value=\"detail\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dselect\" value=\"BC\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dsearch\" value=\""+val1+"\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dandor\" value=\"AND\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dselect\" value=\"VN\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dsearch\" value=\""+val2+"\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dselect\" value=\"DB\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dsearch\" value=\""+dbt+"\">");
+		$("#searchForm").append("<input type=\"hidden\" name=\"dandor\" value=\"AND\">");
+		document.searchForm.submit();
+	}
+}
+
+function setRelateKwrdList(){
+	
+	if($(".sch_topcon .btn_report").length == 0){
+		$("#sch_topcon").css("padding-right","230px");
+	}
+	var searchKeyword = $("#searchKeyword").val();
+
+	/*[운영업무]요청번호-SR-0010830, 작업자-진승일, 작업일-2023.01.11*/
+	//이슈보고서에서 온 경우  검색어 디스플레이 안함
+	var html = "";
+	var isNosSearchFrmla = $("#isNosSearchFrmla").val();
+	if(typeof isNosSearchFrmla == "undefined" || isNosSearchFrmla == null || isNosSearchFrmla == ""){
+		isNosSearchFrmla = false;
+	}
+	if(!eval(isNosSearchFrmla)) {
+		html = "<span>▶ 검색어 : <span class=\"txt_blue\">\""+searchKeyword.escapeHtml()+"\"</span></span>";
+		$("#sch_topcon #searchKwd").prepend(html).show();
+	}
+	
+	html = "";
+	$.ajax({
+		url : "/srch/relateKwrdList.do",
+		dataType: 'json',
+		type:'post',
+		data: $("#searchServiceForm").serialize(),
+		success: function(data){
+			var relateKwrdList = data.relateKwrdList;
+			var relateLimitedKwrdList = data.relateLimitedKwrdList;
+			var relateKwrdListSize = relateKwrdList == null? 0:relateKwrdList.length;
+			var relateLimitedKwrdListSize = relateLimitedKwrdList == null? 0:relateLimitedKwrdList.length;
+			if(relateKwrdListSize == 0 && relateLimitedKwrdListSize == 0){
+				
+			}else{
+				if(relateKwrdListSize > 0){
+					html += "<p>▶ \""+searchKeyword+"\" 과(와) 함께 이용한 검색어 :";
+					html += "  <span class=\"txt_blue\">";
+					var tag = [];
+					$(relateKwrdList).each(function(index, item){
+						var limitCnt = 4;
+						if(relateKwrdListSize < limitCnt){
+							limitCnt = relateKwrdListSize;
+						}
+						if(index <= limitCnt){
+							tag.push("<a href=\"javascript:searchTag('"+item+"')\" class=\"txt_blue\">"+item+"</a>");
+						}
+					});
+					html += tag.join(", ");
+					html += "</span>";
+					html += "</p>";
+				}
+				if(relateLimitedKwrdListSize > 0){
+					html += "<p>▶ \""+searchKeyword+"\" 의 다른 이름 :";
+					html += "  <span class=\"txt_blue\">";
+					var tag = [];
+					$(relateLimitedKwrdList).each(function(index, item){
+						tag.push("<a href=\"javascript:searchTag('"+item+"')\" class=\"txt_blue\">"+item+"</a>");
+					});
+					html += tag.join(", ");
+					html += "</span>";
+					html += "</p>";
+					
+				}
+			}
+			if(html != ""){
+				$("#sch_topcon").append(html);
+			}
+		},
+		error: function( jqXhr, textStatus, errorThrown ){
+			console.log( errorThrown );
+		}
+	});
+}
+function setSelectedFilterInfo(){
+	var filterCnt = $(".filter_wrap .sch_filter>ul>li input[type='checkbox']:checked").length;
+	if(filterCnt > 0){
+		$('#filterBox').append("적용된 필터 : ");
+		$(".filter_wrap .sch_filter>ul>li").each(function(i, ele){
+			var filterSubCnt = $(this).find("input[type='checkbox']:checked").length;
+			if(filterSubCnt > 0){
+				var filterName = $(this).find("input[type='checkbox']:eq(0)").prop("name");
+				var filterGrp = filterName+'Grp';
+				var filterDiv = filterName+'Div';
+				$('#filterBox').append('<span class="r" id="'+filterGrp+'">'+$(this).find("h3").text()+'<div id="'+filterName+'Div" class="Pstyle2 hidden filter_applied2"></div></span>');
+				$('#'+filterDiv).append('<span>전체<button  type="button" onclick="removeFilterDv(\''+filterName+'\');">×</button></span>');
+				$(this).find("input[type='checkbox']:checked").each(function(index, data){
+					$('#'+filterDiv).append('<span>'+$(this).data('label')+'<button type="button" onclick="removeFilter(\''+filterName+'\', \''+$(this).val()+'\');">×</button></span>');	
+				});
+				$('#'+filterGrp).mouseenter(function(e) {
+					var divTop =$(this).position().top + 30;
+					var divLeft = $(this).position().left;
+					$('#'+filterDiv).css({"top": divTop,"left": divLeft,"position": "absolute"}).show();
+				}).mouseleave(function(){
+					$('#'+filterDiv).css("display", "none");
+				});
+			}
+		});
+	}
+}
+
+//필터 펼치리
+function fn_filterView(){
+	
+	$('.filter_wrap').toggle();
+}
+
+function searchFilter(){
+	fn_pageing(1);
+
+}
+
+function removeFilterDv(name){
+	$('.filter_wrap .sch_filter>ul>li input:checkbox[name=\"'+ name +'\"]').prop("checked",false);
+	fn_pageing(1);
+}
+
+function removeFilter(name, val){
+	$('.filter_wrap .sch_filter>ul>li input:checkbox[name=\"'+ name +'\"][value=\"'+ val +'\"]').prop("checked",false);
+	fn_pageing(1);
+}
+
+function removeFilterAll(){
+	/*var filterCnt = $(".filter_wrap .sch_filter>ul>li input[type='checkbox']:checked").length;
+	if(filterCnt == 0){
+		$.alert({
+			title: '알림',
+			content: '적용된 필터가 없습니다.'
+		});
+	}else{*/
+		$('.sch_filter input:hidden').val('');
+		$('#filterFlag').val('');
+		$('.filter_wrap .sch_filter>ul>li input:checkbox').prop("checked",false);
+		fn_pageing(1);
+//	}
+}
+
+
+function fn_pageing(pageNo){
+	document.searchServiceForm.pageIndex.value = pageNo;
+   	document.searchServiceForm.submit();
+}
+
+function fn_sort(){
+
+	if($('#sortby1 option:selected').val() == "_score" && $('#sortby2 option:selected').val() == "ASC"){
+		$.alert({
+			title: '알림',
+			content: '정확도 선택 시 내림차순만 가능합니다.'
+		});
+	}else{
+		fn_pageing(1);
+	}
+}
+
+function fn_filter(){
+	var count = $('.filter_wrap .sch_filter>ul>li input[name^="filter"]:checked').length;
+	if(count > 0){
+		$('#filterFlag').val("Y");
+	}else{
+		$('#filterFlag').val("N");
+	}
+	fn_pageing(1);
+}
+
+//세부구분 이동
+function fn_subSearch(val, cnt){
+
+//동향때문에 우선 주석. 나중에 풀 예정
+//	if(cnt > 0){
+		/*$(".filter_item input[type='checkbox']:checked").each(function() {
+			$(this).prop("checked", false)
+		});*/
+		document.searchServiceForm.saveLog.value = '1';
+		document.searchServiceForm.pageIndex.value = '1';
+		document.searchServiceForm.class2.value = val;
+		document.searchServiceForm.submit();
+//	}else{
+//		$.alert({
+//			title: '알림',
+//			content: '검색결과가 존재하지 않습니다.'
+//		});
+//	}
+}
+
+function exptInfoChange(){
+	if($('#exptInfo').val() == 'brief'){
+		$('#exptBrf').removeClass("hidden");
+		$('#exptDtl').addClass("hidden");
+	}else if($('#exptInfo').val() == 'detail'){
+		$('#exptBrf').addClass("hidden");
+		$('#exptDtl').removeClass("hidden");
+	}else if($('#exptInfo').val() == 'select'){
+		
+	}
+}
+
+function setKeyword(){
+	var srchFlag = $("#srchFlag").val();
+	var searchCondition = $("#searchCondition").val();
+	var html = "";
+	
+	if(srchFlag == "detail"){
+		var dselect = $("#searchServiceForm input[name='dselect']").map(function(){return this.value}).get();
+		var dsearch = $("#searchServiceForm input[name='dsearch']").map(function(){return this.value}).get();
+		var dandor = $("#searchServiceForm input[name='dandor']").map(function(){return this.value}).get();
+		var text = ""; 
+		for (i = 0; i < dsearch.length; i++) {
+			if(dsearch[i] != ""){
+				if(searchCondition == "patent"){
+					if(i > 0 && text != ""){
+						text += " "+dandor[i-1]+" ";
+					}
+					text += bChange(dselect[i]) + "=" +  dsearch[i];
+				}else if(searchCondition == "report"){
+					if(i > 0 && text != ""){
+						text += " "+dandor[i-1]+" ";
+					}
+					text += cChange(dselect[i]) + "=" +  dsearch[i];
+				}else if(searchCondition == "trends"){
+					if(i > 0 && text != ""){
+						text += " "+dandor[i-1]+" ";
+					}
+					text += cChange(dselect[i]) + "=" +  dsearch[i];
+				}else if(searchCondition == "thesis"){
+					col = aChange(dselect[i]);
+					if(col != ""){
+						if(i > 0 && text != ""){
+							text += " "+dandor[i-1]+" ";
+						}
+						text += aChange(dselect[i]) + "=" +  dsearch[i];
+					}
+				}else if(searchCondition == "image"){
+					if(i > 0 && text != ""){
+						text += " "+dandor[i-1]+" ";
+					}
+					text += eChange(dselect[i]) + "=" +  dsearch[i];
+				}
+			}
+		}
+		//NOS 검색식으로 검색할때 검색어 표시 처리 - 2022.09.06 dhkim
+		var isNosSearchFrmla = $("#isNosSearchFrmla").val();
+		if(typeof isNosSearchFrmla == "undefined" || isNosSearchFrmla == null || isNosSearchFrmla == ""){
+			isNosSearchFrmla = false;
+		}
+		if(eval(isNosSearchFrmla)){text = $("#searchKeyword").val()};
+
+		/*[운영업무]요청번호-SR-0010830, 작업자-진승일, 작업일-2023.01.11*/
+		//이슈보고서에서 온 경우  검색어 디스플레이 안함
+		if(!eval(isNosSearchFrmla)) {
+			//$('#sch_topcon').html("▶ 검색어 : <span class='txt_blue'>" + text + "</span>");
+			$('#sch_topcon #searchKwd').html("▶ 검색어 : <span class='txt_blue'>" + text.escapeHtml() + "</span>").show();
+		}
+		
+		var logKeyword = $("#logKeyword").val();
+		var cnt = 0;
+		
+		if(logKeyword != null || logKeyword != ""){
+			logKeyword = logKeyword.split("|");
+		}
+		
+		$.each(logKeyword, function (index, item) {
+			if(item.length != 0){
+				cnt++;
+				logKeyword = item;
+			}
+		})
+		
+		
+		if(html != ""){
+//			$("#sch_topcon").append(html);
+			
+		}
+		
+	}else{
+		/* 2021.08.23 저녁 장애발생, SO_COM_LOG Select 하는 부분 소요시간 오래 걸림, 주석처리 후 확인을 해야함*/
+		setRelateKwrdList();
+	}
+}
+
+//키워드 보고서 페이지 이동
+function goKeywordReport(keyWord){
+	
+	var url = "/srch/keyWordReport.do";
+//	if(keyWord == null || keyWord == ""){
+//		document.searchForm.action = url;
+//		document.searchForm.submit();
+//	}else{
+		document.searchServiceForm.action = url;
+		document.searchServiceForm.submit();
+//	}
+}
+
+
+function exportList(){
+	var len = $("input:checkbox[name='scrapChkBox']:checked").length;
+	if(len == 0) {
+		$.alert({
+			title: '알림',
+			content: '선택된 항목이 없습니다.'
+		});
+	}else{
+		$('#exportDiv').bPopup();
+	}
+	
+}
+function exportSrchList(){
+	
+	var exportType = $("input:radio[name=exportType]:checked").val(); //내보내기 구분
+	var type = $("input:radio[name=downType]:checked").val(); 
+	var type1 = $("input:radio[name=downType1]:checked").val();
+	var len = $("input:checkbox[name=scrapChkBox]:checked").length;
+	
+	if(len == 0 && exportType != "bigFile") {
+		$.alert({
+			title: '알림',
+			content: '선택된 항목이 없습니다.'
+		});
+	} else {
+		
+		var searchCondition = $("#searchCondition ").val();
+		var exptInfo = $('#exptInfo').val();
+		
+		$('#selectCns').empty();
+		$("input[name='scrapChkBox']:checked").each(function() {
+			$('#selectCns').append('<input type="hidden" name="selectCns" value="' + $(this).val() + '">');
+		});
+		$('#selectCns').append('<input type="hidden" name="exportFlag" id="exportFlag" value="'+exptInfo+'"/>');
+		
+		document.exportFile.target = "_blank";
+		if(exportType == "file"){
+			if(type == "txt"){
+				document.exportFile.action ="/srch/v2/exportListTxt.do";
+				document.exportFile.submit();	
+			} else if(type == "excel") {
+				document.exportFile.action ="/srch/v2/exportListExcel.do";
+				document.exportFile.submit();
+			} else if(type == "pias") {
+				document.exportFile.gubunCd.value = "pias";
+				document.exportFile.action ="/srch/v2/exportListExcel.do";
+				document.exportFile.submit();
+			} else if(type == "ris") {
+				document.exportFile.action ="/srch/v2/exportListRis.do";
+				document.exportFile.submit();
+			} else if(type == "ref") {
+				$.ajax({
+					url : "/srch/v2/exportListRef.do",
+					dataType: 'json',
+					type:'post',
+					data : $("#exportFile").serialize(),
+					success: function(data){
+						var result = data.result;
+						document.exportRWForm.ImportData.value = result;
+						document.exportRWForm.submit();
+					},
+					error: function( jqXhr, textStatus, errorThrown ){
+						console.log( errorThrown );
+					}
+				});
+			}
+		}else if(exportType == "print"){
+			var popOption = "width=1020px, height=1350px, resizable=yes, scrollbars=yes, status=no";
+			var winOpen = window.open("","exportPrint",popOption);
+			document.exportFile.action = "/srch/v2/exportListPrint.do";
+			document.exportFile.target = "exportPrint";
+			document.exportFile.submit();
+		}else if(exportType == "mail"){
+			
+			
+			//메일정보 셋팅
+			$('#fromMailId').val();
+			$('#fromMailDomain').val();
+			$('#toMailId').val();
+			$('#toMailDomain').val();
+			
+			var fromMail = "";	//보내는사람
+			var toMail = "";	//받는사람
+			
+			if($('#fromMailId').val() != "" && $('#fromMailDomain').val() != ""){
+				fromMail = $('#fromMailId').val() + "@" + $('#fromMailDomain').val();
+			}
+			
+			
+			if($('#toMailId').val() != "" && $('#toMailDomain').val() != ""){
+				toMail = $('#toMailId').val() + "@" + $('#toMailDomain').val();
+			}else{
+				$.alert({
+					title: '알림',
+					content: '받는사람 이메일주소는 필수 항목입니다.'
+				});
+				return;
+			}
+			
+			var mailTitle = $('#mailTitle').val();
+			var mailCont = $('#mailCont').val();
+			
+			$('#selectCns').append('<input type="hidden" name="fromEmail" value="'+fromMail+'"/>');
+			$('#selectCns').append('<input type="hidden" name="toMail" value="'+toMail+'"/>');
+			$('#selectCns').append('<input type="hidden" name="mailTitle" value="'+mailTitle+'"/>');
+			$('#selectCns').append('<input type="hidden" name="mailCont" value="'+mailCont+'"/>');
+			
+			$.ajax({
+				url : "/srch/v2/exportListMail.do",
+				dataType: 'json',
+				type:'post',
+				data : $("#exportFile").serialize(),
+				success: function(data){
+					
+					var result = data.result;
+					if(result == "Success"){
+						$.alert({
+							title: '알림',
+							content: '메일이 발송되었습니다.'
+						});
+					}else{
+						$.alert({
+							title: '알림',
+							content: '메일 발송에 실패하였습니다. 관리자에게 문의하세요'
+						});
+					}
+				},
+				error: function( jqXhr, textStatus, errorThrown ){
+					console.log( errorThrown );
+				}
+			});
+			
+		}else if(exportType == "bigFile"){
+			
+			
+			if($('#startIndex').val() == '' || $('#startIndex').val().length == 0){
+				$.alert({
+					title: '알림',
+					content: '시작 인덱스 값을 입력해 주십시오'
+				});
+				$('#startIndex').focus();
+				return;
+			}
+			if($('#endIndex').val() == '' || $('#endIndex').val().length == 0){
+				$.alert({
+					title: '알림',
+					content: '끝 인덱스 값을 입력해 주십시오'
+				});
+				$('#endIndex').focus();
+				return;
+			}
+			if(isNaN($('#startIndex').val())){
+				$.alert({
+					title: '알림',
+					content: '인덱스 값에는 숫자만 넣어 주십시오.'
+				});
+				$('#startIndex').val('');
+				$('#startIndex').focus();
+				return;
+			}
+			if(isNaN($('#endIndex').val())){
+				$.alert({
+					title: '알림',
+					content: '인덱스 값에는 숫자만 넣어 주십시오.'
+				});
+				$('#endIndex').val('');
+				$('#endIndex').focus();
+				return;
+			}
+			if($('#startIndex').val() <= 0){
+				$.alert({
+					title: '알림',
+					content: '인덱스 값에는 0보다 큰 숫자가 들어가야 합니다.'
+				});
+				$('#startIndex').focus();
+				return;
+			}
+			if($('#endIndex').val() <= 0){
+				$.alert({
+					title: '알림',
+					content: '인덱스 값에는 0보다 큰 숫자가 들어가야 합니다.'
+				});
+				$('#endIndex').focus();
+				return;
+			}
+			if($("#startIndex").val() > 10000){
+				$.alert({
+					title: '알림',
+					content: '인덱스 값에는 10000보다 작은 숫자가 들어가야 합니다.'
+				});
+				$('#startIndex').focus();
+				return;
+			}
+			if($("#endIndex").val() > 10000){
+				$.alert({
+					title: '알림',
+					content: '인덱스 값에는 10000보다 작은 숫자가 들어가야 합니다.'
+				});
+				$('#endIndex').focus();
+				return;
+			}
+			if($('#endIndex').val()-$('#startIndex').val() <= 0){
+				$.alert({
+					title: '알림',
+					content: '시작 인덱스 값이 끝 인덱스 값보다 크거나 같습니다.'
+				});
+				$('#startIndex').focus();
+				return;
+			}
+			if($('#endIndex').val()-$('#startIndex').val() > 10000){
+				$.alert({
+					title: '알림',
+					content: '1만건을 초과하였습니다.'
+				});
+				$('#endIndex').focus();
+				return;
+			}
+			
+			document.searchServiceForm.target = "_blank";
+			document.searchServiceForm.startIndex.value = $('#startIndex').val();
+			document.searchServiceForm.endIndex.value = $('#endIndex').val();
+			document.searchServiceForm.gubunCd.value = "bigFile";
+			
+			if(type1 == "txt"){
+				document.searchServiceForm.exportFlag.value = $('#exportFlag').val();
+				document.searchServiceForm.action ="/srch/v2/exportListTxt.do";
+				document.searchServiceForm.submit();	
+			} else if(type1 == "excel") {
+				document.searchServiceForm.exportFlag.value = $('#exportFlag').val();
+				document.searchServiceForm.action ="/srch/v2/exportListExcel.do";
+				document.searchServiceForm.submit();
+			}
+			document.searchServiceForm.target = "";
+			document.searchServiceForm.action = "";
+				
+		}
+	}
+	$('#exportDiv').bPopup().close();
+	$('.wrap-loading').addClass('hidden');
+}
+
+function fncToggleAllChart(){
+	if($("#chartArea").is(':visible')){
+		$("#chartArea").hide();
+		$("#btnCharToggle").text("분석결과 더보기");
+	}else{
+		$("#chartArea").show();
+		$("#btnCharToggle").text("분석결과 줄이기");
+		
+	}
+}
+function fncToggleChart(id){
+	if($("#"+id).is(':visible')){
+		$("#"+id).hide();
+		$("#"+id).closest("div.schlist_wrap").find("h3 button").text("+");
+	}else{
+		$("#"+id).show();
+		$("#"+id).closest("div.schlist_wrap").find("h3 button").text("-");
+	}
+}
+function fncGenerateChart(chartId, type){
+	if(type == "bar"){
+		var items = [];
+		var categories = [];
+		items.push('검색건수');
+		categories.push('x');
+		$("."+chartId).find("ul.chk_list li input[type='checkbox']").each(function (j, data){
+			if(j < 5){
+	        	items.push($(data).data("count"))
+	        	categories.push($(data).data("label"))
+			}else{
+				return;
+			}
+		});
+		c3.generate({
+		    bindto: '#'+chartId,
+		    data: {
+		          x: 'x',
+		          columns: [categories,items],
+		          type: 'bar',
+		          colors: {
+		        	  검색건수: '#67B7DC'
+		          },
+		        	  
+		        },
+		        axis: {
+		          x: {
+		            type: 'categorized',
+		            tick: {
+		                rotate: -45,
+//		                format: function (x) { return x }
+		                multiline: false
+		            },height:50
+		            	
+		          },
+		          y : {
+		              tick: {
+		                  format: d3.format(",")
+		              }
+		          }
+		        },
+		   legend: {
+		            show: false
+		        },
+	       grid: {
+	            y: {
+	                show: true
+	            }
+	        },
+		    size : {
+		    	width : 270,
+		    	height : 200
+		    }
+		});
+	}else{
+		var items = [];
+		$("."+chartId).find("ul.chk_list li input[type='checkbox']").each(function (j, data){
+			if(j < 5){
+	        	items.push([$(data).data("label"), $(data).data("count")])
+			}else{
+				return;
+			}
+		});
+		
+		c3.generate({
+		    bindto: '#'+chartId,
+		    data: {
+			  type : 'pie',
+			  columns: items
+		    },
+		    size : {
+		    	width : 270,
+		    	height : 200
+		    }
+		});
+	}
+}
+
+function setFilterChart(){
+	 $(".filter_wrap .sch_filter>ul>li").each(function(i, ele){
+			var id = "resultChart"+i;
+			$(ele).addClass(id);
+			var title = $(ele).find("h3").text();
+			
+     	var html = "<div class=\"schlist_wrap\">";
+     	html += "<h3>"+title+" <button type='button' class='btns  blue' onclick=\"fncToggleChart('"+id+"wrap')\" style='padding:5px 7px; position:absolute; right:5px;font-weight:bold'>-</button></h3>";
+     	html +="<div id=\""+id+"wrap\">";
+     	html +="<label><input type=\"radio\" name=\""+id+"\" onclick=\"fncGenerateChart('"+id+"', 'bar')\" checked>바차트</label>";
+     	html +="<label><input type=\"radio\" name=\""+id+"\" onclick=\"fncGenerateChart('"+id+"', 'pie')\">파이차트</label>";
+     	html +="<div style=\"height: 200px;\" id=\""+id+"\">";
+     	html +="</div>";
+     	html +="</div>";
+     	html +="</div>";
+     	$("#chartArea").append(html);
+     	fncGenerateChart(id, "bar");
+     });
+}
+
+function fncSelectLang(){
+	var selLang = $("#selLang").val();
+	$.getJSON( "/srch/selectMultiLangList.do?selLang="+selLang, function( data ) {
+		var html =  "<table class='tbl language'><caption>다국어</caption><colgroup><col><col><col><col><col></colgroup><tbody><tr>";
+		var items = [];
+		$.each( data, function( i, val ) {
+			if(selLang == 'hira' || selLang == 'kada'){
+				var char = "";
+				if(selLang == 'hira'){
+					char = val.hira;
+				}else{
+					char = val.kata;
+				}
+				if(i == 35){
+					html += "<td>&nbsp;</td><td>&nbsp;</td>";
+				}
+				html += "<td>";
+				html += "<a href=\"#\" onclick=\"fncSelectChar(\'"+char+"\');\">" + char +"</a></td>";
+
+				if (i == 61 || i == 62 || i == 64 || i == 65) {
+					html += "<td>&nbsp;</td>";
+				}
+				if (i == 72) {
+					html += "<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>";
+				}
+				// 한 줄에 5개씩, 35-작은 TSU,63-큰요,66-작은요,73-와오
+				if ((i < 35 && i != 0 && (i + 1) % 5 == 0) || i == 35 || i == 63 || i == 66 || i == 71 || i == 73
+						|| (i > 36 && i % 5 == 0 && i != 65 && i != 70)) {
+					html += "</tr><tr>";
+				}
+			}else{
+				html += "<td><a href=\"##\" onclick=\"fncSelectChar(\'"+val.code+"\');\">" + val.code + "</a></td>";
+
+				// 한 줄에 5개씩
+				if (i != 0 && (i + 1) % 5 == 0) {
+					html += "</tr><tr>";
+				}
+			}
+		});
+		
+		html += "</tr></tbody></table>";
+		$("#multiLan .lang_box").html(html);
+		
+	});
+}
+
+function fncSelectChar(val){
+	$('#charTxt').val($('#charTxt').val()+val);
+}
+function fncLangPopupClose(){
+	$("#multiLangDiv").bPopup().close();
+}
+//확인
+function fncLangSubmit(obj){
+	var charStr = $('#charTxt').val();
+	var $keyworkEle = $("#searchForm .search-box input[name='searchKeyword']")
+	$keyworkEle.val($keyworkEle.val()+charStr);
+	fncLangPopupClose();
+}
+
+function fncLangModalOpen(){
+	fncSelectLang();
+	$("#multiLangDiv").bPopup();
+}
+
+function fncRequestDDS(ddsUrl, isOrgdown){
+	$.ajax({
+		url : "/com/checkLogin.do",
+		dataType: 'json',		
+		success: function(data){
+			var result = data.result;
+			var result2 = data.socialTypeCode;
+			console.log(result);
+			console.log(result2);
+
+			if(result == "true"){
+				$.alert({
+					title: '알림',
+					content: '로그인이 필요한 서비스 입니다.(ScienceON ID만 가능)<br>로그인하시겠습니까?',
+					buttons: {
+						specialKey : {
+							text: '확인',
+							action: function(){
+								setCookie("ddsPopup", "Y", 1);
+								setCookie("ddsUrl", ddsUrl, 1);
+								setCookie("isOrgdown", isOrgdown, 1);
+								$('#searchServiceForm').attr('action',"/logn/PORLonForm.do");
+								$('#searchServiceForm').submit();
+							}
+						},
+						alphabet: {
+							text: '취소'
+						}
+					}
+				});
+			}else{
+				if(isOrgdown=="true"){
+					$.alert({
+						title: '알림',
+						content: '전자파일 원문(PDF원문)이 있는 논문입니다.<br>원문복사 신청을 계속 진행하시겠습니까?',
+						buttons: {
+							specialKey : {
+								text: '확인',
+								action: function(){
+									//[운영업무]요청번호-SR-0009319(추가), 작업자-이라혜, 작업일-2021.02.22
+									// 	0002 : NAVER
+									// 	0003 : KAKAO
+									// 	0004 : FACEBOOK
+									// 	0005 : NDSL
+									// 	0006 : KOSEN
+									//	0007 : NTIS
+									//	0008 : KAFE
+									//  0009 : KOAR
+									if (result2 != '0001') {//ScienceON
+										$.alert({
+											title: '알림',
+											content: '원문복사신청은 ScienceON ID로 로그인을 하셔야 이용 가능합니다. 연동로그인 회원인 경우, ScienceON ID로 회원가입 또는 로그인을 하셔서 원문복사신청 서비스를 이용해주시기 바랍니다.',
+											buttons: {
+												specialKey : {
+													text: '확인',
+												}
+											}
+										});
+									}else{
+										window.open(ddsUrl,'DDS Request','width=920px,height=800px,scrollbars=yes')
+									}
+								}
+							},
+							alphabet: {
+								text: '취소'
+							}
+						}
+					});					
+				}else{
+					//[운영업무]요청번호-SR-0009319(추가), 작업자-이라혜, 작업일-2021.02.22
+					if (result2 != '0001') {//ScienceON
+						$.alert({
+							title: '알림',
+							content: '원문복사신청은 ScienceON ID로 로그인을 하셔야 이용 가능합니다. 연동로그인 회원인 경우, ScienceON ID로 회원가입 또는 로그인을 하셔서 원문복사신청 서비스를 이용해주시기 바랍니다.',
+							buttons: {
+								specialKey : {
+									text: '확인',
+								}
+							}
+						});
+					}else{
+						window.open(ddsUrl,'DDS Request','width=920px,height=800px,scrollbars=yes');
+					}
+				}
+			}
+		},
+		error: function( jqXhr, textStatus, errorThrown ){
+			console.log( errorThrown );
+		}
+	});
+	
+}
+
+//특허 원문보기 
+function fn_showFullText(url,cn, dbt){
+	window.open(url, "FullTxt", "width=800, height=960, resizable=yes, scrollbars=no");
+	insertSystemLogInfo("linkYn=Y&useContCd=0002&linkURL="+ url + "&cn="+cn);
+	
+	
+	var cttcode2 = "";
+	if(dbt == "KUPA"){
+		cttcode2 = "PT02";
+	}else if(dbt == "KPTN"){
+		cttcode2 = "PT03";
+	}else if(dbt == "KUUM"){
+		cttcode2 = "PT04";
+	}else if(dbt == "KUMO"){
+		cttcode2 = "PT05";
+	}else if(dbt == "KPAT"){
+		cttcode2 = "PT06";
+	}else if(dbt == "USAP"){
+		cttcode2 = "PT08";
+	}else if(dbt == "USPA"){
+		cttcode2 = "PT09";
+	}else if(dbt == "JEPA" || dbt == "JPAT"){
+		cttcode2 = "PT10";
+	}else if(dbt == "EUPA"){
+		cttcode2 = "PT11";
+	}else if(dbt == "WOPA"){
+		cttcode2 = "PT12";
+	}
+	
+	var keyword = "";
+	if($("#detailForm input[name='logKeyword']").length > 0){ //검색 목록화면
+		keyword = $("#detailForm input[name='logKeyword']").val();
+	}else{ //상세 화면
+		keyword = $("#logForm input[name='keyword']").val();
+	}
+	
+	var _param =
+	{
+		"cn" : cn,
+		"cttCode1"	: "PT",
+		"cttCode2"	: cttcode2,
+		"svcCode1"	: "OV",
+		"svcCode2" 	: "OV03",
+		"keyword" 	: keyword,
+		"rUrl" 		: document.location.href
+	};
+	logSummton(_param)
+}
+
+
+function goElocation(dbt,cn,bibno,urlInfo) {
+
+	var dbt2 = cn.substring(0,4);
+	var svccode2 = "OV04";
+	var cttcode2 = "PP00";
+
+	if(dbt2 == "JAKO"){
+		cttcode2 = "PP01";
+	}else if(dbt2 == "JACH" || dbt2 == "JAJP" || dbt2 == "JAFO"){
+		cttcode2 = "PP02";
+	}else if(dbt2 == "DIKO"){
+		cttcode2 = "PP03";
+		svccode2 = "OV03";
+	}else if(dbt2 == "CFKO"){
+		cttcode2 = "PP04";
+	}else if(dbt2 == "CFFO"){
+		cttcode2 = "PP05";
+	}
+	
+	var _param =
+	{
+		"cn" : cn,
+		"cttCode1"	: "PP",
+		"cttCode2"	: cttcode2,
+		"svcCode1"	: "OV",
+		"svcCode2" 	: svccode2,
+		"journal" 	: bibno,
+		"rUrl" 		: document.location.href
+	};
+	logSummton(_param)
+	
+}
+
+function kciOrgDown(url, cn){
+	window.open(url);
+	insertSystemLogInfo("linkYn=Y&useContCd=0001&linkURL="+ url + "&cn="+cn);
+	goElocation("KART", cn, "", url)
+}
+
+// 보고서 원문 보기(pdf)
+function rptOrgDown(cn, dbt, rn){
+	
+	var url = "/commons/util/originalView.do";
+	url += "?cn=" + cn + "&dbt=" + dbt + "&rn=" + rn;
+	if($("#logForm > input[name='keyword']").val() != ""){
+		url += "&keyword="+encodeURIComponent($("#logForm > input[name='keyword']").val());
+	}
+	window.open(url, "newWin");
+	
+	insertSystemLogInfo("linkYn=Y&useContCd=0003&linkURL="+ url + "&cn="+cn);
+}
+
+/**2022-09-05, 함께 이용한 콘텐츠 모달창*/
+function fn_relevant(se,cn,cnt){
+	$('.wrap-loading').removeClass('hidden');
+	$.ajax({
+		url : "/srch/selectRelevantDataList.do",
+		data:  {'se':se, 'cn':cn, 'relevantCnt':cnt},
+		dataType: 'html',
+		type: 'post',
+		success: function(data){
+			//화면 뿌리기
+			$(".relevant-data-box .rd-con").html(data);
+			//펼치기
+//			$('.relevant-data-pop').fadeIn('fast');
+			$('#relevantData').bPopup();
+			//로딩 끝
+			$('.wrap-loading').addClass('hidden');
+			MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+		},
+		error: function( jqXhr, textStatus, errorThrown ){
+			console.log( errorThrown );
+		}
+	});
+}
+/**2022-09-15, 함께 이용한 콘텐츠 닫기*/
+function fn_relevantClose(){
+	//데이터가 없을 경우
+	$("li.relevantNoData").remove();
+	//현재 보여주는 함께 이용한 콘텐츠 삭제
+//	$("div.rd-con").children().remove();
+	//숨어있는 함께 이용한 콘텐츠
+	$("div.relevantBackDiv").children('div').remove();
+	//FrontDiv에서 숨어있는 함께 이용한 콘텐츠 삭제
+	$("div.relevantFrontDiv").children('div').remove();
+	//모달창 닫기
+	//$('.relevant-data-pop').fadeOut('fast');
+}
+/**2022-09-15, 함께 이용한 콘텐츠 다음 조회 버튼*/
+function fn_relevantNext(se,cn,cnt){
+	var originCnt = cnt;
+	var nextCnt = ++cnt;
+	//복사해서 append
+	$('div.PORSrchRelevantCnt'+originCnt).clone().appendTo('div.relevantBackDiv');
+	//FrontDiv안에 div가 있으면 삭제
+	if($("div.relevantFrontDiv").length){		
+		$("div.relevantFrontDiv").children('div').remove();
+	}
+	//목록 검색 함수
+	fn_relevant(se,cn,nextCnt);
+	//앞으로가기 활성화버튼 숨기기
+	$("a.relevantFrontBtn").hide();
+	//앞으로가기 비활성화버튼 보여주기
+	$("a.relevantFrontDisableBtn").show();
+}
+/**2022-09-15, 함께 이용한 콘텐츠 뒤로가기*/
+function fn_relevantBack(cnt){
+	var originCnt = cnt;
+	var backCnt = --cnt;
+	//현재꺼 frontdiv로
+	$('div.PORSrchRelevantCnt'+originCnt).clone().appendTo('div.relevantFrontDiv');
+	//현재꺼 삭제
+	$("div.rd-con").children().remove();
+	//전에꺼 옮기기
+	$('div.PORSrchRelevantCnt'+backCnt).appendTo('div.rd-con');
+	//전에꺼 옮기고 삭제
+	$("div.relevantBackDiv").children('div.'+backCnt).remove();
+	//앞으로가기 비활성화버튼 숨기기
+	$("a.relevantFrontDisableBtn").hide();
+	//앞으로가기 활성화버튼 보여주기
+	$("a.relevantFrontBtn").show();
+}
+
+/**2022-09-20, 함께 이용한 콘텐츠 앞으로가기*/
+function fn_relevantFront(cnt){
+	var originCnt = cnt;
+	var frontCnt = ++cnt;
+	//현재꺼 Backdiv로
+	$('div.PORSrchRelevantCnt'+originCnt).clone().appendTo('div.relevantBackDiv');
+	//현재꺼 삭제
+	$("div.rd-con").children().remove();
+	//FrontDiv에서 현재껄로 꺼내오기
+	$('div.PORSrchRelevantCnt'+frontCnt).appendTo('div.rd-con');
+	//FrontDiv에서 옮기고 삭제
+	$("div.relevantFrontDiv").children('div.'+frontCnt).remove();
+	//FrontDiv요소가 없으면 '앞으로가기'버튼 숨기기
+	if($("div.relevantFrontDiv div").length==0){
+		//앞으로가기 활성화버튼 숨기기
+		$("a.relevantFrontBtn").hide();
+		//앞으로가기 비활성화버튼 보여주기
+		$("a.relevantFrontDisableBtn").show();
+	}
+}
+function fn_kosenWhatis(){
+	
+	$.ajax({
+		url : "/com/checkLogin.do",
+		dataType: 'json',		
+		success: function(data){
+			var result = data.result;
+			if(result == "true"){ //로그인 안됨
+				url = "/logn/PORLonForm.do?returnUrl="+encodeURIComponent("/common/moveInfra.do?infra=kosen&url=https://kosen.kr/know/whatis/create");
+			}else{//로그인 됨
+				url = "/common/moveInfra.do?infra=kosen&url=https://kosen.kr/know/whatis/create";
+			}
+			window.open(url,"_blank");
+		},
+		error: function( jqXhr, textStatus, errorThrown ){
+			console.log( errorThrown );
+		}
+	});
+	
+	insertBhvrLog(
+			{
+				'bhvrNo': '222'
+				,'param' : document.querySelector("#detailForm input[name='logKeyword']").value
+				,'logNo' : document.querySelector("#logForm input[name='logNo']").value
+				,'urlNo' : document.querySelector("#logForm input[name='urlNo']").value
+			}
+		);
+	
+}�Q��zo      c��c��E6NPc��E   d    O^partitionKey=%28https%2Ckisti.re.kr%29,:https://scienceon.kisti.re.kr/js/common-srch.js?v=20221215 necko:classified 1 strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 OK
+Date: Wed, 01 Feb 2023 08:02:57 GMT
+Content-Type: application/javascript
+Content-Length: 94554
+Strict-Transport-Security: max-age=63072000; includeSubdomains;
+Last-Modified: Wed, 11 Jan 2023 08:10:10 GMT
+ETag: "1715a-5f1f8877adeaa"
+Accept-Ranges: bytes
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+ original-response-headers Date: Wed, 01 Feb 2023 08:02:57 GMT
+Content-Type: application/javascript
+Content-Length: 94554
+Connection: keep-alive
+Strict-Transport-Security: max-age=63072000; includeSubdomains;
+Last-Modified: Wed, 11 Jan 2023 08:10:10 GMT
+ETag: "1715a-5f1f8877adeaa"
+Accept-Ranges: bytes
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+ ctid 2 uncompressed-len 0 net-response-time-onstart 291 net-response-time-onstop 305  qZ

@@ -1,0 +1,850 @@
+<script type="text/template" id="sidebar-template">
+	<!-- 일정쓰기 | 할일쓰기 -->
+	<div class="mc-btn_workset">
+		<a href="#compose-schedule" class="mc-btn_quick"><span><%= i18n.composeSchedule %></span></a>
+		<a href="#compose-todo" class="mc-btn_import"><span><%= i18n.composeTodo %></span></a>
+	</div>
+	<div class="mc-svc_menu_area mcScrl">
+		<div id="" class="mc-list_menu">
+			<div id="calendarPicker"> </div>
+		</div>
+		<div class="mc-section_myMail mcal">
+			 <h3 class="mc-lft_mTit">
+    				<!-- 내 캘린더 -->
+				<span id="showAll"><a href="calendar/calendars/all"><%= i18n.showAllCalendar  %></a></span>
+				<!-- 설정하기 -->
+			</h3>
+		</div>
+		<!-- 내 캘린더 -->
+		<div class="mc-section_myMail">
+			<h3 class="mc-lft_mTit">
+				<!-- 내 캘린더 -->
+				<span><%= i18n.myCalendar  %></span>
+				<!-- 설정하기 -->
+				<!--
+				<a href="#settings/calendar" class="mc-btn_setup" title="<%= i18n.settings %>">
+					<span><%= i18n.settings %></span>
+				</a>
+				-->
+				<!-- 내 편지함 추가 -->
+				<a href="#" class="mc-btn_add" title="<%= i18n.add %>">
+					<span><%= i18n.add %></span>
+				</a>
+				<a href="#" class="mc-btn_fd_up" onclick="$('.mc-section_myMail .mc-list_menu').toggle().is(':visible') ? $('.mc-section_myMail .mc-lft_mTit').removeClass('mc-lft_mTit_active') : $('.mc-section_myMail .mc-lft_mTit').addClass('mc-lft_mTit_active'); return false;">
+					<span><%= i18n.fold %>/<%= i18n.unfold %></span>
+				</a>
+			</h3>
+			<div class="mc-list_menu mcScrl">
+				<!-- 내 캘린더 목록 (#calendar-item-template) -->
+			</div>
+		</div>
+
+		<!-- 다른 캘린더 -->
+		<div class="mc-section_etcMail">
+			<h3 class="mc-lft_mTit">
+				<!-- 다른 캘린더 -->
+				<span><%= i18n.otherCalendar  %></span>
+				<!-- 설정하기 -->
+<!--
+				<a href="#settings/calendar" class="mc-btn_setup" title="<%= i18n.settings %>">
+					<span><%= i18n.settings %></span>
+				</a>
+-->
+				<a href="#" class="mc-btn_fd_up" onclick="$('.mc-section_etcMail .mc-list_menu').toggle().is(':visible') ? $('.mc-section_etcMail .mc-lft_mTit').removeClass('mc-lft_mTit_active') : $('.mc-section_etcMail .mc-lft_mTit').addClass('mc-lft_mTit_active'); return false;">
+					<span><%= i18n.fold %>/<%= i18n.unfold %></span>
+				</a>
+			</h3>
+			<div class="mc-list_menu mcScrl">
+				<!-- 다른 캘린더 목록 (#calendar-item-template) -->
+			</div>
+		</div>
+
+	</div>
+</script>
+<script type="text/template" id="calendar-item-template">
+	<div class="reverse-area">
+		<span class="item_wrap" style="background-image:url('')">
+			<ul class="color_list">
+					<li <%=(calendar.display===1) ? "class=selected" : ""%>>
+						<input name="calendarColor" type="radio" value="<%=calendar.color%>" class="input_rdo" id="calendarColor_<%=i18n.color[calendar.color].bgColor%>" >
+						<label class="cl_box cc_<%=i18n.color[calendar.color].bgColor%>" for="calendarColor_<%=i18n.color[calendar.color].bgColor%>"><span class="blind"><%=i18n.color[calendar.color].bgColor%></span></label>
+						<p class="mc-folder_name" style="display:none;">
+							<input type="text">
+						</p>
+						<a href="#calendar/<%= calendar.id %>/toggle" class="mc-folder_name" style="padding-left:10px;">
+							<%= calendar.name %>
+						</a>
+						<a href="#" class="mc-btn_modify">
+							<span><%= i18n.modify %></span>
+						</a>
+					</li>
+			</ul>
+		</span>
+	</div>
+</script>
+
+<script type="text/template" id="calendar-contextmenu-template">
+
+<div class="calendar_menu_layer">
+	  <h4 class="_calendar_name"><span><%=calendar.name%><span></h4>
+			<ul class="action_list">
+				<li class="_write_schedule" id=onlyDisplay><a href="#"><%=i18n.contextMenu.onlyDisplay%></a></li>
+<% if (calendar.kind == 4 || calendar.sharee) { %>
+				<li class="_calendar_detail" id=renameCalendar><a href="#"><%=i18n.contextMenu.renameCalendar%></a></li>
+<% } %>
+<% if (calendar.shared != null) { %>
+				<li class="_export_calendar" id=thisCompose><a href="#calendars/"><%=i18n.contextMenu.thisCompose%></a></li>
+	<% if (calendar.kind == 4) { %>
+				<li class="_calendar_detail" id=shareCalendar><a href="#"><%=i18n.contextMenu.shareCalendar%></a></li>
+	<% } %>
+<% } %>
+<% if (calendar.kind === 4) { %>
+				<li class="_calendar_detail" id=removeCalendar><a href="#"><%=i18n.contextMenu.removeCalendar%></a></li>
+<% } %>
+			</ul>
+			<h5 class="blind"></h5>
+			<ul class="color_list">
+			<%
+				var colorArray = _.sortBy(i18n.color, function(color) {
+    				return color.sort;
+					});
+
+				$.each(colorArray, function(i, color) {
+			%>
+					<li <%=(calendar.color===i) ? "class=selected" : ""%>>
+						<input name="colorLabel" type="radio" value="<%=color.bgColor%>" class="input_rdo" id="color_<%=color.bgColor%>" >
+						<label class="cl_box cc_<%=color.bgColor%>" for="color_<%=color.bgColor%>"><span class="blind"><%=color.bgColor%></span></label>
+					</li>
+			<%
+				});
+			%>
+			</ul>
+	</div>
+
+</script>
+
+<script type="text/template" id="calendar-layout-template">
+	<!-- FIXED AREA -->
+	<div class="mc-cont_fix_area unselectable">
+		<!-- CONTENT HEAD -->
+		<div class="mc-content_header">
+				<!-- #calendar-header-template -->
+				<div class="mc-headFolder" id="calendarHeadDiv" style="display:">
+				</div>			
+				<!-- //#calendar-header-template -->
+				<!-- #compose-header-template -->
+				<div class="mc-headFolder" id="writeHeadDiv" style="display:none">
+				</div>
+				<!-- //#compose-header-template -->
+				<!-- #shareSetting-header-template -->
+				<div class="mc-headFolder" id="shareSettingHeadDiv" style="display:none">
+				</div>
+				<!-- //#shareSetting-header-template -->
+				<!-- #simple-search-template -->
+				<div id="searchInputDiv" style="display:inline;">
+				</div>
+		</div>
+
+		<!-- WRITE #compose-toolbar-template -->
+		<div class="mc-actionArea" id="writeBtnMenu" style="display:none">
+		</div>
+		<!-- //WRITE -->
+
+		<!-- SHARE #shareSetting-toolbar-template -->
+		<div class="mc-actionArea" id="shareSettingBtnMenu" style="display:none">
+		</div>
+		<!-- //SHARE -->
+
+	</div>
+	<!-- //FIXED AREA -->
+
+	<!-- FLEXIBLE AREA -->
+		
+	<!-- 컨텐츠 레이어 -->
+	<!-- // 컨텐츠 레이어 -->
+	<div class="mc-list_normal" id="cont_flex_area">
+
+		<div id="calendarContent"></div>
+
+		<!-- CALENDAR WRITE #compose-calendar-template -->
+		<div class="mc-writeWrap" id="writeWrap" style="display:none">
+		</div>
+		<!-- //CALENDAR WRITE -->
+		<!-- CALENDAR SHARE #share-calendar-template -->
+		<div class="mc-writeWrap" id="shareSettingWrap" style="display:none">
+		</div>
+		<!-- //CALENDAR SHARE -->
+	</div>
+	<!-- // FLEXIBLE AREA -->
+
+	<!-- setting-share-calendar -->
+	<div class="add_layertbl pmaddr setting-share-calendar" style="display:none">
+		<!-- #calendar-org-settings-layout-template -->
+	</div>
+	<!-- // setting-share-calendar -->
+</script>
+<script type="text/template" id="calendar-content-template">
+	<div id="fullCalendar"></div>
+</script>
+<script type="text/template" id="calendar-header-template">
+	<strong class="mc-folderName">
+		<%= i18n.calendar %>
+	</strong>
+</script>
+<script type="text/template" id="simple-search-template">
+	<!-- SIMPLE SEARCH -->
+	<fieldset class="mc-msearch">
+		<input name="" type="text" class="mc-search">
+		<input name="" type="button" class="mc-search_btn">
+	</fieldset>
+	<!-- //SIMPLE SEARCH -->
+</script>
+<script type="text/template" id="compose-header-template">
+	<strong class="mc-folderName">
+		<%= i18n.composeSchedule %>
+	</strong>
+</script>
+<script type="text/template" id="compose-toolbar-template">
+	<div class="mc-buttonSet">
+		<button type="button" class="b save-schedule"><%=i18n.compose.save%></button>
+		<button type="button" class="b cancel-schedule"><%=i18n.compose.cancle%></button>
+	</div>
+</script>
+<script type="text/template" id="compose-schedule-template">
+	<form name="schedule_wirte_form">
+		<fieldset>
+			<legend><%= i18n.compose %></legend>
+			<div class="mc-divWrite">
+				<!-- MAIL WRITE ITEM -->
+				<table class="mc-mailWriteItem" summary="<%= i18n.composeSchedule %>">
+					<colgroup>
+						<col class="item">
+						<col class="opt">
+					</colgroup>
+					<tbody>
+						<tr class="nbdr" id="calendarArea">
+							<th class="mc-txtTit">
+								<label class="tit_cell" for="subject"><%= i18n.compose.calendar %></label>
+							</th>
+							<td>
+								<div class="mc-title_wrap">
+									<select id=selectCalendar name=selectCalendar>
+									<%	
+										var i = 0;
+										_.each(calendarCollection, function(calendar) {
+									%>
+										<option value="<%=calendar.id%>" data-color="<%=i18n.color[calendar.color].bgColor%>" text-color="<%=i18n.color[calendar.color].textColor%>" <%=(i === 0) ? "selected" : ""%> ><%=calendar.name%></option>
+									<%
+											i++;
+										});
+									%>
+									</select>
+								</div>
+							</td>
+						</tr>
+						<tr class="nbdr">
+							<th class="mc-txtTit">
+								<label class="tit_cell" for="subject"><%= i18n.compose.title %></label>
+							</th>
+							<td>
+								<div class="mc-title_wrap">
+									<select id="selectCategory" name="selectCategory" style="width:85px">
+							
+									<%	
+										$.each(i18n.category, function(i, category) {
+									%>
+										<option value="<%=i%>"><%=category%></option>
+									<%
+										});
+									%>
+									</select>
+									<input name="title" class="ipt_text" style="width: 406px;" type="text" value=""/>
+								</div>
+							</td>
+						</tr>
+						<tr class="enbdr">
+							<th class="mc-txtTit">
+								<label class="tit_cell" for="subject"><%= i18n.compose.date %></label>
+							</th>
+<%
+	function makeTime() {
+		var html = "";
+		for(i = 0; i < 24; i++) {
+			if(i < 10) i =  "0" + i;
+			var time = i + ":00";
+			html += "<option value="+time+">";
+			html += time; 
+			html += "</option>";
+			if(i != 24) {
+				var time = i + ":30";
+				html += "<option value="+time+">";
+				html += time;
+				html += "</option>";
+			}
+		}
+		return html;
+	}
+%>
+							<td>
+								<div class="mc-title_wrap">
+									<input name="start" class="ipt_text" style="width: 80px;position: relative; z-index: 100000;" type="text" value=""/>
+									<select id="selectStartTime" name="selectStartTime" style="width:85px">
+										<%=makeTime()%>
+									</select>
+									-
+									<input name="end" class="ipt_text" style="width: 80px;position: relative; z-index: 100000;" type="text" value=""/>
+									<select id="selectEndTime" name="selectEndTime" style="width:85px">
+										<%=makeTime()%>
+									</select> 
+									<br/>
+									<div class="pdt">
+										<input type="checkbox" id="allDay" name="allDay"> <label for="allDay"><%= i18n.compose.allDay %></label>&nbsp;&nbsp;
+										<!--
+										<input type="checkbox" id="repeat" name="repeat"><label for="repeat"><%= i18n.compose.repeat %></label>
+										-->
+										<span id="repeatArea" style="display:none">
+											&nbsp;<input type="radio" name="repeatTime" id="repeatTime1" value=1><label for="repeatTime1"><%= i18n.repeat.everyDay %></label>
+											&nbsp;<input type="radio" name="repeatTime" id="repeatTime2" value=2><label for="repeatTime2"><%= i18n.repeat.everyWeek %></label>
+											&nbsp;<input type="radio" name="repeatTime" id="repeatTime3" value=3><label for="repeatTime3"><%= i18n.repeat.everyMonth %></label>
+											&nbsp;<input type="radio" name="repeatTime" id="repeatTime4" value=4><label for="repeatTime4"><%= i18n.repeat.everyYear %></label>
+										</span>
+									</div>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th class="mc-txtTit">
+								<label class="tit_cell" for="subject"><%= i18n.compose.description %></label>
+							</th>
+							<td>
+								<div class="mc-title_wrap">
+									<textarea name="description" id="description" style="width:472px;height:180px;"></textarea>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<th class="mc-txtTit">
+								<label class="tit_cell" for="subject"><%= i18n.compose.alram %></label>
+							</th>
+							<td>
+								<div class="mc-title_wrap">
+									<select name="SCHEDULE_ALAM" id="SCHEDULE_ALAM" style="width:174px;">
+									<%	$.each(i18n.alram, function(i, alram) {
+										
+									%>
+										<option value="<%=i%>"><%=alram%></option>
+									<%
+										});
+									%>
+									</select>
+									<input type="checkbox" id="mail" name="mail"><label for="mail"><%= i18n.compose.mail %></label>&nbsp;&nbsp;
+									<!--
+									<input type="checkbox" id="sms" name="sms"><label for="sms"><%= i18n.compose.sms %></label>
+									-->
+<!--
+기능 보류
+ <%= i18n.compose.remove %>
+									<br/>
+									<div class="mc-buttonSet">
+										<button type="button" class="b save-schedule"><%=i18n.compose.addAlram%></button>
+									</div>
+-->
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<!-- //MAIL WRITE ITEM -->
+			</div>
+		</fieldset>
+	</form>
+</script>
+<script type="text/template" id="compose-simple-template">
+<%
+	var printDate = startDate + ' ~ '+ endDate;  
+	if(allDay == 1) {
+		var start = $.fullCalendar.moment(startDate).format('YYYY-MM-DD');
+		var end = $.fullCalendar.moment(endDate).format('YYYY-MM-DD');
+		if(start === end) {
+			printDate = start;
+		} else {
+			printDate = start + ' ~ ' + end;
+		}
+		printDate += ' ' + i18n.compose.allDay;
+	} else {
+		var start = $.fullCalendar.moment(startDate).format('YYYY-MM-DD HH:mm');
+		var end = $.fullCalendar.moment(endDate).format('YYYY-MM-DD HH:mm');
+		printDate = start + ' ~ ' + end;
+	}
+
+
+%>
+<div class="ad_layer" id="compose_simple_layer" style="left: 760px; top: 147px; width: 400px; z-index: 3999;">
+	<div class="adl_header clearfix">
+		<h4><%= i18n.composeSchedule %></h4>
+		<div class="close_bt">
+			<span class="ic_main ic_cancle"><span class="blind"><%= i18n.close %></span></span>
+		</div>
+	</div>
+	<div class="adl_contents">
+	  <div class="adl_bd">
+			<dl class="ly_quick_lst ">
+				<dt><%= i18n.compose.date %></dt>
+				<dd>
+					<span><%-printDate%></span>
+					<input name="startDate" type="hidden" value="<%=startDate%>">
+					<input name="endDate" type="hidden" value="<%=endDate%>">
+				</dd>
+			<dl>
+		</div>
+		<div class="schd_ipt">
+			<select id="selectCategory" name="selectCategory" style="width:85px">
+			<%	
+				$.each(i18n.category, function(i, category) {
+			%>
+				<option value="<%=i%>"><%=category%></option>
+			<%
+				});
+			%>
+			</select>
+			<select id=selectCalendar name=selectCalendar>
+				<%	
+					var i = 0;
+					_.each(calendarCollection, function(calendar) {
+				%>
+					<option value="<%=calendar.id%>" data-color="<%=i18n.color[calendar.color].bgColor%>" text-color="<%=i18n.color[calendar.color].textColor%>" <%=(i === 0) ? "selected" : ""%> ><%=calendar.name%></option>
+				<%
+						i++;
+					});
+				%>
+			</select>
+			<input name="title" class="ipt_text" style="width: 352px;" type="text" placeholder="<%= i18n.compose.title %>"/>
+		  	<textarea name="description" id="description" style="width:352px; height:120px" placeholder="<%= i18n.compose.descPlaceholder %>"></textarea>
+		</div>
+	</div>
+	<div class="adl_footer">
+		<div class="ad_btn_area">
+			<button type="button" class="layer_save" title="<%= i18n.regist %>" id="registLayerBtn"><%= i18n.regist %></button>
+			<button type="button" class="layer_save" title="<%= i18n.registDetail %>" id="registDetailLayerBtn"><%= i18n.registDetail %></button>
+			<button type="button" class="layer_cancel" title="<%= i18n.cancel %>" id="closeLayerBtn" ><%= i18n.cancel %></button>
+		</div>
+	</div>
+</div>
+</script>
+<script type="text/template" id="schedule-detail-template">
+<%
+	var calendarModel;
+	switch (schedule.SCHEDULE_SHARE) {
+    	case 0:
+        	if(schedule.calendarId |schedule.calendarId === 0) {
+            	calendarModel = calendarCollection.findModel('id', schedule.calendarId);
+               	break;
+			} 
+        case 1:
+        case 2:
+        	calendarModel = calendarCollection.findModel('kind', schedule.SCHEDULE_SHARE);
+        	break;
+         case 3:
+         case 4:
+         default :
+         	calendarModel = calendarCollection.findModel('id', schedule.calendarId);
+	}
+    if(!calendarModel)	{
+    	calendarModel = calendarShareCollection.findModel('calendarId', schedule.calendarId); 
+	} 
+
+	var start = schedule.SCHEDULE_SDATE;
+	var end = schedule.SCHEDULE_EDATE;
+	var printDate = start + ' ~ '+ end;  
+	if(schedule.SCHEDULE_DAYLY == 1) {
+		start = $.fullCalendar.moment(start).format('YYYY-MM-DD');
+		end = $.fullCalendar.moment(end).format('YYYY-MM-DD');
+		if(start === end) {
+			printDate = start;
+		} else {
+			printDate = start + ' ~ ' + end;
+		}
+	} else {
+		start = $.fullCalendar.moment(start).format('YYYY-MM-DD HH:mm');
+		end = $.fullCalendar.moment(end).format('YYYY-MM-DD HH:mm');
+		printDate = start + ' ~ ' + end;
+	}
+
+	var alram = i18n.alram[schedule.SCHEDULE_ALAM];
+	var alramWay;
+	if(schedule.SCHEDULE_ALAM_WAY === 1) {
+		alramWay = i18n.scheduleDetail.mail;
+	} else if(schedule.SCHEDULE_ALAM_WAY === 2) {
+		alramWay = i18n.scheduleDetail.sms;
+    } else if(schedule.SCHEDULE_ALAM_WAY === 3) {
+		alramWay = i18n.scheduleDetail.mail + ' ' +i18n.scheduleDetail.sms;
+    }
+
+	var printRepeat = '';
+	switch (schedule.SCHEDULE_REPEAT) {
+		case 1 : // everyDay
+			printRepeat = i18n.repeat.everyDay+' ' +i18n.scheduleDetail.repeat;
+			break;
+		case 2 : // everyWeek
+			printRepeat = i18n.repeat.everyWeek+' ' +i18n.scheduleDetail.repeat;
+			break;
+		case 3 : // everyMoneth
+			printRepeat = i18n.repeat.everyMonth+' ' +i18n.scheduleDetail.repeat;
+			break;
+        case 4 : // everyYear
+			printRepeat = i18n.repeat.everyYear+' ' +i18n.scheduleDetail.repeat;
+			break;
+		default :
+			printRepeat = '';	 	
+			break;
+	}
+
+%>
+<div class="ad_layer" id="schedule_detail_layer" style="left: 760px; top: 147px; width: 400px; z-index: 3999;">
+	<div class="adl_header clearfix">
+		<h4 class="schedule_title">
+			<span title="<%=calendarModel.get('name')%>" class="calen_bar cc_<%=i18n.color[calendarModel.get('color')].bgColor%>">
+				<span class="blind"><%=i18n.color[calendarModel.get('color')].bgColor%></span>
+			</span>
+			<a title="test4" href="#" onclick="return false">
+			<%
+				if (schedule.SCHEDULE_TYPE != 'none') {
+			%>
+					<strong>[<%-i18n.category[schedule.SCHEDULE_TYPE]%>]</strong>
+			<%
+				}
+			%>
+				<%-schedule.SCHEDULE_TITLE%>
+			</a>
+		</h4>
+		<div class="close_bt">
+			<span class="ic_main ic_cancle"><span class="blind"><%= i18n.close %></span></span>
+		</div>
+	</div>
+	<div class="adl_contents">
+		<dl class="ly_quick_lst ">
+		  <dt><%= i18n.scheduleDetail.wirter %></dt>
+			<dd><%=schedule.USERS_NAME%> (<%=schedule.USERS_IDX%>)</dd>
+			<dt><%= i18n.scheduleDetail.date %></dt>
+			<dd><span><%=printDate%> <%=schedule.SCHEDULE_DAYLY == 1 ? i18n.scheduleDetail.allDay : '' %> <%=printRepeat%></span></dd>
+			<dt><%= i18n.scheduleDetail.desc %></dt>
+			<dd class="txt_area">
+			  <div>
+				<pre><%-schedule.SCHEDULE_STMT%></pre>
+				</div>
+			</dd>
+			<dt><%= i18n.scheduleDetail.alram %></dt>
+			<dd><%=alram%> <%=alramWay%></dd>
+		<dl>
+	</div>
+	<div class="adl_footer">
+		<div class="ad_btn_area">
+			<button type="button" class="layer_save" title="<%= i18n.modify %>" id="modifyLayerBtn"><%= i18n.modify %></button>
+			<button type="button" class="layer_remove" title="<%= i18n.remove %>" id="removeLayerBtn" ><%= i18n.remove %></button>
+			<button type="button" class="layer_cancel" title="<%= i18n.close %>" id="closeLayerBtn" ><%= i18n.close %></button>
+		</div>
+	</div>
+</div>
+
+</script>
+<script type="text/template" id="shareSetting-header-template">
+	<strong class="mc-folderName">
+		<%= i18n.shareSetting %>
+	</strong>
+</script>
+<script type="text/template" id="shareSetting-toolbar-template">
+	<div class="mc-buttonSet">
+		<button type="button" class="b save-share"><%=i18n.share.save%></button>
+		<button type="button" class="b cancel-share"><%=i18n.share.cancel%></button>
+	</div>
+</script>
+<script type="text/template" id="shareSetting-content-template">
+	<form name="calendar_share_form">
+			<fieldset>
+				<legend><%= i18n.shareSetting %></legend>
+				<div class="mc-divWrite">
+					<table class="mc-mailWriteItem" summary="<%= i18n.shareSetting %>">
+						<colgroup>
+							<col class="item2">
+							<col class="opt">
+						</colgroup>
+						<tbody>
+							<tr >
+								<th class="mc-txtTit">
+									<label class="tit_cell" for="subject"><%= i18n.compose.calendar %></label>
+								</th>
+								<td>
+									<div class="mc-title_wrap">
+										<span class="calen_bar cc_<%=i18n.color[calendar.color].bgColor%>"><span class="blind"></span></span>
+										<span class="schedule_tit" href="#"><%=calendar.name%></span>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<th class="mc-txtTit">
+									<label class="tit_cell" for="subject"><%= i18n.shareSetting %></label>
+								</th>
+								<td>
+									<div class="mc-title_wrap">
+										<input name="shared" id="shared1" type="radio" value=0 <%=calendar.shared === 0 ? 'checked' : ''%>> <label for="shared1"><%= i18n.share.only %></label>&nbsp;&nbsp;
+										<input name="shared" id="shared2" type="radio" value=1 <%=calendar.shared === 1 ? 'checked' : ''%>> <label for="shared2"><%= i18n.share.shared %></label><br>
+										<span class="sment"><%=i18n.share.desc%></span>
+										<div class="in_addBox">
+											<input name="share_id" class="ipt_text" type="text" placeholder="<%=i18n.share.example%>" value="" style="width:321px">
+									  		<button class="add-share" type="button"><img class="buAdd" src="img/b.gif"><%=i18n.share.add%></button>
+											<button class="remove-share" type="button"><img class="buDel" src="img/b.gif"><%=i18n.share.remove%></button>
+											<button class="org-share" type="button"><%=i18n.share.org%></button>
+										</div>
+										<!-- #SHARE LIST ITEM -->
+										<div class="addr_lst">
+											<ul>
+<% 
+	shareCollection.forEach(function(share) { 
+%>
+												<li><input name="share_user_id" type="checkbox" value="<%=share.get('sharee')%>">"<%=share.get('userName')%>" &lt;<%=share.get('sharee')%>&gt;</li>
+<% }); %>
+											</ul>
+										</div>
+										<!-- //#SHARE LIST ITEM -->
+									</div>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</fieldset>
+		</form>
+</script>
+<script type="text/template" id="calendar-share-setting-org-layout-template">
+	<div class="layer_header calendar-sharing-header">
+		<!-- #calendar-org-header-template -->
+	</div>
+	<div id="container" class="layer_content">
+		<div class="content_wrap">
+			<!-- 그룹+조직도 리스트 -->
+			<div class="scr_area">
+				<div class="tree_group">
+					<!-- ORG TREE -->
+					<fieldset class="mc-orgTree" style="height:100%">
+						<legend>조직도</legend>
+						<div class="treeWrapping">
+							<!-- #calendar-org-root-template -->
+						</div>
+					</fieldset>
+					<!-- //ORG TREE -->
+				</div>
+			</div>
+			<!-- // 그룹+조직도 리스트 -->
+			<!-- 선택리스트 -->
+			<div class="list">
+				<div class="search_bar calendar-sharing-search">
+					<!-- #calendar-org-settings-search-template -->
+					<!-- [D] 검색결과시 노출 -->
+				</div>
+				<div class="check_all_form">
+					<input type="checkbox" name="all_check" id="mbox-sharing-all-user"/>
+					<label for="mbox-sharing-all-user"><%= i18n.shareSettings.selectAll %></label>
+				</div>
+				<div class="addr_list calendar-org-users">
+					<!-- #calendar-org-user-list-template -->
+				</div>
+				<div class="page_ctrl">
+					<!-- #calendar-org-settings-pagination-template -->
+				</div>
+				<div class="btn_ctrl">
+					<button type="button" class="btn_add to"><span><%= i18n.shareSettings.addRecipients %></span></button>
+				</div>
+			</div>
+			<!-- // 선택리스트 -->
+			<!-- 받는이 리스트 -->
+			<div class="toitem">
+				<div class="field_to">
+					<h3><%= i18n.shareSettings.shareRecipients %>
+						<!--<em class="cnt org-group-recipients-count">0</em>-->
+					</h3>
+
+					<div class="addr_list calendar-sharee-users">
+						<!-- #mbox-org-settings-user-list-template  -->
+					</div>
+					<div class="btn_ctrl">
+						<button type="button" class="btn_remove"><span><%= i18n.shareSettings.removeRecipients %></span></button>
+					</div>
+				</div>
+			</div>
+			<!-- // 받는이 리스트 -->
+		</div>
+		<!-- // ADDRESS LIST FUNCTION -->
+	</div>
+	<div class="layer_footer calendar-sharing-footer">
+		<!-- #calendar-org-settings-footer-template -->
+	</div>
+</script>
+<script type="text/template" id="calendar-org-header-template">
+	<h1><span><%= i18n.shareSettings.shareSetting %></span></h1>
+	<a href="#" id="txt_pop_close"><span class="lay_close"><%=i18n.shareSettings.close%></span></a>
+</script>
+<script type="text/template" id="calendar-org-settings-pagination-template">
+	<span class="page_dir">
+		<label for="current_page" class="mc-blind">목록 페이지로 이동</label>
+		<span><%- info.currentPage %> / <%- info.totalPages %></span>
+	</span>
+	<a href="#" class="btn_first"><span class="mc-blind"><%= i18n.firstPage %></span></a>
+	<a href="#" class="btn_prev"><span class="mc-blind"><%= i18n.previousPage %></span></a>
+	<a href="#" class="btn_next"><span class="mc-blind"><%= i18n.nextPage %></span></a>
+	<a href="#" class="btn_last"><span class="mc-blind"><%= i18n.lastPage %></span></a>
+	<!-- # disabled #
+	  btn_first : btn_first_n
+	  btn_prev : btn_prev_n
+	  btn_next : btn_next_n
+	  btn_last : btn_last_n
+	-->
+</script>
+<script type="text/template" id="calendar-org-entry-template">
+<%
+	if (_.contains(entry.attributes.objectClass, 'groupOfNames')) {
+		// entry.urlRoot : 'domain.com/groups'
+		var id = 'mbox-org-group-' + entry.id;
+		var cn = entry.attributes.cn && entry.attributes.cn[0];
+%>
+	<a href="#" class="orgNode"><em>└</em></a>
+	<label for="<%- id %>" class="lbtxt" style="left:37px;"><%- cn %></label>
+	<span class="fld" style="left:18px;">folder</span>
+	<ul  class="org-entries" style="display:none"></ul>
+<% } %>
+</script>
+<script type="text/template" id="calendar-org-root-template">
+	<!-- D: 최상위 카테고리[회사] -->
+	<span class="orgCorp">
+		<!--<input name="" type="checkbox" value="" id="topParentNode">-->
+		<label for="topParentNode" id="topParentNode"><%- entry.attributes.cn[0]  %></label>
+	</span>
+	<!-- D:
+		# .orgNode_p 펼침 연결자 PLUS - .fld 폴더 아이콘 담힘
+		# .orgNode_m 닫힘 연결자 Minus - .fld 폴더 아이콘 열림
+		# .orgNode_pBott 최하단 펼침 연결자
+		# .orgNode_mBott 최하단 닫힘 연결자
+		# .orgNode_join 연결자 - .fld 닫힘폴더
+		# .orgNode_elbow 최하단 연결자 - .fld 닫힘폴더
+	-->
+	<!-- ORG DEPTH 1 START -->
+	<ul id="shareOrgContainer" class="orgDepth1"></ul>
+	<!-- ORG DEPTH 1 END -->
+</script>
+<script type="text/template" id="calendar-org-user-item-template">
+<%
+	if (_.contains(entry.attributes.objectClass, 'groupOfNames')) {
+		// entry.urlRoot : 'domain.com/groups'
+		var id = 'mbox-org-group-list-'  + entry.id;
+		var cn = entry.attributes.cn && entry.attributes.cn[0];
+%>
+	<input type="checkbox"
+	       value="<%- cn %>" id="<%- id %>"
+	       name="<%- id %>"/>
+	<label for="<%- id %>">
+		$<%- cn %>
+	</label>
+<%
+	} else {
+		// entry.urlRoot : 'domain.com/groups/123/users/uid'
+		var paths = entry.urlRoot.split('/');
+		var id = 'mbox-org-person-list-' + entry.id + '@' + paths[0];
+		var cn = entry.attributes.cn && entry.attributes.cn[0];
+%>
+	<input type="checkbox"
+	       value="<%- cn %>" id="<%- id %>"
+	       name="<%- id %>"/>
+	<label for="<%- id %>">
+		"<%- cn %>"&lt;<%- entry.attributes.mail %>&gt;
+	</label>
+<% } %>
+</script>
+<script type="text/template" id="calendar-org-user-list-template">
+	<ul>
+		<!-- #org-user-item-template -->
+	</ul>
+</script>
+<script type="text/template" id="calendar-org-settings-search-template">
+	<div class="result_cnt" style="display:none"><span><%=i18n.shareSettings.results%> <em
+		class="cnt">25</em></span></div>
+	<div class="search_form">
+		<span class="ipt_wrap">
+		<label for="addr_search_keyword" class="mc-blind"><%=i18n.shareSettings.orgUserSearch%></label>
+		<input type="text" onfocus="this.value='';" onblur="if(this.value == ''){this.value='<%=i18n.shareSettings.orgUserSearch%>'}"
+		       class="ipt" placeholder="<%=i18n.shareSettings.orgUserSearch%>"/>
+		<button type="submit" class="btn_submit"><span class="mc-blind">찾기</span></button>
+	</span>
+	</div>
+</script>
+<script type="text/template" id="calendar-org-sharee-item-template">
+<%
+	var id = entry.SHARE_EMAIL || entry.SHARE_NAME;
+		if (entry.type && entry.type == 'group' || !entry.SHARE_EMAIL) {
+			id = 'mbox-sharee-' + id.slice(id.indexOf('$') + 1);
+%>
+	<input type="checkbox" id="<%- id %>" class="org-recipient-item"/>
+	<label for="<%- id %>"><%- '$' + entry.SHARE_NAME %></label>
+<%
+	} else {
+		id = 'mbox-sharee-' + id.slice(0,id.indexOf('@'));
+%>
+	<input type="checkbox" id="<%- id %>" class="org-recipient-item"/>
+	<label for="<%- id %>"><%- '"' + entry.SHARE_NAME + '"' + '<' + entry.SHARE_EMAIL + '>' %></label>
+<%
+	}
+%>
+</script>
+<script type="text/template" id="calendar-org-sharee-list-template">
+	<ul>
+		<!-- org-recipients-item-template -->
+	</ul>
+</script>
+<script type="text/template" id="calendar-org-settings-footer-template">
+	<div class="ft_in">
+		<div class="function_area">
+			<button type="button" class="b org-user-group-save"><%= i18n.shareSettings.save %></button>
+			<button type="button" class="org-user-group-cancel"><%= i18n.shareSettings.close %></button>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="calendar-overlay-template">
+	<div id="calendar-overlay" style="background: black; left: 0px; top: 0px; width: 100%; height: 100%; position: absolute; z-index: 2015; opacity: 0.5;">
+		<div class="calendar-loading-layer" style="text-align: center; position: absolute; z-index: 2016;">
+			<span style='background: url("img/loading_span_bg.png") no-repeat left top; padding-left: 2px; display: inline-block;'>
+				<span style='background: url("img/loading_span_bg.png") no-repeat right -49px; padding-right: 2px; display: inline-block;'>
+					<span style='background: url("img/loading_span_bg.png") repeat-x left -98px; padding: 0px 18px 0px 9px; color: white; line-height: 39px; display: inline-block;'>
+						<img style="margin-right: 10px; vertical-align: middle;" src="img/ico_ld_cm.gif">
+						<%= i18n.overlay.leadingLoading %>
+						<strong><%= i18n.overlay.calendar %></strong>
+						<%= i18n.overlay.trailingLoading %>
+					</span>
+				</span>
+			</span>
+		</div>
+		<div class="calendar-processing-layer" style="text-align: center; position: absolute; z-index: 2016;">
+			<span style='background: url("img/loading_span_bg.png") no-repeat left top; padding-left: 2px; display: inline-block;'>
+				<span style='background: url("img/loading_span_bg.png") no-repeat right -49px; padding-right: 2px; display: inline-block;'>
+					<span style='background: url("img/loading_span_bg.png") repeat-x left -98px; padding: 0px 18px 0px 9px; color: white; line-height: 39px; display: inline-block;'>
+						<img style="margin-right: 10px; vertical-align: middle;" src="img/ico_ld_cm.gif">
+						<%= i18n.overlay.leadingProcessing %>
+						<strong><%= i18n.overlay.calendar %></strong>
+						<%= i18n.overlay.trailingProcessing %>
+					</span>
+				</span>
+			</span>
+		</div>
+	</div>
+</script>
+����(      c�[c�[E6Mcc�U�   �    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app/calendar/calendar-template.html?v=202301181454 necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"31931-1664418062000"
+Last-Modified: Thu, 29 Sep 2022 02:21:02 GMT
+Content-Type: text/html;charset=UTF-8
+Content-Length: 31931
+Date: Wed, 01 Feb 2023 07:57:14 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"31931-1664418062000"
+Last-Modified: Thu, 29 Sep 2022 02:21:02 GMT
+Content-Type: text/html;charset=UTF-8
+Content-Length: 31931
+Date: Wed, 01 Feb 2023 07:57:14 GMT
+ ctid 1 uncompressed-len 0 net-response-time-onstart 21 net-response-time-onstop 24   |�

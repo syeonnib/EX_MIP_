@@ -1,0 +1,2366 @@
+define([ 'app', 'text!app/app-template.html', 'i18n!app/nls/app-i18n', 'app/org/org-models', 'app/disk/disk-models',
+		'jquery.ui' ], function(app, template, i18n) {
+
+	app.$template = $(template);
+
+	app.HeaderView = Backbone.Marionette.ItemView.extend({
+		el : 'div.mc-header',
+		template : function(data) {
+			app.debug("  HeaderView.template() { ... }");
+			var html, compiledTemplate = app.HeaderView.compiledTemplate;
+			if (!compiledTemplate) {
+				html = app.$template.filter('#header-template').html();
+				compiledTemplate = _.template(html);
+				app.HeaderView.compiledTemplate = compiledTemplate;
+			}
+			html = compiledTemplate({
+				user : data,
+				i18n : i18n,
+			});
+			return html;
+		},
+		initialize : function() {
+			app.debug("  HeaderView.initialize() { ... }");
+			this.listenTo(this.model, 'change', this.render);
+			this.listenTo(app.domainModel, 'change', this.render);
+		},
+		onRender : function() {
+			app.debug("+++++++++++++++ HeaderView.onRender() ++++++++++++++++");
+			var self = this;
+			if (app.domainModel.get('switchUserEnabled') == true) {
+				var $userName = this.$el.find('.mc-iam span.user-name');
+				$userName.click(function(event) {
+					event.preventDefault() && event.stopPropagation();
+					var switchCollection = new app.user.SwitchUserCollection();
+					switchCollection.fetch();
+					var $userListLayer = self.$el.find('div#switch-user-list-display-popup');
+					var $userListView = new app.SwitchUserListView({
+						collection : switchCollection,
+					});
+					$userListView.render();
+					$userListLayer.html($userListView.el);
+					$userListLayer.show();
+					$userListLayer.attr('hidable', false);
+				});
+			}
+			var $logo = this.$el.find('a.hd_logo');
+			$logo.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				var url = app.domainModel.get('DOMAIN');
+				if (app.domainModel.get('DOMAIN_LOGO_LINK') != null
+						&& app.domainModel.get('DOMAIN_LOGO_LINK').length > 1) {
+					url = app.domainModel.get('DOMAIN_LOGO_LINK');
+				}
+				location.href = 'http://' + url;
+				return false;
+			});
+			var $loginInfo = this.$el.find('span.mc-iam em.inaccess');
+			$loginInfo.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				location.hash = '#settings/security/login-history';
+				return false;
+			});
+			var $logout = this.$el.find('button.mc-btn_logout');
+			$logout.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				var form = document.forms.csrf_logout;
+				form.submit();
+				return false;
+			});
+			var $settings = this.$el.find('.mc-lk_setup');
+			$settings.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				var moduleName = app.currentModule.moduleName;
+				var url = '#settings';
+				switch (moduleName) {
+				case 'contact':
+					url = '#contacts/settings';
+					if (location.hash.indexOf('#shared-groups') != -1)
+						url = '#shared-groups/settings';
+					break;
+				case 'mail':
+				default:
+					url = '#settings';
+					break;
+				}
+				var now = Date.now ? Date.now() : new Date().getTime();
+				location.href = url + '?_=' + now;
+				return false;
+			});
+		},
+	}); // app.HeaderView
+
+	app.SwitchUserListView = Backbone.Marionette.ItemView.extend({
+		template : function(data) {
+			var html, compiledTemplate = app.SwitchUserListView.compiledTemplate;
+			if (!compiledTemplate) {
+				html = app.$template.filter('#switch-user-template').html();
+				compiledTemplate = _.template(html);
+				app.SwitchUserListView.compiledTemplate = compiledTemplate;
+			}
+			html = compiledTemplate({
+				switchUsers : data.items,
+				user : app.userModel.toJSON(),
+				i18n : i18n,
+			});
+			return html;
+		},
+		initialize : function(options) {
+			this.listenTo(this.collection, 'sync', this.render);
+		},
+		onRender : function() {
+		},
+	});// app.SwitchUserListView
+
+	app.GnbView = Backbone.Marionette.ItemView.extend({
+		tagName : 'ul',
+		className : 'mc-menu_list',
+		template : function(data) {
+			app.debug("GnbView.template() { ... }");
+			var html, compiledTemplate = app.GnbView.compiledTemplate;
+			if (!compiledTemplate) {
+				html = app.$template.filter('#gnb-template').html();
+				compiledTemplate = _.template(html);
+				app.GnbView.compiledTemplate = compiledTemplate;
+			}
+			html = compiledTemplate({
+				i18n : i18n,
+			});
+			return html;
+		},
+		initialize : function() {
+			this.listenTo(app.vent, 'activate:gnb-item', this.activateItem);
+			this.listenTo(app.domainDetailsModel, 'sync', this.enabledService);
+		},
+		onRender : function() {
+			app.debug("+++++++++++++++++ GnbView.onRender() +++++++++++++++++");
+			var $items = this.$el.children('li');
+			var $item = $items.filter(this.activatedClass);
+			$item.addClass('on');
+			var $links = $items.children('a');
+			$links.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				var module = $(this).attr('name');
+				var hash, now = Date.now ? Date.now() : (new Date()).getTime();
+				switch (module) {
+				case 'hello':
+					hash = '#hello?_=' + now;
+					break;
+				case 'mail':
+					hash = '#?_=' + now;
+					break;
+				case 'csm':
+					hash = '#csm?_=' + now;
+					break;
+				case 'project':
+					hash = '#project?_=' + now;
+					break;
+				case 'contact':
+					hash = '#contacts?_=' + now;
+					break;
+				case 'calendar':
+					hash = '#calendar?_=' + now;
+					break;
+				case 'bbs':
+					hash = '#bbs?_=' + now;
+					break;
+				case 'disk':
+					hash = '#disk?_=' + now;
+					break;
+				case 'schedule':
+					hash = '#schedule?_=' + now;
+					break;
+				case 'manual':
+					var url = '/mail/manual/manual.pptx';
+					var openedWindow = window.open(url, '_blank');
+					openedWindow.focus();
+					return false;
+				}
+				location.hash = hash;
+				return false;
+			});
+		},
+		activateItem : function(moduleName) {
+			var itemClasses = {
+				hello : '.mme',
+				mail : '.mmail',
+				csm : '.mcsmLeft',
+				project : '.mproject',
+				contact : '.maddress',
+				calendar : '.mcalendar',
+				bbs : '.mbbs',
+				disk : '.mwebhard',
+				schedule : '.mrsv',
+			};
+			this.activatedClass = itemClasses[moduleName];
+			var $items = this.$el.children('li');
+			$items.removeClass('on');
+			var $item = $items.filter(this.activatedClass);
+			$item.addClass('on');
+		},
+		enabledService : function () {
+			var self = this;
+			if (this.orgModel) {
+				var $items = this.$el.children('li');
+				$items.each(function(index, element) {
+					var service = $(this).data('service');
+					if (!service) {
+						$(this).show();
+						return true;
+					}
+					var domainAttribute = service + 'ServiceEnabled';
+					var orgAttribute = service.toUpperCase() + '_SERVICE_ENABLED';
+					if (app.domainDetailsModel.get(domainAttribute) && self.orgModel.get(orgAttribute))
+						$(this).show();
+					else
+						$(this).remove();
+				});
+			} else {
+				var orgGroupCollection = new app.org.OrgGroupCollection();
+				orgGroupCollection.fetch({
+					success : function(collection, response, options) {
+						collection.each(function(orgModel, index) {
+							self.orgModel = self.orgModel || orgModel;
+						});
+						self.enabledService();
+					},
+					error : function(collection, response, options) {
+						alert('Failed to fetch Organizational Groups');
+					}
+				});
+			}
+		}
+	}); // app.GnbView
+
+	app.FooterView = Backbone.Marionette.ItemView.extend({
+		el : 'div.mc-footer',
+		template : function(data) {
+			app.debug("FooterView.template() { ... }");
+			var html, compiledTemplate = app.FooterView.compiledTemplate;
+			if (!compiledTemplate) {
+				html = app.$template.filter('#footer-template').html();
+				compiledTemplate = _.template(html);
+				app.FooterView.compiledTemplate = compiledTemplate;
+			}
+			html = compiledTemplate({
+				user : app.userModel.toJSON(),
+				diskUser : app.diskUserModel.toJSON(),
+				domain : app.domainModel.toJSON(),
+				i18n : i18n,
+				app : app,
+			});
+			return html;
+		},
+		initialize : function(options) {
+			app.debug("FooterView.initialize(options) { ... }");
+			this.listenTo(app.userModel, 'sync', this.render);
+			this.listenTo(app.diskUserModel, 'sync', this.render);
+			this.listenTo(app.domainModel, 'sync', this.render);
+		},
+		onRender : function() {
+			app.debug("+++++++++++++++ FooterView.onRender() ++++++++++++++++");
+			var $mboxSettings = this.$el.find('div.mc-cp_webmail');
+			$mboxSettings.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				location.hash = '#settings/mboxes';
+				return false;
+			})
+			var $blobSettings = this.$el.find('div.mc-cp_data');
+			$blobSettings.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				var win = window.open('popup/disk', 'blobSettings', 'width=880,height=600,resizable=yes,location=no');
+				win.focus();
+				return false;
+			});
+		},
+	}); // app.FooterView
+
+	app.TopPanelView = Backbone.Marionette.Layout.extend({
+		tagName : 'div',
+		className : 'mc-orgContainer',
+		template : function(data) {
+			var html, compiledTemplate = app.TopPanelView.compiledTemplate;
+			if (!compiledTemplate) {
+				html = app.$template.filter('#top-panel-template').html();
+				compiledTemplate = _.template(html);
+				app.TopPanelView.compiledTemplate = compiledTemplate;
+			}
+			html = compiledTemplate({
+				app : app,
+				i18n : i18n,
+			});
+			return html;
+		},
+		regions : {
+			favoritesTreeRegion : '.mc-bookmark .favorites-tree-container',
+			orgTreeRegion : '.mc-orgTree .org-tree-container',
+			shareGroupTreeRegion : '.mc-orgTree .share-group-tree-container',
+			contactTreeRegion : '.mc-orgTree .contact-tree-container',
+			recipientsRegion : '.mc-orgList_body',
+			attachmentsRegion : '.mc-uiFile',
+		},
+		initialize : function(options) {
+			// this.model == app.userModel
+			// this.collection == No Collection
+			this.listenToOnce(this.model, 'sync', this.render);
+			this.listenToOnce(app.domainDetailsModel, 'sync', this.render);
+		},
+		onRender : function() {
+			var self = this, $el = this.$el;
+			this.showFavoritesTreeView();
+			this.showOrgTreeView();
+			this.showShareContactTreeView();
+			this.showContactTreeView();
+			this.$panel = this.$el.find('.mc-orgFixed:first');
+			this.$open = this.$el.find(".mc-btn_orgOpen:first");
+			this.$open.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				self.toggle();
+			});
+			this.$layer = $('<div id="glayLayer"></div>').appendTo('body');
+			this.$layer.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				self.toggle();
+			});
+			var $tabs = this.$el.find('table.mc-orgTab td a');
+			var $favoritesFieldset = this.$el.find('fieldset.mc-bookmark');
+			var $treeFieldset = this.$el.find('fieldset.mc-orgTree');
+			$tabs.eq(1).parent().addClass('on');
+			$tabs.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				$tabs.parent().removeClass('on');
+				var $this = $(this);
+				$this.parent().addClass('on');
+				if ($this.hasClass('tree-tab-favorites')) {
+					$favoritesFieldset.show();
+					self.favoritesTreeRegion.$el.show();
+					$treeFieldset.hide();
+					self.orgTreeRegion.$el.hide();
+					self.shareGroupTreeRegion.$el.hide();
+					self.contactTreeRegion.$el.hide();
+				} else if ($this.hasClass('tree-tab-organize')) {
+					$favoritesFieldset.hide();
+					self.favoritesTreeRegion.$el.hide();
+					$treeFieldset.show();
+					self.orgTreeRegion.$el.show();
+					self.shareGroupTreeRegion.$el.hide();
+					self.contactTreeRegion.$el.hide();
+				} else if ($this.hasClass('tree-tab-share-contacts')) {
+					$favoritesFieldset.hide();
+					self.favoritesTreeRegion.$el.hide();
+					$treeFieldset.show();
+					self.orgTreeRegion.$el.hide();
+					self.shareGroupTreeRegion.$el.show();
+					self.contactTreeRegion.$el.hide();
+				} else if ($this.hasClass('tree-tab-contacts')) {
+					$favoritesFieldset.hide();
+					self.favoritesTreeRegion.$el.hide();
+					$treeFieldset.show();
+					self.orgTreeRegion.$el.hide();
+					self.shareGroupTreeRegion.$el.hide();
+					self.contactTreeRegion.$el.show();
+					self.showContactTreeView();
+				}
+			});
+			var $reloadTree = this.$el.find('a.reload-tree');
+			$reloadTree.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				self.showFavoritesTreeView();
+				self.showOrgTreeView();
+				self.showShareContactTreeView();
+				if (self.contactTreeRegion.$el.is(':visible')) {
+					self.isToFetchContactRootEntry = true;
+					self.showContactTreeView();
+				}
+			});
+			// Buttons: append [->] | remove [<-]
+			var $append = this.$el.find('.mc-orgAction_area1 .mc-uiBtn .mc-btn_list_in');
+			var $remove = this.$el.find('.mc-orgAction_area1 .mc-uiBtn .mc-btn_list_out');
+			$append.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				if (self.favoritesTreeRegion.$el.is(':visible')) {
+					self.trigger('append:favorite-recipients');
+				} else if (self.orgTreeRegion.$el.is(':visible')) {
+					self.trigger('append:org-recipients');
+				} else if (self.shareGroupTreeRegion.$el.is(':visible')) {
+					self.trigger('append:share-recipients');
+				} else if (self.contactTreeRegion.$el.is(':visible')) {
+					self.trigger('append:contact-recipients');
+				}
+			});
+			$remove.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				self.trigger('remove:recipients');
+			});
+			// Recipients Section
+			this.recipientsRegion.show(new app.RecipientsView({
+				model : app.userModel,
+				parentView : this,
+			}));
+			// Attachments Section
+			this.attachmentsRegion.show(new app.AttachmentsView({
+				model : app.userModel,
+				parentView : this,
+			}));
+			// Webhard Section
+			var $diskContainer = this.$el.find('td.mc-orgWebHard:first');
+			var $diskHeader = $diskContainer.children('h3.mc-uiHead');
+			var $diskDetails = $diskHeader.children('em').filter('.mc-uiHead_open').children('a');
+			var $diskRefresh = $diskHeader.children('em').not('.mc-uiHead_open').children('a');
+			$diskDetails.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				if ($diskContainer.hasClass('wh_small')) {
+					$diskContainer.removeClass('wh_small');
+					$(this).removeClass('wh_open');
+					$diskContainer.find('span.file_name').removeClass('wh_small_tit');
+				} else {
+					$diskContainer.addClass('wh_small');
+					$(this).addClass('wh_open');
+					$diskContainer.find('span.file_name').addClass('wh_small_tit');
+				}
+				return false;
+			});
+			$diskRefresh.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				self.fetchDiskFiles();
+				return false;
+			});
+			var $diskContent = $diskContainer.children('div.mc-whTree');
+			var $blobWrapper = $diskContent.children('div.blob-attachments-wrapper');
+			var $blobContent = $blobWrapper.children('div.whWrap');
+			var $blobExpansion = $blobWrapper.find('div.mc-whTree_tit a');
+			$blobExpansion.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				if ($blobWrapper.hasClass('nodeArrow_up')) {
+					$blobWrapper.removeClass('nodeArrow_up').addClass('nodeArrow_dw')
+					$blobContent.hide();
+				} else {
+					$blobWrapper.removeClass('nodeArrow_dw').addClass('nodeArrow_up');
+					$blobContent.show();
+				}
+				return false;
+			});
+			var $myDiskWrapper = $diskContent.children('div.my-disk-wrapper');
+			var $myDiskContent = $myDiskWrapper.children('div.whWrap_mydisk');
+			var $myDiskExpansion = $myDiskWrapper.find('div.mc-whTree_tit a');
+			$myDiskExpansion.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				if ($myDiskWrapper.hasClass('nodeArrow_up')) {
+					$myDiskWrapper.removeClass('nodeArrow_up').addClass('nodeArrow_dw')
+					$myDiskContent.hide();
+				} else {
+					$myDiskWrapper.removeClass('nodeArrow_dw').addClass('nodeArrow_up');
+					$myDiskContent.show();
+				}
+				return false;
+			});
+			var blobAttachmentsRegion = new (Backbone.Marionette.Region.extend({
+				el : $blobWrapper.find('div.whWrap ul.mc-whTree_body'),
+				open : function(view) {
+					this.$el.empty().append(view.$el.children());
+				},
+			}))();
+			this.listenTo(app.vent, 'show:blob-attachments', function(collection, model) {
+				blobAttachmentsRegion.show(new app.BlobAttachementsView({
+					collection : collection,
+					model : model,
+				}));
+			});
+			var myDiskRegion = new (Backbone.Marionette.Region.extend({
+				el : $myDiskWrapper.find('div.whWrap_mydisk ul.mc-whTree_body'),
+				open : function(view) {
+					this.$el.empty().append(view.$el.children());
+				},
+			}))();
+			this.listenTo(app.vent, 'show:mydisk-files', function(collection, model) {
+				myDiskRegion.show(new app.DiskFileCollectionView({
+					collection : collection,
+					model : model,
+				}));
+			});
+			this.fetchDiskFiles();
+		},
+		fetchDiskFiles : function() {
+			var fileCollection = new app.disk.FileCollection();
+			fileCollection.pathname = '';
+			fileCollection.fetch({
+				type : 'POST',
+				data : {
+					_method : 'GET',
+					pathname : '',
+				},
+				success : function(collection, response, options) {
+					var userDiskModel = collection.find(function(model) {
+						return model.get('linkCount') == 'UserDisk';
+					});
+					if (!userDiskModel)
+						return;
+					var userDiskFileCollection = new app.disk.FileCollection();
+					userDiskFileCollection.pathname = userDiskModel.id;
+					userDiskFileCollection.fetch({
+						type : 'POST',
+						data : {
+							_method : 'GET',
+							pathname : userDiskModel.get('path') + '/' + userDiskModel.get('name'),
+						},
+						success : function(collection, response, options) {
+							var blobAttachmentModel = collection.find(function(model) {
+								return model.get('linkCount') == 'BigMail';
+							});
+							if (!blobAttachmentModel)
+								return;
+							var blobAttachmentCollection = new app.disk.FileCollection();
+							blobAttachmentCollection.pathname = blobAttachmentModel.id;
+							blobAttachmentCollection.fetch({
+								type : 'POST',
+								data : {
+									_method : 'GET',
+									pathname : blobAttachmentModel.get('path') + '/' + blobAttachmentModel.get('name'),
+								},
+								success : function(collection, response, options) {
+									var models = collection.sortBy('name');
+									collection.reset(models);
+									app.vent.trigger('show:blob-attachments', collection, blobAttachmentModel);
+								}
+							});
+							var userDiskFileModels = collection.filter(function(model) {
+								switch (model.get('linkCount')) {
+								case 'BigMail':
+								case 'Trash':
+									return false;
+								}
+								return true;
+							});
+							var userDiskFileCollection = new app.disk.FileCollection(userDiskFileModels);
+							app.vent.trigger('show:mydisk-files', userDiskFileCollection, userDiskModel);
+						}
+					});
+				},
+				error : function(collection, response, options) {
+					app.log("Unavailable Disk Service");
+				},
+			});
+		},
+		toggle : function() {
+			this.$layer.fadeToggle(400);
+			this.$panel.slideToggle(400);
+			this.$open.toggleClass('mc-btn_orgClose');
+		},
+		showFavoritesTreeView : function() {
+			var self = this;
+			var contactCollection = new app.contact.AddressCollection();
+			contactCollection.url += '/importants';
+			contactCollection.fetch({
+				success : function(collection, response, options) {
+					self.favoritesTreeRegion.show(new app.FavoriteContactsView({
+						collection : contactCollection,
+						parentView : self,
+					}));
+				},
+				error : function(collection, response, options) {
+					alert('Failed to fetch Important Contacts');
+				},
+			});
+		},
+		showOrgTreeView : function() {
+			var self = this;
+			var orgRootEntryModel = new app.org.OrgEntryModel({
+				id : 'root'
+			});
+			orgRootEntryModel.fetch();
+			this.listenTo(orgRootEntryModel, 'change', function() {
+				var attributes = orgRootEntryModel.get('attributes');
+				var member = attributes.member;
+				var collection = new app.org.OrgEntryCollection(member);
+				self.orgTreeRegion.show(new app.OrgTreeRootView({
+					model : orgRootEntryModel,
+					collection : collection,
+					parentView : self,
+				}));
+			});
+		},
+		showShareContactTreeView : function() {
+			var self = this;
+			var contactRootEntryModel = new app.contact.ShareEntryModel({
+				id : 'root',
+			});
+			contactRootEntryModel.fetch();
+			this.listenTo(contactRootEntryModel, 'change', function() {
+				var attributes = contactRootEntryModel.get('attributes');
+				var member = attributes.member;
+				var collection = new app.contact.ShareEntryCollection(member);
+				this.shareGroupTreeRegion.show(new app.ShareContactTreeRootView({
+					model : contactRootEntryModel,
+					collection : collection,
+					parentView : self,
+				}));
+			});
+		},
+		showContactTreeView : function() {
+			var self = this;
+			if (!this.contactTreeRegion.$el) {
+				this.contactRootEntryModel = new app.contact.ContactEntryModel({
+					id : 'root',
+				});
+				this.contactTreeRegion.show(new app.ContactTreeRootView({
+					model : this.contactRootEntryModel,
+					collection : null,
+					parentView : this,
+				}));
+				this.isToFetchContactRootEntry = true;
+				return;
+			}
+			if (!this.isToFetchContactRootEntry) {
+				return;
+			}
+			this.trigger('show:loading-contacts');
+			this.contactRootEntryModel.set('id', 'root');
+			this.contactRootEntryModel.fetch({
+				success : function(model, response, options) {
+					self.isToFetchContactRootEntry = false;
+				},
+			});
+			this.listenToOnce(this.contactRootEntryModel, 'change', function() {
+				var attributes = this.contactRootEntryModel.get('attributes');
+				var member = attributes.member;
+				var collection = new app.contact.ContactEntryCollection(member);
+				this.contactTreeRegion.show(new app.ContactTreeRootView({
+					model : this.contactRootEntryModel,
+					collection : collection,
+					parentView : this,
+				}));
+			});
+		},
+		onShow : function() {
+			if (!app.userModel) {
+				this.listenToOnce(app.userModel, 'sync', function() {
+					this.onShow();
+				});
+				return;
+			}
+			var self = this;
+			var orgGroupCollection = new app.org.OrgGroupCollection();
+			orgGroupCollection.fetch({
+				success : function(collection, response, options) {
+					var isOrgVisible = false, isSharedContactsVisible = false;
+					collection.find(function(model, index) {
+						if (model.get('USER_GROUP_STRUCTURE') === 1) {
+							isOrgVisible = true;
+							return true;
+						}
+					});
+					collection.find(function(model, index) {
+						if (model.get('USER_GROUP_ADDRESS') === 1) {
+							isSharedContactsVisible = true;
+							return true;
+						}
+					});
+					var userAuth = app.userModel.get('USERS_AUTH');
+					if (userAuth == 'U' && !isOrgVisible) {
+						self.$el.find('#orgTab02').hide();
+						self.$el.find('.org-tree-container').remove();
+						self.$el.find('.contact-tree-container').show();
+						self.$el.find('.tree-tab-contacts').parent().addClass('on');
+					}
+					if (userAuth == 'U' && !isSharedContactsVisible) {
+						self.$el.find('#orgTab03').hide();
+						self.$el.find('.share-group-tree-container').remove();
+					}
+				},
+				error : function(collection, response, options) {
+					alert('Failed to fetch Organizational Groups');
+				}
+			});
+		},
+	}); // app.TopPanelView
+
+	app.FavoriteContactItemView = Backbone.Marionette.ItemView.extend({
+		tagName : "li",
+		template : function(data) {
+			var html, compiledTemplate = app.FavoriteContactItemView.compiledTemplate;
+			if (!compiledTemplate) {
+				html = app.$template.filter('#favorite-contacts-item-template').html();
+				compiledTemplate = _.template(html);
+				app.FavoriteContactItemView.compiledTemplate = compiledTemplate;
+			}
+			html = compiledTemplate({
+				contact : data,
+				i18n : i18n,
+			});
+			return html;
+		},
+		initialize : function() {
+		},
+		onRender : function() {
+			var self = this, $el = this.$el;
+			var $checkbox = this.$el.children('input:checkbox');
+			var $label = this.$el.children('label:first');
+			$label.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				if ($checkbox.is(':checked'))
+					$checkbox.prop('checked', false);
+				else
+					$checkbox.prop('checked', true);
+			});
+			this.$el.data('oc', 'user'); // objectClass
+			if (self.model.get('ADDRESS_EMAIL')) {
+				this.$el.data('mail', self.model.get('ADDRESS_EMAIL'));
+			}
+			if (self.model.get('ADDRESS_NAME')) {
+				this.$el.data('cn', self.model.get('ADDRESS_NAME'));
+			}
+			this.$el.draggable({
+				appendTo : '.mc-orgContent .mc-orgFixed:first',
+				cursor : 'pointer',
+				helper : function() {
+					var $helper = $("<div />", {
+						style : 'line-height: 18px; color: #c5c6c7;',
+					});
+					if (self.model.get('ORG_EMAIL')) {
+						$helper.append($('<span />', {
+							css : {
+								'display' : 'inline-block',
+								'width' : '16px',
+								'height' : '13px',
+								'background' : 'transparent url("img/tree_ico.png") no-repeat',
+								'background-position' : '0px -301px',
+							},
+							text : ' ',
+						}));
+					} else if (self.model.get('SHARE_ADDRESS_IDX')) {
+						$helper.append($('<span />', {
+							css : {
+								'display' : 'inline-block',
+								'width' : '16px',
+								'height' : '13px',
+								'background' : 'transparent url("img/tree_ico.png") no-repeat',
+								'background-position' : '0px -329px',
+							},
+							text : ' ',
+						}));
+					} else {
+						$helper.append($('<span />', {
+							css : {
+								'display' : 'inline-block',
+								'width' : '16px',
+								'height' : '13px',
+								'background' : 'transparent url("img/tree_ico.png") no-repeat',
+								'background-position' : '0px -357px',
+							},
+							text : ' ',
+						}));
+					}
+					$helper.append(document.createTextNode(' ' + $label.text()));
+					return $helper;
+				},
+			});
+		},
+	}); // app.FavoriteContactItemView
+
+	app.FavoriteContactsView = Backbone.Marionette.CompositeView.extend({
+		template : function(data) {
+			var html = '';
+			html += '<ul class="favorite-contacts-list"></ul>';
+			return html;
+		},
+		itemView : app.FavoriteContactItemView,
+		itemViewContainer : "ul.favorite-contacts-list:first",
+		initialize : function(options) {
+			this.parentView = options.parentView; // app.TopPanelView
+			this.listenTo(this.parentView, 'append:favorite-recipients', this.appendRecipients);
+		},
+		appendRecipients : function() {
+			var $checkboxes = this.$el.find('ul.favorite-contacts-list li input[type=checkbox]:checked');
+			var recipients = [];
+			$checkboxes.each(function(index, element) {
+				var $checkbox = $(element);
+				var $item = $checkbox.parent();
+				var rcpt = {
+					type : 'user',
+					personal : $item.data('cn'),
+					address : $item.data('mail'),
+				};
+				recipients.push(rcpt);
+			});
+			$checkboxes.prop('checked', false);
+			this.parentView.trigger('add:recipients', recipients);
+		},
+		appendHtml : function(collectionView, itemView, index) {
+			var $list = collectionView.$("ul:first");
+			var $item = itemView.$el;
+			var mail = $item.data('mail');
+			var isDuplicate = false;
+			collectionView.$el.find('li').each(function() {
+				if (mail == $(this).data('mail')) {
+					isDuplicate = true;
+					return false;
+				}
+			});
+			if (!isDuplicate && mail) {
+				$list.append($item);
+			}
+		},
+	}); // app.FavoriteContactsView
+
+	app.OrgTreeEntryView = Backbone.Marionette.CompositeView.extend({
+		tagName : "li",
+		template : function(data) {
+			var html, compiledTemplate = app.OrgTreeEntryView.compiledTemplate;
+			if (!compiledTemplate) {
+				html = app.$template.filter('#org-entry-template').html();
+				compiledTemplate = _.template(html);
+				app.OrgTreeEntryView.compiledTemplate = compiledTemplate;
+			}
+			html = compiledTemplate({
+				entry : data,
+				i18n : i18n,
+			});
+			return html;
+		},
+		initialize : function() {
+			// this.model == app.org.OrgEntryModel
+			this.collection = this.model.member;
+		},
+		onRender : function() {
+			var self = this, $el = this.$el;
+			var attributes = this.model.get('attributes');
+			var $nodeIcon = this.$el.children('.orgNode');
+			var $checkbox = this.$el.children('input:checkbox');
+			var $label = this.$el.children('label:first');
+			var $list = this.$el.children('ul:first').hide();
+			this.applyClassToItems($list.children('li'));
+			$nodeIcon.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				if ($el.hasClass('orgNode_p')) { // [+]
+					$el.removeClass().addClass('orgNode_m');
+					if (self.collection.size() === 0) {
+						self.model.fetch();
+						self.listenToOnce(self.model, 'change', function() {
+							self.applyClassToItems($list.children('li'));
+							$list.slideDown();
+						});
+					} else {
+						$list.slideDown();
+					}
+				} else if ($el.hasClass('orgNode_m')) { // [-]
+					$el.removeClass().addClass('orgNode_p');
+					$list.slideUp();
+				} else if ($el.hasClass('orgNode_pBott')) { // [+]
+					$el.removeClass().addClass('orgNode_mBott');
+					if (self.collection.size() === 0) {
+						self.model.fetch();
+						self.listenToOnce(self.model, 'change', function() {
+							self.applyClassToItems($list.children('li'));
+							$list.slideDown();
+						});
+					} else {
+						$list.slideDown();
+					}
+				} else if ($el.hasClass('orgNode_mBott')) { // [-]
+					$el.removeClass().addClass('orgNode_pBott');
+					$list.slideUp();
+				} else {
+					// no action
+				}
+			});
+			$label.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				if ($checkbox.is(':checked'))
+					$checkbox.prop('checked', false);
+				else
+					$checkbox.prop('checked', true);
+			});
+			if (_.contains(attributes.objectClass, 'groupOfNames')) {
+				this.$el.data('oc', 'group'); // objectClass
+				if (attributes.cn && attributes.cn[0]) {
+					this.$el.data('cn', attributes.cn[0]); // common name
+					this.$el.data('mail', '$' + attributes.cn[0]); // email-address
+				}
+			} else {
+				this.$el.data('oc', 'user'); // objectClass
+				if (attributes.cn && attributes.cn[0]) // common name
+					this.$el.data('cn', attributes.cn[0]);
+				if (attributes.mail && attributes.mail[0]) // email address
+					this.$el.data('mail', attributes.mail[0]);
+			}
+			this.$el.draggable({
+				appendTo : '.mc-orgContent .mc-orgFixed:first',
+				cursor : 'pointer',
+				helper : function() {
+					var $helper = $("<div />", {
+						style : 'line-height: 18px; color: #c5c6c7;',
+					});
+					switch (self.$el.data('oc')) {
+					case 'group':
+						$helper.append($('<span />', {
+							css : {
+								'display' : 'inline-block',
+								'vertical-align' : 'middle',
+								'width' : '16px',
+								'height' : '13px',
+								'background' : 'transparent url("img/tree_ico.png") no-repeat',
+								'background-position' : '0 0',
+							},
+							text : ' ',
+						}));
+						break;
+					case 'user':
+						$helper.append($('<span />', {
+							css : {
+								'display' : 'inline-block',
+								'width' : '16px',
+								'height' : '13px',
+								'background' : 'transparent url("img/tree_ico.png") no-repeat',
+								'background-position' : '3px -53px',
+							},
+							text : ' ',
+						}));
+						break;
+					}
+					$helper.append(document.createTextNode(' ' + $label.text()));
+					return $helper;
+				},
+			});
+		},
+		appendHtml : function(collectionView, itemView, index) {
+			var $list = collectionView.$("ul:first");
+			var $item = itemView.$el;
+			$list.append($item);
+		},
+		applyClassToItems : function($items) {
+			$items.each(function(index, element) {
+				var $item = $(element);
+				var lastItem = index == $items.length - 1 ? true : false;
+				var $li = $item.find('ul:first li');
+				var objectClass = $item.data('oc');
+				switch (objectClass) {
+				case 'group':
+					if (lastItem)
+						$item.removeClass().addClass('orgNode_pBott');
+					else
+						$item.removeClass().addClass('orgNode_p');
+					break;
+				case 'user':
+				default:
+					if (lastItem)
+						$item.removeClass().addClass('orgNode_elbow');
+					else
+						$item.removeClass().addClass('orgNode_join');
+				}
+			});
+		},
+	});
+
+	app.OrgTreeRootView = Backbone.Marionette.CompositeView.extend({
+		template : function(data) {
+			var html, compiledTemplate = app.OrgTreeRootView.compiledTemplate;
+			if (!compiledTemplate) {
+				html = app.$template.filter('#org-root-template').html();
+				compiledTemplate = _.template(html);
+				app.OrgTreeRootView.compiledTemplate = compiledTemplate;
+			}
+			html = compiledTemplate({
+				entry : data,
+				i18n : i18n,
+			});
+			return html;
+		},
+		itemView : app.OrgTreeEntryView,
+		itemViewContainer : "ul.orgDepth1:first",
+		initialize : function(options) {
+			// this.model == app.org.OrgEntryModel
+			this.parentView = options.parentView; // app.TopPanelView
+			this.listenTo(this.parentView, 'append:org-recipients', this.appendRecipients);
+		},
+		onRender : function() {
+			var $items = this.$el.children('ul:first').children('li');
+			$items.show();
+			$items.each(function(index, element) {
+				var $item = $(element);
+				var lastItem = index == $items.length - 1 ? true : false;
+				var $li = $item.find('ul:first li');
+				var objectClass = $item.data('oc');
+				switch (objectClass) {
+				case 'group':
+					if (lastItem)
+						$item.removeClass().addClass('orgNode_pBott');
+					else
+						$item.removeClass().addClass('orgNode_p');
+					break;
+				case 'user':
+				default:
+					if (lastItem)
+						$item.removeClass().addClass('orgNode_elbow');
+					else
+						$item.removeClass().addClass('orgNode_join');
+				}
+			});
+			var $toggle = this.$el.find('span.orgCorp input[type=checkbox]');
+			var $checkboxes = this.$el.find('ul.orgDepth1 li input[type=checkbox]');
+			$toggle.change(function() {
+				if (this.checked) {
+					$checkboxes.prop('checked', true);
+				} else {
+					$checkboxes.removeProp('checked');
+				}
+			});
+		},
+		appendRecipients : function() {
+			var $toggle = this.$el.find('span.orgCorp input[type=checkbox]');
+			var $checkboxes = this.$el.find('ul.orgDepth1 li input[type="checkbox"]:checked');
+			var recipients = [];
+			$checkboxes.each(function(index, element) {
+				var $checkbox = $(element);
+				var $item = $checkbox.parent();
+				var rcpt = {
+					type : $item.data('oc'),
+					personal : $item.data('cn'),
+					address : $item.data('mail'),
+				};
+				recipients.push(rcpt);
+			});
+			$toggle.prop('checked', false);
+			$checkboxes.prop('checked', false);
+			this.parentView.trigger('add:recipients', recipients);
+		},
+	}); // app.OrgTreeRootView
+
+	app.ShareContactTreeEntryView = Backbone.Marionette.CompositeView.extend({
+		tagName : "li",
+		template : function(data) {
+			var html, compiledTemplate = app.ShareContactTreeEntryView.compiledTemplate;
+			if (!compiledTemplate) {
+				html = app.$template.filter('#share-contacts-entry-template').html();
+				compiledTemplate = _.template(html);
+				app.ShareContactTreeEntryView.compiledTemplate = compiledTemplate;
+			}
+			html = compiledTemplate({
+				entry : data,
+				i18n : i18n,
+			});
+			return html;
+		},
+		initialize : function() {
+			// this.model == app.contact.SharedGroupModel
+			this.collection = this.model.member;
+		},
+		onRender : function() {
+			var self = this, $el = this.$el;
+			var attributes = this.model.get('attributes');
+			var $nodeIcon = this.$el.children('.orgNode');
+			var $checkbox = this.$el.children('input:checkbox');
+			var $label = this.$el.children('label:first');
+			var $list = this.$el.children('ul:first').hide();
+			this.applyClassToItems($list.children('li'));
+			$nodeIcon.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				if ($el.hasClass('orgNode_p')) { // [+]
+					$el.removeClass().addClass('orgNode_m');
+					if (self.collection.size() === 0) {
+						self.model.fetch();
+						self.listenToOnce(self.model, 'change', function() {
+							self.applyClassToItems($list.children('li'));
+							$list.slideDown();
+						});
+					} else {
+						$list.slideDown();
+					}
+				} else if ($el.hasClass('orgNode_m')) { // [-]
+					$el.removeClass().addClass('orgNode_p');
+					$list.slideUp();
+				} else if ($el.hasClass('orgNode_pBott')) { // [+]
+					$el.removeClass().addClass('orgNode_mBott');
+					if (self.collection.size() === 0) {
+						self.model.fetch();
+						self.listenToOnce(self.model, 'change', function() {
+							self.applyClassToItems($list.children('li'));
+							$list.slideDown();
+						});
+					} else {
+						$list.slideDown();
+					}
+				} else if ($el.hasClass('orgNode_mBott')) { // [-]
+					$el.removeClass().addClass('orgNode_pBott');
+					$list.slideUp();
+				} else {
+					// no action
+				}
+			});
+			$label.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				if ($checkbox.is(':checked'))
+					$checkbox.prop('checked', false);
+				else
+					$checkbox.prop('checked', true);
+			});
+			if (_.contains(attributes.objectClass, 'groupOfNames')) {
+				this.$el.data('oc', 'group'); // objectClass
+				if (attributes.cn && attributes.cn[0]) {
+					this.$el.data('cn', attributes.cn[0]); // common name
+					this.$el.data('mail', '!' + attributes.cn[0]); // email-address
+					// sharerId
+					var sharerId = self.model.get('sharerId');
+					if (sharerId) {
+						sharerId = sharerId.substring(0, sharerId.indexOf('@'));
+					}
+					this.$el.data('sharerId', sharerId);
+				}
+			} else {
+				this.$el.data('oc', 'user'); // objectClass
+				if (attributes.cn && attributes.cn[0]) // common name
+					this.$el.data('cn', attributes.cn[0]);
+				if (attributes.mail && attributes.mail[0]) // email address
+					this.$el.data('mail', attributes.mail[0]);
+			}
+			this.$el.draggable({
+				appendTo : '.mc-orgContent .mc-orgFixed:first',
+				cursor : 'pointer',
+				helper : function() {
+					var $helper = $("<div />", {
+						style : 'line-height: 18px; color: #c5c6c7;',
+					});
+					switch (self.$el.data('oc')) {
+					case 'group':
+						$helper.append($('<span />', {
+							css : {
+								'display' : 'inline-block',
+								'vertical-align' : 'middle',
+								'width' : '16px',
+								'height' : '13px',
+								'background' : 'transparent url("img/tree_ico.png") no-repeat',
+								'background-position' : '0 0',
+							},
+							text : ' ',
+						}));
+						break;
+					case 'user':
+						$helper.append($('<span />', {
+							css : {
+								'display' : 'inline-block',
+								'width' : '16px',
+								'height' : '13px',
+								'background' : 'transparent url("img/tree_ico.png") no-repeat',
+								'background-position' : '3px -53px',
+							},
+							text : ' ',
+						}));
+						break;
+					}
+					$helper.append(document.createTextNode(' ' + $label.text()));
+					return $helper;
+				},
+			});
+		},
+		appendHtml : function(collectionView, itemView, index) {
+			var $list = collectionView.$("ul:first");
+			var $item = itemView.$el;
+			if ($item.data('mail')) {
+				$list.append($item);
+			}
+		},
+		applyClassToItems : function($items) {
+			$items.each(function(index, element) {
+				var $item = $(element);
+				var lastItem = index == $items.length - 1 ? true : false;
+				var $li = $item.find('ul:first li');
+				var objectClass = $item.data('oc');
+				switch (objectClass) {
+				case 'group':
+					if (lastItem)
+						$item.removeClass().addClass('orgNode_pBott');
+					else
+						$item.removeClass().addClass('orgNode_p');
+					break;
+				case 'user':
+				default:
+					if (lastItem)
+						$item.removeClass().addClass('orgNode_elbow');
+					else
+						$item.removeClass().addClass('orgNode_join');
+				}
+			});
+		},
+	}); // app.ShareContactTreeEntryView
+
+	app.ShareContactTreeRootView = Backbone.Marionette.CompositeView.extend({
+		template : function(data) {
+			var html, compiledTemplate = app.ShareContactTreeRootView.compiledTemplate;
+			if (!compiledTemplate) {
+				html = app.$template.filter('#share-contacts-root-template').html();
+				compiledTemplate = _.template(html);
+				app.ShareContactTreeRootView.compiledTemplate = compiledTemplate;
+			}
+			html = compiledTemplate({
+				entry : data,
+				i18n : i18n,
+			});
+			return html;
+		},
+		itemView : app.ShareContactTreeEntryView,
+		itemViewContainer : "ul.orgDepth1:first",
+		initialize : function(options) {
+			this.parentView = options.parentView; // app.TopPanelView
+			this.listenTo(this.parentView, 'append:share-recipients', this.appendRecipients);
+		},
+		onRender : function() {
+			var $items = this.$el.children('ul:first').children('li');
+			$items.show();
+			$items.each(function(index, element) {
+				var $item = $(element);
+				var lastItem = index == $items.length - 1 ? true : false;
+				var $li = $item.find('ul:first li');
+				var objectClass = $item.data('oc');
+				switch (objectClass) {
+				case 'group':
+					if (lastItem)
+						$item.removeClass().addClass('orgNode_pBott');
+					else
+						$item.removeClass().addClass('orgNode_p');
+					break;
+				case 'user':
+				default:
+					if (lastItem)
+						$item.removeClass().addClass('orgNode_elbow');
+					else
+						$item.removeClass().addClass('orgNode_join');
+				}
+			});
+
+			var $toggle = this.$el.find('span.orgCorp input[type=checkbox]');
+			var $checkboxes = this.$el.find('ul.orgDepth1 li input[type=checkbox]');
+			$toggle.change(function() {
+				if (this.checked) {
+					$checkboxes.prop('checked', true);
+				} else {
+					$checkboxes.removeProp('checked');
+				}
+			});
+		},
+		appendRecipients : function() {
+			var $toggle = this.$el.find('span.orgCorp input[type=checkbox]');
+			var $checkboxes = this.$el.find('ul.orgDepth1 li input[type="checkbox"]:checked');
+			var recipients = [];
+			$checkboxes.each(function(index, element) {
+				var $checkbox = $(element);
+				var $item = $checkbox.parent();
+				var rcpt = {
+					type : $item.data('oc'),
+					personal : $item.data('cn'),
+					address : $item.data('mail'),
+					sharerId : $item.data('sharerId'),
+				};
+				recipients.push(rcpt);
+			});
+			$toggle.prop('checked', false);
+			$checkboxes.prop('checked', false);
+			this.parentView.trigger('add:recipients', recipients);
+		},
+	}); // app.ShareContactTreeRootView
+
+	app.ContactTreeEntryView = Backbone.Marionette.CompositeView.extend({
+		tagName : "li",
+		template : function(data) {
+			var html, compiledTemplate = app.ContactTreeEntryView.compiledTemplate;
+			if (!compiledTemplate) {
+				html = app.$template.filter('#contacts-entry-template').html();
+				compiledTemplate = _.template(html);
+				app.ContactTreeEntryView.compiledTemplate = compiledTemplate;
+			}
+			html = compiledTemplate({
+				entry : data,
+				i18n : i18n,
+			});
+			return html;
+		},
+		initialize : function() {
+			// this.model == app.contact.ContactEntryModel
+			this.collection = this.model.member;
+		},
+		onRender : function() {
+			var self = this, $el = this.$el;
+			var attributes = this.model.get('attributes');
+			var $nodeIcon = this.$el.children('.orgNode');
+			var $checkbox = this.$el.children('input:checkbox');
+			var $label = this.$el.children('label:first');
+			var $list = this.$el.children('ul:first').hide();
+			this.applyClassToItems($list.children('li'));
+			$nodeIcon.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				if ($el.hasClass('orgNode_p')) { // [+]
+					$el.removeClass().addClass('orgNode_m');
+					if (self.collection.size() === 0) {
+						var $loading = $('<img>', {
+							'src' : 'img/ico_ld_cm.gif',
+							'class' : 'tchk'
+						}).appendTo($el);
+						self.model.fetch({
+							success : function(model, response, options) {
+								if (!model.member || model.member.length === 0)
+									$loading.remove();
+							},
+							error : function(model, response, options) {
+								$loading.remove();
+							},
+						});
+						self.listenToOnce(self.model, 'change', function() {
+							$loading.remove();
+							self.applyClassToItems($list.children('li'));
+							$list.slideDown();
+						});
+					} else {
+						$list.slideDown();
+					}
+				} else if ($el.hasClass('orgNode_m')) { // [-]
+					$el.removeClass().addClass('orgNode_p');
+					$list.slideUp();
+				} else if ($el.hasClass('orgNode_pBott')) { // [+]
+					$el.removeClass().addClass('orgNode_mBott');
+					if (self.collection.size() === 0) {
+						var $loading = $('<img>', {
+							'src' : 'img/ico_ld_cm.gif',
+							'class' : 'tchk'
+						}).appendTo($el);
+						self.model.fetch({
+							success : function(model, response, options) {
+								if (!model.member || model.member.length === 0)
+									$loading.remove();
+							},
+							error : function(model, response, options) {
+								$loading.remove();
+							},
+						});
+						self.listenToOnce(self.model, 'change', function() {
+							$loading.remove();
+							self.applyClassToItems($list.children('li'));
+							$list.slideDown();
+						});
+					} else {
+						$list.slideDown();
+					}
+				} else if ($el.hasClass('orgNode_mBott')) { // [-]
+					$el.removeClass().addClass('orgNode_pBott');
+					$list.slideUp();
+				} else {
+					// no action
+				}
+			});
+			$label.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				if ($checkbox.is(':checked'))
+					$checkbox.prop('checked', false);
+				else
+					$checkbox.prop('checked', true);
+			});
+			if (_.contains(attributes.objectClass, 'groupOfNames')) {
+				this.$el.data('oc', 'group'); // objectClass
+				if (attributes.cn && attributes.cn[0]) {
+					this.$el.data('cn', attributes.cn[0]); // common name
+					this.$el.data('mail', '#' + attributes.cn[0]); // email-address
+				}
+			} else {
+				this.$el.data('oc', 'user'); // objectClass
+				if (attributes.cn && attributes.cn[0]) // common name
+					this.$el.data('cn', attributes.cn[0]);
+				if (attributes.mail && attributes.mail[0]) // email address
+					this.$el.data('mail', attributes.mail[0]);
+			}
+			this.$el.draggable({
+				appendTo : '.mc-orgContent .mc-orgFixed:first',
+				cursor : 'pointer',
+				helper : function() {
+					var $helper = $("<div />", {
+						style : 'line-height: 18px; color: #c5c6c7;',
+					});
+					switch (self.$el.data('oc')) {
+					case 'group':
+						$helper.append($('<span />', {
+							css : {
+								'display' : 'inline-block',
+								'vertical-align' : 'middle',
+								'width' : '16px',
+								'height' : '13px',
+								'background' : 'transparent url("img/tree_ico.png") no-repeat',
+								'background-position' : '0 0',
+							},
+							text : ' ',
+						}));
+						break;
+					case 'user':
+						$helper.append($('<span />', {
+							css : {
+								'display' : 'inline-block',
+								'width' : '16px',
+								'height' : '13px',
+								'background' : 'transparent url("img/tree_ico.png") no-repeat',
+								'background-position' : '3px -53px',
+							},
+							text : ' ',
+						}));
+						break;
+					}
+					$helper.append(document.createTextNode(' ' + $label.text()));
+					return $helper;
+				},
+			});
+		},
+		initRenderBuffer : function() {
+			this.elBuffer = document.createDocumentFragment();
+		},
+		appendHtml : function(collectionView, itemView, index) {
+			if (collectionView.isBuffering) {
+				collectionView.elBuffer.appendChild(itemView.el);
+			} else {
+				collectionView.$el.append(itemView.el);
+			}
+		},
+		appendBuffer : function(collectionView, buffer) {
+			this.$itemViewContainer = collectionView.$("ul:first");
+			this.$itemViewContainer.append(buffer);
+		},
+		applyClassToItems : function($items) {
+			$items.each(function(index, element) {
+				var $item = $(element);
+				var lastItem = index == $items.length - 1 ? true : false;
+				var $li = $item.find('ul:first li');
+				var objectClass = $item.data('oc');
+				switch (objectClass) {
+				case 'group':
+					if (lastItem)
+						$item.removeClass().addClass('orgNode_pBott');
+					else
+						$item.removeClass().addClass('orgNode_p');
+					break;
+				case 'user':
+				default:
+					if (lastItem)
+						$item.removeClass().addClass('orgNode_elbow');
+					else
+						$item.removeClass().addClass('orgNode_join');
+				}
+			});
+		},
+	}); // app.ContactTreeEntryView
+
+	app.ContactTreeRootView = Backbone.Marionette.CompositeView.extend({
+		template : function(data) {
+			var html, compiledTemplate = app.ContactTreeRootView.compiledTemplate;
+			if (!compiledTemplate) {
+				html = app.$template.filter('#contacts-root-template').html();
+				compiledTemplate = _.template(html);
+				app.ContactTreeRootView.compiledTemplate = compiledTemplate;
+			}
+			html = compiledTemplate({
+				entry : data,
+				i18n : i18n,
+			});
+			return html;
+		},
+		itemView : app.ContactTreeEntryView,
+		itemViewContainer : "ul.orgDepth1:first",
+		initialize : function(options) {
+			this.parentView = options.parentView; // app.TopPanelView
+			this.listenTo(this.parentView, 'append:contact-recipients', this.appendRecipients);
+			this.listenTo(this.parentView, 'show:loading-contacts', this.showLoading);
+		},
+		onRender : function() {
+			var $items = this.$el.children('ul:first').children('li');
+			$items.show();
+			$items.each(function(index, element) {
+				var $item = $(element);
+				var lastItem = index == $items.length - 1 ? true : false;
+				var $li = $item.find('ul:first li');
+				var objectClass = $item.data('oc');
+				switch (objectClass) {
+				case 'group':
+					if (lastItem)
+						$item.removeClass().addClass('orgNode_pBott');
+					else
+						$item.removeClass().addClass('orgNode_p');
+					break;
+				case 'user':
+				default:
+					if (lastItem)
+						$item.removeClass().addClass('orgNode_elbow');
+					else
+						$item.removeClass().addClass('orgNode_join');
+				}
+			});
+			var $toggle = this.$el.find('span.orgCorp input[type=checkbox]');
+			var $checkboxes = this.$el.find('ul.orgDepth1 li input[type=checkbox]');
+			$toggle.change(function() {
+				if (this.checked) {
+					$checkboxes.prop('checked', true);
+				} else {
+					$checkboxes.removeProp('checked');
+				}
+			});
+		},
+		showLoading : function() {
+			this.$loading = $('<img>', {
+				'src' : 'img/ico_ld_cm.gif',
+				'style' : 'vertical-align: middle;'
+			}).appendTo(this.$el.children('span.orgCorp'));
+		},
+		initRenderBuffer : function() {
+			this.elBuffer = document.createDocumentFragment();
+		},
+		appendHtml : function(collectionView, itemView, index) {
+			if (collectionView.isBuffering) {
+				collectionView.elBuffer.appendChild(itemView.el);
+			} else {
+				collectionView.$el.append(itemView.el);
+			}
+		},
+		appendBuffer : function(collectionView, buffer) {
+			this.$itemViewContainer = collectionView.$(this.itemViewContainer);
+			this.$itemViewContainer.append(buffer);
+		},
+		appendRecipients : function() {
+			var $toggle = this.$el.find('span.orgCorp input[type=checkbox]');
+			var $checkboxes = this.$el.find('ul.orgDepth1 li input[type="checkbox"]:checked');
+			var recipients = [];
+			$checkboxes.each(function(index, element) {
+				var $checkbox = $(element);
+				var $item = $checkbox.parent();
+				var rcpt = {
+					type : $item.data('oc'),
+					personal : $item.data('cn'),
+					address : $item.data('mail'),
+				};
+				recipients.push(rcpt);
+			});
+			$toggle.prop('checked', false);
+			$checkboxes.prop('checked', false);
+			this.parentView.trigger('add:recipients', recipients);
+		},
+	}); // app.ContactTreeRootView
+
+	app.RecipientsView = Backbone.Marionette.ItemView.extend({
+		tagName : 'table',
+		template : function(data) {
+			var html = '';
+			return html;
+		},
+		initialize : function(options) {
+			// this.model == app.userModel
+			this.parentView = options.parentView; // app.TopPanelView
+			this.$header = this.parentView.$el.find('.mc-orgList_head:first');
+			this.$send = this.parentView.$el.find('.mc-btn_msgSend:first');
+			this.$remove = this.parentView.$el.find('.mc-btn_msgDel:first');
+			this.listenTo(this.parentView, 'add:recipients', this.addRecipients);
+			this.listenTo(this.parentView, 'remove:recipients', this.removeRecipients);
+			this.listenTo(this.parentView, 'remove:all-recipients', this.removeAllRecipients);
+			this.files = [];
+		},
+		onRender : function() {
+			var self = this, $el = this.$el;
+			this.parentView.recipientsRegion.$el.droppable({
+				accept : function(element) {
+					var objectClass = element.data('oc');
+					return objectClass ? true : false;
+				},
+				drop : function(event, ui) {
+					var $draggable = ui.draggable;
+					var recipients = [ {
+						type : $draggable.data('oc'),
+						personal : $draggable.data('cn'),
+						address : $draggable.data('mail'),
+						sharerId : $draggable.data('sharerId'),
+					} ];
+					self.addRecipients(recipients);
+				},
+			});
+			// Header Checkboxes
+			this.$toggle = this.$header.find('td.name input:checkbox');
+			this.$toggle.change(function() {
+				self.trigger('toggle:recipient-item');
+			});
+			this.$ccToggle = this.$header.find('td.cc .rcpt-header-cc');
+			this.$bccToggle = this.$header.find('td.cc .rcpt-header-bcc');
+			this.$ccToggle.change(function() {
+				if (self.$ccToggle.is(':checked'))
+					self.$bccToggle.prop('checked', false);
+				self.trigger('toggle:recipient-cc');
+			});
+			this.$bccToggle.change(function() {
+				if (self.$bccToggle.is(':checked'))
+					self.$ccToggle.prop('checked', false);
+				self.trigger('toggle:recipient-bcc');
+			});
+			// Send Button
+			this.$send.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				self.parentView.trigger('dispatch:mail');
+			});
+			// Remove Button
+			this.$remove.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				self.trigger('remove:recipient');
+			});
+		},
+		addRecipients : function(recipients) {
+			var self = this, $el = this.$el, $lastItem;
+			$.each(recipients, function(index, rcpt) {
+				if (self.checkDuplicate(rcpt)) {
+					return;
+				}
+				var model = new Backbone.Model({
+					type : rcpt.type,
+					personal : rcpt.personal,
+					address : rcpt.address,
+					sharerId : rcpt.sharerId || '',
+				});
+				var recipientsItemView = new app.RecipientsItemView({
+					model : model,
+					parentView : self,
+				});
+				$el.append(recipientsItemView.render().el);
+			});
+			var $parent = $el.parents('.mc-orgList_body');
+			var $lastRow = $el.find('tr:last');
+			var pos = $parent.scrollTop() + $lastRow.position().top;
+			$parent.scrollTop(pos);
+		},
+		removeRecipients : function() {
+			this.trigger('remove:recipient');
+		},
+		removeAllRecipients : function() {
+			this.trigger('remove:each-recipient');
+		},
+		checkDuplicate : function(rcpt) {
+			var self = this, $el = this.$el;
+			var $adrs = $el.find('td.adrs span');
+			var isDuplicate = false;
+			$adrs.each(function() {
+				var $this = $(this);
+				var addr = $this.text();
+				if (addr && $.trim(addr) == $.trim(rcpt.address)) {
+					isDuplicate = true;
+					return false;
+				}
+			});
+			return isDuplicate;
+		},
+	}); // app.RecipientsView
+
+	app.RecipientsItemView = Backbone.Marionette.ItemView.extend({
+		tagName : 'tr',
+		template : function(data) {
+			var html, compiledTemplate = app.RecipientsItemView.compiledTemplate;
+			if (!compiledTemplate) {
+				html = app.$template.filter('#recipient-template').html();
+				compiledTemplate = _.template(html);
+				app.RecipientsItemView.compiledTemplate = compiledTemplate;
+			}
+			html = compiledTemplate({
+				recipient : data,
+				i18n : i18n,
+			});
+			return html;
+		},
+		initialize : function(options) {
+			// this.model = { type: '', personal: '', address: '' }
+			this.parentView = options.parentView; // app.RecipientsView
+			this.listenTo(this.parentView, 'toggle:recipient-item', this.toggleRecipient);
+			this.listenTo(this.parentView, 'toggle:recipient-cc', this.toggleRecipientCc);
+			this.listenTo(this.parentView, 'toggle:recipient-bcc', this.toggleRecipientBcc);
+			this.listenTo(this.parentView, 'remove:recipient', this.removeIfChecked);
+			this.listenTo(this.parentView, 'remove:each-recipient', this.remove);
+		},
+		onRender : function() {
+			var self = this;
+			var type = this.model.get('type');
+			var personal = this.model.get('personal');
+			var address = this.model.get('address');
+			var sharerId = this.model.get('sharerId');
+			var recipient;
+			switch (type) {
+			case 'group':
+				recipient = address;
+				if (sharerId) {
+					recipient += '@' + sharerId;
+				}
+				break;
+			case 'user':
+				if (personal)
+					recipient = '"' + personal + '" <' + address + '>';
+				else
+					recipient = address;
+			}
+			this.$el.data('recipient', recipient);
+			// Checkbox Events
+			this.toggleRecipient();
+			var $name = this.$el.find('td.name label');
+			var $addr = this.$el.find('td.adrs');
+			$($name).add($addr).click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				self.toggleRecipient();
+			});
+			this.$checkbox = this.$el.find('.recipient-item:first');
+			this.$checkbox.change(function() {
+				if (this.checked) {
+					var $checkboxes = self.parentView.$el.find('.recipient-item');
+					if ($checkboxes.length == $checkboxes.filter(':checked').length)
+						self.parentView.$toggle.prop('checked', true);
+				} else {
+					self.parentView.$toggle.prop('checked', false);
+				}
+			});
+			this.$checkboxCc = this.$el.find('.recipient-cc:first');
+			this.$checkboxBcc = this.$el.find('.recipient-bcc:first');
+			this.$checkboxCc.change(function() {
+				if (this.checked) {
+					self.$checkboxBcc.prop('checked', false);
+					var $checkboxes = self.parentView.$el.find('.recipient-cc');
+					if ($checkboxes.length == $checkboxes.filter(':checked').length)
+						self.parentView.$ccToggle.prop('checked', true);
+					$checkboxes = self.parentView.$el.find('.recipient-bcc');
+					if ($checkboxes.length == $checkboxes.filter(':checked').length)
+						self.parentView.$bccToggle.prop('checked', true);
+				} else {
+					self.parentView.$ccToggle.prop('checked', false);
+				}
+			});
+			this.$checkboxBcc.change(function() {
+				if (this.checked) {
+					self.$checkboxCc.prop('checked', false);
+					var $checkboxes = self.parentView.$el.find('.recipient-bcc');
+					if ($checkboxes.length == $checkboxes.filter(':checked').length)
+						self.parentView.$bccToggle.prop('checked', true);
+					$checkboxes = self.parentView.$el.find('.recipient-cc');
+					if ($checkboxes.length == $checkboxes.filter(':checked').length)
+						self.parentView.$ccToggle.prop('checked', true);
+				} else {
+					self.parentView.$bccToggle.prop('checked', false);
+				}
+			});
+		},
+		removeIfChecked : function() {
+			var $checkbox = this.$el.find('.recipient-item:first');
+			if ($checkbox.is(':checked'))
+				this.remove();
+		},
+		toggleRecipient : function() {
+			var $checkbox = this.$el.find('.recipient-item:first');
+			if ($checkbox.is(':checked'))
+				$checkbox.prop('checked', false);
+			else
+				$checkbox.prop('checked', true);
+		},
+		toggleRecipientCc : function() {
+			var $checkbox = this.$el.find('.recipient-cc:first');
+			if ($checkbox.is(':checked')) {
+				$checkbox.prop('checked', false);
+			} else {
+				$checkbox.prop('checked', true);
+				this.$el.find('.recipient-bcc:first').prop('checked', false);
+			}
+		},
+		toggleRecipientBcc : function() {
+			var $checkbox = this.$el.find('.recipient-bcc:first');
+			if ($checkbox.is(':checked')) {
+				$checkbox.prop('checked', false);
+			} else {
+				$checkbox.prop('checked', true);
+				this.$el.find('.recipient-cc:first').prop('checked', false);
+			}
+		},
+	}); // app.RecipientsItemView
+
+	app.AttachmentsView = Backbone.Marionette.ItemView.extend({
+		template : function(data) {
+			var html, compiledTemplate = app.AttachmentsView.compiledTemplate;
+			if (!compiledTemplate) {
+				html = app.$template.filter('#attachments-template').html();
+				compiledTemplate = _.template(html);
+				app.AttachmentsView.compiledTemplate = compiledTemplate;
+			}
+			html = compiledTemplate({
+				i18n : i18n,
+			});
+			return html;
+		},
+		initialize : function(options) {
+			// this.model == app.userModel
+			this.parentView = options.parentView;
+			this.listenTo(this.parentView, 'dispatch:mail', this.dispatchMail);
+			this.files = {};
+		},
+		onRender : function() {
+			var self = this, $el = this.$el;
+			var $browse = this.$el.find('.mc-btn_orgFF');
+			var $fileInput = this.$el.find('input:file');
+			var $fileDropzone = this.$el.find('.mc-uiFile_list');
+			var $fileList = $fileDropzone.children('ul');
+			$browse.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				if ($fileInput[0].files) {
+					$fileInput.click();
+					return false;
+				}
+				if (!document.attachmentUploadIframe) {
+					$('<iframe>', {
+						'name' : 'attachmentUploadIframe',
+						'src' : 'attachment/form',
+						'style' : 'position: absolute; display: none;',
+					}).appendTo('body');
+				}
+				if (document.attachmentUploadIframe) {
+					var iframe = document.attachmentUploadIframe;
+					var form = iframe.attachmentUploadForm;
+					if (!form || !form.attachment)
+						return false;
+					var changed = false;
+					form.attachment.onchange = function(event) {
+						changed = true;
+						return false;
+					};
+					form.attachment.click();
+					if (!changed) {
+						return false;
+					}
+					form.submit();
+					app.overlayView.showUploading();
+					app.vent.once('attachment:uploaded', function(file) {
+						app.overlayView.hideUploading();
+						var iframe = document.attachmentUploadIframe;
+						var pathname = iframe.location.pathname;
+						var url = pathname.substring(0, pathname.lastIndexOf('/')) + '/form';
+						iframe.location.replace(url);
+						if (!file) {
+							alert('Failed to upload an attachment');
+							return;
+						}
+						var $item = self.createAttachmentItem(file.id, file);
+						if (!$item)
+							return;
+						$fileList.append($item);
+						var pos = $fileDropzone.scrollTop() + $item.position().top;
+						$fileDropzone.scrollTop(pos);
+						self.files[file.id] = file;
+					});
+				}
+			});
+			$fileInput.change(function(event) {
+				$.each(this.files, function(index, file) {
+					var id = self.uid();
+					var $item = self.createAttachmentItem(id, file);
+					if (!$item)
+						return;
+					$fileList.append($item);
+					var pos = $fileDropzone.scrollTop() + $item.position().top;
+					$fileDropzone.scrollTop(pos);
+					self.files[id] = file;
+				});
+				$fileInput.val('');
+			});
+			$fileDropzone.on('dragenter',
+					function(event) {
+						var dataTransfer = event.originalEvent.dataTransfer;
+						var types = dataTransfer.types;
+						if (types) {
+							if ((types.contains && types.contains("Files"))
+									|| (types.indexOf && types.indexOf("Files") !== -1)) {
+								event.preventDefault();
+							}
+						}
+					});
+			$fileDropzone.on('dragover', function(event) {
+				event.preventDefault() && event.stopPropagation();
+				return false;
+			});
+			$fileDropzone.on('drop', function(event) {
+				event.preventDefault() && event.stopPropagation();
+				var dataTransfer = event.originalEvent.dataTransfer;
+				if (!dataTransfer) {
+					return;
+				}
+				var isAllFiles = true;
+				if (dataTransfer.items) {
+					$.each(dataTransfer.items, function(index, item) {
+						var entry = item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
+						if (entry && !entry.isFile) {
+							isAllFiles = false;
+						}
+					});
+				}
+				if (!isAllFiles)
+					return;
+				var files = dataTransfer.files;
+				$.each(files, function(index, file) {
+					var id = self.uid();
+					var $item = self.createAttachmentItem(id, file);
+					$fileList.append($item);
+					var pos = $fileDropzone.scrollTop() + $item.position().top;
+					$fileDropzone.scrollTop(pos);
+					self.files[id] = file;
+				});
+				return false;
+			});
+			$fileDropzone.droppable({
+				accept : function(element) {
+					var pathname = element.data('pathname');
+					return pathname ? true : false;
+				},
+				drop : function(event, ui) {
+					var $draggable = ui.draggable;
+					var pathname = $draggable.data('pathname');
+					var filename = $draggable.data('filename');
+					var fileModel = new app.disk.FileModel();
+					fileModel.set('id', 'blob-attachment');
+					fileModel.fetch({
+						type : 'POST',
+						data : {
+							_method : 'GET',
+							pathname : pathname,
+							filename : filename,
+						},
+						success : function(model, response, options) {
+							var file = model.toJSON();
+							var id = file.linkCount;
+							var $item = self.createAttachmentItem(id, file);
+							$fileList.append($item);
+							var pos = $fileDropzone.scrollTop() + $item.position().top;
+							$fileDropzone.scrollTop(pos);
+							self.files[id] = file;
+							setTimeout(function() {
+								app.vent.trigger('list:blob-attachments');
+							}, 1000);
+						}
+					});
+				},
+			});
+		},
+		uid : function() {
+			var now = Date.now ? Date.now() : new Date().getTime();
+			var min = 0, max = 1000;
+			var random = min + Math.floor(Math.random() * (max - min + 1));
+			return now + '.' + random;
+		},
+		createAttachmentItem : function(id, file) {
+			var self = this;
+			var $item = $('<li></li>', {
+				'class' : 'mc-attachFil',
+				text : file.name
+			}).data('file-id', id);
+			var $remove = $('<a href="#">X</a>');
+			$remove.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				var id = $item.data('file-id');
+				delete self.files[id];
+				$item.remove();
+			});
+			$item.append($remove);
+			return $item;
+		},
+		removeAllAttachments : function() {
+			var self = this;
+			var $list = this.$el.find('.mc-uiFile_list ul');
+			var $items = $list.children('li');
+			$items.each(function(index, element) {
+				var $item = $(element);
+				var id = $item.data('file-id');
+				delete self.files[id];
+				$item.remove();
+			});
+		},
+		dispatchMail : function() {
+			var params = {
+				to : [],
+				cc : [],
+				bcc : [],
+				files : [],
+			};
+			var $recipients = $('.mc-orgList_body table tr');
+			$recipients.each(function(index, element) {
+				var $rcpt = $(element);
+				var $checkbox = $rcpt.find('.recipient-item');
+				var $cc = $rcpt.find('.recipient-cc');
+				var $bcc = $rcpt.find('.recipient-bcc');
+				var address = $rcpt.data('recipient');
+				if ($checkbox.is(':checked')) {
+					if ($cc.is(':checked')) {
+						params.cc.push(address);
+					} else if ($bcc.is(':checked')) {
+						params.bcc.push(address);
+					} else {
+						params.to.push(address);
+					}
+				}
+			});
+			for ( var id in this.files) {
+				var file = this.files[id];
+				params.files.push(file);
+			}
+			this.parentView.toggle();
+			this.parentView.trigger('remove:all-recipients');
+			this.removeAllAttachments();
+			var hash = '#compose?' + $.param({
+				to : params.to,
+				cc : params.cc,
+				bcc : params.bcc,
+				dispatch : true,
+			}, true);
+			if (app.userModel.get('COMPOSE_NEW_WINDOW')) {
+				var win = window.open('popup/' + hash, '', 'scrollbars=yes,width=1000,height=800');
+				win.focus();
+				return false;
+			} else {
+				location.hash = hash;
+				setTimeout(function() {
+					app.vent.trigger('compose:mail', params);
+				}, 1000);
+			}
+		},
+	}); // app.AttachmentsView
+
+	app.BlobAttachmentItemView = Backbone.Marionette.CompositeView.extend({
+		tagName : 'li',
+		template : function(data) {
+			var html, compiledTemplate = app.BlobAttachmentItemView.compiledTemplate;
+			if (!compiledTemplate) {
+				html = app.$template.filter('#blob-attachment-template').html();
+				compiledTemplate = _.template(html);
+				app.BlobAttachmentItemView.compiledTemplate = compiledTemplate;
+			}
+			html = compiledTemplate({
+				data : data,
+				i18n : i18n,
+			});
+			return html;
+		},
+		initialize : function() {
+			// this.model == disk.FileModel
+		},
+		onRender : function() {
+			var self = this;
+			var $fileName = this.$el.children('span.file_name');
+			$fileName.mouseover(function(event) {
+				$(this).addClass('liOver');
+				return false;
+			});
+			$fileName.mouseout(function(event) {
+				$(this).removeClass('liOver');
+				return false;
+			});
+			var $fileInfo = this.$el.children('div.info');
+			$fileInfo.mouseover(function(event) {
+				$(this).siblings('span.file_name').addClass('liOver');
+				return false;
+			});
+			$fileInfo.mouseout(function(event) {
+				$(this).siblings('span.file_name').removeClass('liOver');
+				return false;
+			});
+			var $download = $fileName.children('a.ico_cloud_down');
+			$download.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				location.href = 'disk/file?pathname=' + self.model.get('id');
+				return false;
+			});
+			var $delete = $fileInfo.find('span.file_del a');
+			$delete.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				var model = self.model;
+				model.pathname = model.get('path') + '/' + model.get('linkCount');
+				model.destroy({
+					wait : true,
+					success : function(model, response, options) {
+						self.remove();
+					}
+				});
+				return false;
+			});
+			var pathname = this.model.get('path') + '/' + this.model.get('linkCount');
+			var filename = this.model.get('name');
+			this.$el.data('pathname', pathname);
+			this.$el.data('filename', filename);
+			this.$el.draggable({
+				appendTo : '.mc-orgContent .mc-orgFixed:first',
+				cursor : 'pointer',
+				helper : function() {
+					var $helper = $("<div />", {
+						'style' : 'line-height: 18px; color: #c5c6c7;',
+						'class' : 'file_name'
+					});
+					if (self.model.get('file')) {
+						var $span = $fileName.children('span.fic:first').clone();
+						$helper.append($span);
+						$helper.append(document.createTextNode(' ' + self.model.get('name')));
+					}
+					return $helper;
+				},
+			});
+		},
+		appendHtml : function(collectionView, itemView) {
+			collectionView.$('ul:first').append(itemView.el);
+		},
+	}); // app.BlobAttachmentItemView
+
+	app.BlobAttachementsView = Backbone.Marionette.CollectionView.extend({
+		tagName : 'ul',
+		itemView : app.BlobAttachmentItemView,
+		initialize : function(options) {
+			// this.collection == disk.FileCollection
+			// this.model = disk.FileModel
+			this.listenTo(app.vent, 'list:blob-attachments', function() {
+				var model = this.model;
+				this.collection.fetch({
+					type : 'POST',
+					data : {
+						_method : 'GET',
+						pathname : this.model.get('path') + '/' + this.model.get('name')
+					},
+					success : function(collection, response, options) {
+						var models = collection.sortBy('name');
+						collection.reset(models);
+						app.vent.trigger('show:blob-attachments', collection, model);
+					},
+				});
+			});
+		},
+		onRender : function() {
+			var self = this;
+		},
+	}); // app.BlobAttachementsView
+
+	app.DiskFileItemView = Backbone.Marionette.CompositeView.extend({
+		tagName : 'li',
+		className : 'nodeArrow_no',
+		template : function(data) {
+			var html, compiledTemplate = app.DiskFileItemView.compiledTemplate;
+			if (!compiledTemplate) {
+				html = app.$template.filter('#disk-file-item-template').html();
+				compiledTemplate = _.template(html);
+				app.DiskFileItemView.compiledTemplate = compiledTemplate;
+			}
+			html = compiledTemplate({
+				data : data,
+				i18n : i18n,
+			});
+			return html;
+		},
+		initialize : function() {
+			// this.model == disk.FileModel
+			this.collection = this.model.files;
+		},
+		onRender : function() {
+			var self = this;
+			if (this.model.get('directory')) {
+				this.$el.removeClass().addClass('nodeArrow_dw');
+			}
+			var $fileName = this.$el.children('span.file_name');
+			$fileName.mouseover(function(event) {
+				$(this).addClass('liOver');
+			});
+			$fileName.mouseout(function(event) {
+				$(this).removeClass('liOver');
+			});
+			var $fileInfo = this.$el.children('div.info');
+			$fileInfo.mouseover(function(event) {
+				$(this).siblings('span.file_name').addClass('liOver');
+			});
+			$fileInfo.mouseout(function(event) {
+				$(this).siblings('span.file_name').removeClass('liOver');
+			});
+			var $download = $fileName.children('a.ico_cloud_down');
+			$download.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				location.href = 'disk/file?pathname=' + self.model.get('id');
+				return false;
+			});
+			var $delete = $fileInfo.find('span.file_del a');
+			$delete.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				var model = self.model;
+				model.destroy({
+					wait : true,
+					success : function(model, response, options) {
+						self.remove();
+					}
+				});
+				return false;
+			});
+			var $list = this.$el.children('ul:first');
+			this.$el.click(function(event) {
+				event.preventDefault() && event.stopPropagation();
+				var $this = $(this);
+				if (self.model.get('directory')) {
+					if ($this.hasClass('nodeArrow_dw')) {
+						if (self.collection.size() === 0) {
+							self.collection.pathname = self.model.id;
+							self.collection.fetch({
+								type : 'POST',
+								data : {
+									_method : 'GET',
+									pathname : self.model.get('path') + '/' + self.model.get('name')
+								},
+							});
+							self.listenToOnce(self.collection, 'sync', function() {
+								$this.removeClass().addClass('nodeArrow_up');
+								$list.slideDown();
+							});
+						} else {
+							$this.removeClass().addClass('nodeArrow_up');
+							$list.slideDown();
+						}
+					} else if ($this.hasClass('nodeArrow_up')) {
+						$this.removeClass().addClass('nodeArrow_dw');
+						$list.slideUp();
+					}
+				}
+				return false;
+			});
+			var pathname = this.model.get('path') + '/' + this.model.get('name');
+			this.$el.data('pathname', pathname);
+			this.$el.draggable({
+				appendTo : '.mc-orgContent .mc-orgFixed:first',
+				cursor : 'pointer',
+				helper : function() {
+					var $helper = $("<div />", {
+						'style' : 'line-height: 18px; color: #c5c6c7;',
+						'class' : 'file_name'
+					});
+					if (self.model.get('file')) {
+						var $span = $fileName.children('span.fic:first').clone();
+						$helper.append($span);
+						$helper.append(document.createTextNode(' ' + self.model.get('name')));
+					}
+					return $helper;
+				},
+			});
+		},
+		appendHtml : function(collectionView, itemView) {
+			collectionView.$('ul:first').append(itemView.el);
+		},
+	});
+
+	app.DiskFileCollectionView = Backbone.Marionette.CollectionView.extend({
+		tagName : 'ul',
+		itemView : app.DiskFileItemView,
+		initialize : function(options) {
+			// this.collection == disk.FileCollection
+			// this.model = disk.FileModel
+		},
+		onRender : function() {
+			var self = this;
+		},
+	});
+
+	app.OverlayView = Backbone.Marionette.ItemView.extend({
+		tagName : 'div',
+		attributes : {
+			style : 'display: none;',
+		},
+		template : function(data) {
+			var html;
+			var compiledTemplate = app.OverlayView.compiledTemplate;
+			if (!compiledTemplate) {
+				var templateId = '#app-overlay-template';
+				html = app.$template.filter(templateId).html();
+				compiledTemplate = _.template(html);
+				app.OverlayView.compiledTemplate = compiledTemplate;
+			}
+			html = compiledTemplate({
+				i18n : i18n,
+			});
+			return html;
+		},
+		initialize : function(options) {
+			// this.model == No Model
+		},
+		onRender : function() {
+			var self = this;
+			this.$overlay = this.$el.children('#app-overlay');
+			this.$loadingLayer = this.$overlay.children('.app-loading-layer');
+			this.$processingLayer = this.$overlay.children('.app-processing-layer');
+			this.$uploadingLayer = this.$overlay.children('.attachment-uploading-layer');
+			this.$overlay.appendTo('body');
+			this.$overlay.on('mousedown', function(event) {
+				event.preventDefault() && event.stopPropagation();
+			});
+			this.$viewport = $(window);
+			this.$viewport.resize(function(event) {
+				var viewportWidth = self.$viewport.width();
+				var viewportHeight = self.$viewport.height();
+				var width = self.$loadingLayer.width();
+				var height = self.$loadingLayer.height();
+				var top = Math.floor((viewportHeight / 2) - (height / 2));
+				var left = Math.floor((viewportWidth / 2) - (width / 2));
+				self.$loadingLayer.css({
+					'top' : top,
+					'left' : left,
+				});
+				width = self.$processingLayer.width();
+				height = self.$processingLayer.height();
+				top = Math.floor((viewportHeight / 2) - (height / 2));
+				left = Math.floor((viewportWidth / 2) - (width / 2));
+				self.$processingLayer.css({
+					'top' : top,
+					'left' : left,
+				});
+				width = self.$uploadingLayer.width();
+				height = self.$uploadingLayer.height();
+				top = Math.floor((viewportHeight / 2) - (height / 2));
+				left = Math.floor((viewportWidth / 2) - (width / 2));
+				self.$uploadingLayer.css({
+					'top' : top,
+					'left' : left,
+				});
+			});
+			this.$viewport.resize();
+			this.$loadingLayer.hide();
+			this.$processingLayer.hide();
+			this.$uploadingLayer.hide();
+			this.$overlay.hide();
+		},
+		onClose : function() {
+			this.$overlay.remove();
+		},
+		showOverlay : function() {
+			this.$viewport.trigger('resize');
+			this.$overlay.show();
+		},
+		hideOverlay : function() {
+			this.$overlay.fadeOut();
+		},
+		showLoading : function() {
+			this.showOverlay();
+			this.$loadingLayer.show();
+		},
+		hideLoading : function() {
+			this.$loadingLayer.fadeOut();
+			this.hideOverlay();
+		},
+		showProcessing : function() {
+			this.showOverlay();
+			this.$processingLayer.show();
+		},
+		hideProcessing : function() {
+			this.$processingLayer.fadeOut();
+			this.hideOverlay();
+		},
+		showUploading : function() {
+			this.showOverlay();
+			this.$uploadingLayer.show();
+		},
+		hideUploading : function() {
+			this.$uploadingLayer.fadeOut();
+			this.hideOverlay();
+		},
+	});
+
+});≤ñ„(ùè      c⁄[c⁄[E6Mcc„U⁄   m    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app/app-views.js?v=202301181454 necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"78806-1664418088000"
+Last-Modified: Thu, 29 Sep 2022 02:21:28 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 78806
+Date: Wed, 01 Feb 2023 07:57:14 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"78806-1664418088000"
+Last-Modified: Thu, 29 Sep 2022 02:21:28 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 78806
+Date: Wed, 01 Feb 2023 07:57:14 GMT
+ ctid 2 uncompressed-len 0 net-response-time-onstart 12 net-response-time-onstop 17  3÷

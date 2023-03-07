@@ -1,0 +1,592 @@
+/*
+* Slides, A Slideshow Plugin for jQuery
+* Intructions: http://slidesjs.com
+* By: Nathan Searles, http://nathansearles.com
+* Version: 1.1.9
+* Updated: September 5th, 2011
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+(function($){
+	$.fn.slides = function( option ) {
+		// override defaults with specified option
+		option = $.extend( {}, $.fn.slides.option, option );
+
+		return this.each(function(){
+			// wrap slides in control container, make sure slides are block level
+			$('.' + option.container, $(this)).children().wrapAll('<div class="slides_control"/>');
+			
+			var elem = $(this),
+				control = $('.slides_control',elem),
+				total = control.children().size(),
+				width = control.children().outerWidth(),
+				height = control.children().outerHeight(),
+				start = option.start - 1,
+				effect = option.effect.indexOf(',') < 0 ? option.effect : option.effect.replace(' ', '').split(',')[0],
+				paginationEffect = option.effect.indexOf(',') < 0 ? effect : option.effect.replace(' ', '').split(',')[1],
+				next = 0, prev = 0, number = 0, current = 0, loaded, active, clicked, position, direction, imageParent, pauseTimeout, playInterval;
+			
+			// is there only one slide?
+			if (total < 2) {
+				// Fade in .slides_container
+				$('.' + option.container, $(this)).fadeIn(option.fadeSpeed, option.fadeEasing, function(){
+					// let the script know everything is loaded
+					loaded = true;
+					// call the loaded funciton
+					option.slidesLoaded();
+				});
+				// Hide the next/previous buttons
+				$('.' + option.next + ', .' + option.prev).fadeOut(0);
+				return false;
+			}
+
+			// animate slides
+			function animate(direction, effect, clicked) {
+				if (!active && loaded) {
+					active = true;
+					// start of animation
+					option.animationStart(current + 1);
+					switch(direction) {
+						case 'next':
+							// change current slide to previous
+							prev = current;
+							// get next from current + 1
+							next = current + 1;
+							// if last slide, set next to first slide
+							next = total === next ? 0 : next;
+							// set position of next slide to right of previous
+							position = width*2;
+							// distance to slide based on width of slides
+							direction = -width*2;
+							// store new current slide
+							current = next;
+						break;
+						case 'prev':
+							// change current slide to previous
+							prev = current;
+							// get next from current - 1
+							next = current - 1;
+							// if first slide, set next to last slide
+							next = next === -1 ? total-1 : next;								
+							// set position of next slide to left of previous
+							position = 0;								
+							// distance to slide based on width of slides
+							direction = 0;		
+							// store new current slide
+							current = next;
+						break;
+						case 'pagination':
+							// get next from pagination item clicked, convert to number
+							next = parseInt(clicked,10);
+							// get previous from pagination item with class of current
+							prev = $('.' + option.paginationClass + ' li.'+ option.currentClass +' a', elem).attr('href').match('[^#/]+$');
+							// if next is greater then previous set position of next slide to right of previous
+							if (next > prev) {
+								position = width*2;
+								direction = -width*2;
+							} else {
+							// if next is less then previous set position of next slide to left of previous
+								position = 0;
+								direction = 0;
+							}
+							// store new current slide
+							current = next;
+						break;
+					}
+
+					// fade animation
+					if (effect === 'fade') {
+						// fade animation with crossfade
+						if (option.crossfade) {
+							// put hidden next above current
+							control.children(':eq('+ next +')', elem).css({
+								zIndex: 10
+							// fade in next
+							}).fadeIn(option.fadeSpeed, option.fadeEasing, function(){
+								if (option.autoHeight) {
+									// animate container to height of next
+									control.animate({
+										height: control.children(':eq('+ next +')', elem).outerHeight()
+									}, option.autoHeightSpeed, function(){
+										// hide previous
+										control.children(':eq('+ prev +')', elem).css({
+											display: 'none',
+											zIndex: 0
+										});								
+										// reset z index
+										control.children(':eq('+ next +')', elem).css({
+											zIndex: 0
+										});									
+										// end of animation
+										option.animationComplete(next + 1);
+										active = false;
+									});
+								} else {
+									// hide previous
+									control.children(':eq('+ prev +')', elem).css({
+										display: 'none',
+										zIndex: 0
+									});									
+									// reset zindex
+									control.children(':eq('+ next +')', elem).css({
+										zIndex: 0
+									});									
+									// end of animation
+									option.animationComplete(next + 1);
+									active = false;
+								}
+							});
+						} else {
+							// fade animation with no crossfade
+							control.children(':eq('+ prev +')', elem).fadeOut(option.fadeSpeed,  option.fadeEasing, function(){
+								// animate to new height
+								if (option.autoHeight) {
+									control.animate({
+										// animate container to height of next
+										height: control.children(':eq('+ next +')', elem).outerHeight()
+									}, option.autoHeightSpeed,
+									// fade in next slide
+									function(){
+										control.children(':eq('+ next +')', elem).fadeIn(option.fadeSpeed, option.fadeEasing);
+									});
+								} else {
+								// if fixed height
+									control.children(':eq('+ next +')', elem).fadeIn(option.fadeSpeed, option.fadeEasing, function(){
+										// fix font rendering in ie, lame
+										if($.browser.msie) {
+											$(this).get(0).style.removeAttribute('filter');
+										}
+									});
+								}									
+								// end of animation
+								option.animationComplete(next + 1);
+								active = false;
+							});
+						}
+					// slide animation
+					} else {
+						// move next slide to right of previous
+						control.children(':eq('+ next +')').css({
+							left: position,
+							display: 'block'
+						});
+						// animate to new height
+						if (option.autoHeight) {
+							control.animate({
+								left: direction,
+								height: control.children(':eq('+ next +')').outerHeight()
+							},option.slideSpeed, option.slideEasing, function(){
+								control.css({
+									left: -width
+								});
+								control.children(':eq('+ next +')').css({
+									left: width,
+									zIndex: 5
+								});
+								// reset previous slide
+								control.children(':eq('+ prev +')').css({
+									left: width,
+									display: 'none',
+									zIndex: 0
+								});
+								// end of animation
+								option.animationComplete(next + 1);
+								active = false;
+							});
+							// if fixed height
+							} else {
+								// animate control
+								control.animate({
+									left: direction
+								},option.slideSpeed, option.slideEasing, function(){
+									// after animation reset control position
+									control.css({
+										left: -width
+									});
+									// reset and show next
+									control.children(':eq('+ next +')').css({
+										left: width,
+										zIndex: 5
+									});
+									// reset previous slide
+									control.children(':eq('+ prev +')').css({
+										left: width,
+										display: 'none',
+										zIndex: 0
+									});
+									// end of animation
+									option.animationComplete(next + 1);
+									active = false;
+								});
+							}
+						}
+					// set current state for pagination
+					if (option.pagination) {
+						// remove current class from all
+						$('.'+ option.paginationClass +' li.' + option.currentClass, elem).removeClass(option.currentClass);
+						// add current class to next
+						$('.' + option.paginationClass + ' li:eq('+ next +')', elem).addClass(option.currentClass);
+					}
+				}
+			} // end animate function
+			
+			function stop() {
+				// clear interval from stored id
+				clearInterval(elem.data('interval'));
+			}
+
+			function pause() {
+				if (option.pause) {
+					// clear timeout and interval
+					clearTimeout(elem.data('pause'));
+					clearInterval(elem.data('interval'));
+					// pause slide show for option.pause amount
+					pauseTimeout = setTimeout(function() {
+						// clear pause timeout
+						clearTimeout(elem.data('pause'));
+						// start play interval after pause
+						playInterval = setInterval(	function(){
+							animate("next", effect);
+						},option.play);
+						// store play interval
+						elem.data('interval',playInterval);
+					},option.pause);
+					// store pause interval
+					elem.data('pause',pauseTimeout);
+				} else {
+					// if no pause, just stop
+					stop();
+				}
+			}
+				
+			// 2 or more slides required
+			if (total < 2) {
+				return;
+			}
+			
+			// error corection for start slide
+			if (start < 0) {
+				start = 0;
+			}
+			
+			if (start > total) {
+				start = total - 1;
+			}
+					
+			// change current based on start option number
+			if (option.start) {
+				current = start;
+			}
+			
+			// randomizes slide order
+			if (option.randomize) {
+				control.randomize();
+			}
+			
+			// make sure overflow is hidden, width is set
+			$('.' + option.container, elem).css({
+				overflow: 'hidden',
+				// fix for ie
+				position: 'relative'
+			});
+			
+			// set css for slides
+			control.children().css({
+				position: 'absolute',
+				top: 0, 
+				left: control.children().outerWidth(),
+				zIndex: 0,
+				display: 'none'
+			 });
+			
+			// set css for control div
+			control.css({
+				position: 'relative',
+				// size of control 3 x slide width
+				width: (width * 3),
+				// set height to slide height
+				height: height,
+				// center control to slide
+				left: -width
+			});
+			
+			// show slides
+			$('.' + option.container, elem).css({
+				display: 'block'
+			});
+
+			// if autoHeight true, get and set height of first slide
+			if (option.autoHeight) {
+				control.children().css({
+					height: 'auto'
+				});
+				control.animate({
+					height: control.children(':eq('+ start +')').outerHeight()
+				},option.autoHeightSpeed);
+			}
+			
+			// checks if image is loaded
+			if (option.preload && control.find('img:eq(' + start + ')').length) {
+				// adds preload image
+				$('.' + option.container, elem).css({
+					background: 'url(' + option.preloadImage + ') no-repeat 50% 50%'
+				});
+				
+				// gets image src, with cache buster
+				var img = control.find('img:eq(' + start + ')').attr('src') + '?' + (new Date()).getTime();
+				
+				// check if the image has a parent
+				if ($('img', elem).parent().attr('class') != 'slides_control') {
+					// If image has parent, get tag name
+					imageParent = control.children(':eq(0)')[0].tagName.toLowerCase();
+				} else {
+					// Image doesn't have parent, use image tag name
+					imageParent = control.find('img:eq(' + start + ')');
+				}
+
+				// checks if image is loaded
+				control.find('img:eq(' + start + ')').attr('src', img).load(function() {
+					// once image is fully loaded, fade in
+					control.find(imageParent + ':eq(' + start + ')').fadeIn(option.fadeSpeed, option.fadeEasing, function(){
+						$(this).css({
+							zIndex: 5
+						});
+						// removes preload image
+						$('.' + option.container, elem).css({
+							background: ''
+						});
+						// let the script know everything is loaded
+						loaded = true;
+						// call the loaded funciton
+						option.slidesLoaded();
+					});
+				});
+			} else {
+				// if no preloader fade in start slide
+				control.children(':eq(' + start + ')').fadeIn(option.fadeSpeed, option.fadeEasing, function(){
+					// let the script know everything is loaded
+					loaded = true;
+					// call the loaded funciton
+					option.slidesLoaded();
+				});
+			}
+			
+			// click slide for next
+			if (option.bigTarget) {
+				// set cursor to pointer
+				control.children().css({
+					cursor: 'pointer'
+				});
+				// click handler
+				control.children().click(function(){
+					// animate to next on slide click
+					animate('next', effect);
+					return false;
+				});									
+			}
+			
+			// pause on mouseover
+			if (option.hoverPause && option.play) {
+				control.bind('mouseover',function(){
+					// on mouse over stop
+					stop();
+				});
+				control.bind('mouseleave',function(){
+					// on mouse leave start pause timeout
+					pause();
+				});
+			}
+			
+			// control
+			if (option.control) {
+				$('#main_slidesStop').click(function() {
+					$('#main_slidesStop').hide();
+					$('#main_slidesPlay').show();
+					stop();
+				});
+				
+				$('#main_slidesPlay').click(function() {
+					$('#main_slidesStop').show();
+					$('#main_slidesPlay').hide();
+					animate("next", effect);
+					pause();
+				});
+			}
+			
+			// generate next/prev buttons
+			if (option.generateNextPrev) {
+				$('.' + option.container, elem).after('<a href="#" class="'+ option.prev +'">Prev</a>');
+				$('.' + option.prev, elem).after('<a href="#" class="'+ option.next +'">Next</a>');
+			}
+			
+			// next button
+			$('.' + option.next ,elem).click(function(e){
+				e.preventDefault();
+				if (option.play) {
+					pause();
+				}
+				animate('next', effect);
+			});
+			
+			// previous button
+			$('.' + option.prev, elem).click(function(e){
+				e.preventDefault();
+				if (option.play) {
+					 pause();
+				}
+				animate('prev', effect);
+			});
+			
+			// generate pagination
+			if (option.generatePagination) {
+				// create unordered list
+				if (option.prependPagination) {
+					elem.prepend('<ul class='+ option.paginationClass +'></ul>');
+				} else {
+					elem.append('<ul class='+ option.paginationClass +'></ul>');
+				}
+				// for each slide create a list item and link
+				control.children().each(function(){
+					$('.' + option.paginationClass, elem).append('<li><a href="#'+ number +'">'+ (number+1) +'</a></li>');
+					number++;
+				});
+			} else {
+				// if pagination exists, add href w/ value of item number to links
+				$('.' + option.paginationClass + ' li a', elem).each(function(){
+					$(this).attr('href', '#' + number);
+					number++;
+				});
+			}
+			
+			// add current class to start slide pagination
+			$('.' + option.paginationClass + ' li:eq('+ start +')', elem).addClass(option.currentClass);
+			
+			// click handling 
+			$('.' + option.paginationClass + ' li a', elem ).click(function(){
+				// pause slideshow
+				if (option.play) {
+					 pause();
+				}
+				// get clicked, pass to animate function					
+				clicked = $(this).attr('href').match('[^#/]+$');
+				// if current slide equals clicked, don't do anything
+				if (current != clicked) {
+					animate('pagination', paginationEffect, clicked);
+				}
+				return false;
+			});
+			
+			// click handling 
+			$('a.link', elem).click(function(){
+				// pause slideshow
+				if (option.play) {
+					 pause();
+				}
+				// get clicked, pass to animate function					
+				clicked = $(this).attr('href').match('[^#/]+$') - 1;
+				// if current slide equals clicked, don't do anything
+				if (current != clicked) {
+					animate('pagination', paginationEffect, clicked);
+				}
+				return false;
+			});
+		
+			if (option.play) {
+				// set interval
+				playInterval = setInterval(function() {
+					animate('next', effect);
+				}, option.play);
+				// store interval id
+				elem.data('interval',playInterval);
+			}
+		});
+	};
+	
+	// default options
+	$.fn.slides.option = {
+		preload: false, // boolean, Set true to preload images in an image based slideshow
+		preloadImage: '/common/images/slides/loading.gif', // string, Name and location of loading image for preloader. Default is "/img/loading.gif"
+		container: 'slides_container', // string, Class name for slides container. Default is "slides_container"
+		control: false, // boolean, show play and stop button BY DITONGS
+		generateNextPrev: false, // boolean, Auto generate next/prev buttons
+		next: 'next', // string, Class name for next button
+		prev: 'prev', // string, Class name for previous button
+		pagination: true, // boolean, If you're not using pagination you can set to false, but don't have to
+		generatePagination: true, // boolean, Auto generate pagination
+		prependPagination: false, // boolean, prepend pagination
+		paginationClass: 'pagination', // string, Class name for pagination
+		currentClass: 'current', // string, Class name for current class
+		fadeSpeed: 350, // number, Set the speed of the fading animation in milliseconds
+		fadeEasing: '', // string, must load jQuery's easing plugin before http://gsgd.co.uk/sandbox/jquery/easing/
+		slideSpeed: 350, // number, Set the speed of the sliding animation in milliseconds
+		slideEasing: '', // string, must load jQuery's easing plugin before http://gsgd.co.uk/sandbox/jquery/easing/
+		start: 1, // number, Set the speed of the sliding animation in milliseconds
+		effect: 'slide', // string, '[next/prev], [pagination]', e.g. 'slide, fade' or simply 'fade' for both
+		crossfade: false, // boolean, Crossfade images in a image based slideshow
+		randomize: false, // boolean, Set to true to randomize slides
+		play: 0, // number, Autoplay slideshow, a positive number will set to true and be the time between slide animation in milliseconds
+		pause: 0, // number, Pause slideshow on click of next/prev or pagination. A positive number will set to true and be the time of pause in milliseconds
+		hoverPause: false, // boolean, Set to true and hovering over slideshow will pause it
+		autoHeight: false, // boolean, Set to true to auto adjust height
+		autoHeightSpeed: 350, // number, Set auto height animation time in milliseconds
+		bigTarget: false, // boolean, Set to true and the whole slide will link to next slide on click
+		animationStart: function(){}, // Function called at the start of animation
+		animationComplete: function(){}, // Function called at the completion of animation
+		slidesLoaded: function() {} // Function is called when slides is fully loaded
+	};
+	
+	// Randomize slide order on load
+	$.fn.randomize = function(callback) {
+		function randomizeOrder() { return(Math.round(Math.random())-0.5); }
+			return($(this).each(function() {
+			var $this = $(this);
+			var $children = $this.children();
+			var childCount = $children.length;
+			if (childCount > 1) {
+				$children.hide();
+				var indices = [];
+				for (i=0;i<childCount;i++) { indices[indices.length] = i; }
+				indices = indices.sort(randomizeOrder);
+				$.each(indices,function(j,k) { 
+					var $child = $children.eq(k);
+					var $clone = $child.clone(true);
+					$clone.show().appendTo($this);
+					if (callback !== undefined) {
+						callback($child, $clone);
+					}
+				$child.remove();
+			});
+			}
+		}));
+	};
+})(jQuery);Ÿ´‚V      cÚVcÚVE77LcãUÌ   t    O^partitionKey=%28https%2Cseoultech.ac.kr%29,:https://stportal.seoultech.ac.kr/common/js/jquery/slides.min.jquery.js necko:classified 1 strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 OK
+Date: Wed, 01 Feb 2023 07:57:00 GMT
+ETag: "0-4a01-5874a544"
+Last-Modified: Tue, 10 Jan 2017 09:11:32 GMT
+Accept-Ranges: bytes
+Content-Length: 18945
+Content-Type: application/x-javascript
+X-Cache: MISS from cf4.seoultech.ac.kr
+X-Cache-Lookup: MISS from cf4.seoultech.ac.kr:3128
+Via: 1.1 cf4.seoultech.ac.kr (squid)
+ original-response-headers Date: Wed, 01 Feb 2023 07:57:00 GMT
+ETag: "0-4a01-5874a544"
+Last-Modified: Tue, 10 Jan 2017 09:11:32 GMT
+Accept-Ranges: bytes
+Content-Length: 18945
+Content-Type: application/x-javascript
+X-Cache: MISS from cf4.seoultech.ac.kr
+X-Cache-Lookup: MISS from cf4.seoultech.ac.kr:3128
+Via: 1.1 cf4.seoultech.ac.kr (squid)
+Connection: keep-alive
+ ctid 2 uncompressed-len 0 net-response-time-onstart 66 net-response-time-onstop 74   J

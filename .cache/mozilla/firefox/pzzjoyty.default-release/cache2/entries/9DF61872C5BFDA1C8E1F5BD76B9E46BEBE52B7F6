@@ -1,0 +1,1166 @@
+define([ 'app', 'i18n!app/contact/nls/contact-i18n', 'app/app-models' ], function(app, i18n) {
+	app.module('contact', function(contact, app, Backbone, Marionette, $, _) {
+
+		function isPopup() {
+			try {
+				if (window.opener && window.opener.location.pathname != window.location.pathname)
+					return true;
+				if (/.*\/popup\/.*/.test(window.location.pathname))
+					return true;
+				else
+					return false;
+			} catch (error) {
+				if (/.*\/popup\/.*/.test(window.location.pathname))
+					return true;
+				else
+					return false;
+			}
+		}
+
+		contact.AddressModel = app.BackboneModel.extend({
+			urlRoot : 'contacts',
+
+			idAttribute : 'ADDRESS_IDX',
+
+			defaults : {
+				ADDRESS_IDX : 0,
+				USERS_IDX : '',
+				GROUP_IDX : 0,
+				ADDRESS_SORT_NO : 0,
+				P_ADDRESS_IDX : 0,
+				ADDRESS_LASTNAME : '',
+				ADDRESS_FIRSTNAME : '',
+				ADDRESS_NAME : '',
+				ADDRESS_ID : '',
+				ADDRESS_NICKNAME : '',
+				ADDRESS_TEL : '',
+				ADDRESS_CELLTEL : '',
+				ADDRESS_OFFICETEL : '',
+				ADDRESS_OFFICEFAX : '',
+				ADDRESS_ETCTEL : '',
+				ADDRESS_CUSTOMTEL : '',
+				ADDRESS_CUSTOMTELNAME : '',
+				ADDRESS_TEL_REP : 'N',
+				ADDRESS_EMAIL : '',
+				ADDRESS_EMAIL_REP : 'N',
+				ADDRESS_BIRTH_TYPE : '',
+				ADDRESS_BIRTH : '',
+				ADDRESS_ISSOLAR : '',
+				ADDRESS_BIRTH_REP : 'N',
+				ADDRESS_OFFICE : '',
+				ADDRESS_DEPT : '',
+				ADDRESS_DUTY : '',
+				ADDRESS_OFFICE_REP : 'N',
+				ADDRESS_OFFICEZIP : '',
+				ADDRESS_HOMEZIP : '',
+				ADDRESS_ETCZIP : '',
+				ADDRESS_OFFICEADDR : '',
+				ADDRESS_HOMEADDR : '',
+				ADDRESS_ETCADDR : '',
+				ADDRESS_ZIP_REP : 'N',
+				ADDRESS_HOMEURL : '',
+				ADDRESS_HOMEURL_REP : 'N',
+				ADDRESS_SNS_TYPE : '',
+				ADDRESS_SNS_ID : '',
+				ADDRESS_SNS_REP : 'N',
+				ADDRESS_MEMO : '',
+				ADDRESS_STMT : '',
+				LAST_REGIST_DATE : '',
+				ADDRESS_IMPORTANT : '',
+				ADDRESS_EMAIL_CONTACT_CNT : 0,
+				ORG_EMAIL : '',
+				SHARE_ADDRESS_IDX : 0,
+				ADDRESS_EXPANSION_LIST : [],
+				selectedAddressCollection : [],
+				photo : false,
+			},
+
+			initialize : function() {
+				var contacts = this.get("contacts");
+				if (contacts) {
+					this.contacts = new contact.AddressCollection(contacts);
+					this.unset('contacts');
+				}
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+			/* 값이 존재하는 유효 필드만 추출한뒤 리턴 */
+			getExistsValues : function() {
+				var validModel = {};
+				for ( var attr in this.attributes) {
+					if (attr) {
+						var value = this.get(attr);
+						if (value) {
+							validModel[attr] = value;
+						}
+					}
+				}
+				return validModel;
+			},
+		});
+
+		contact.AddressCollection = app.BackboneCollection.extend({
+			url : 'contacts',
+
+			model : contact.AddressModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.log('----------- ContactCollection.parse() {...} -----------');
+				return response;
+			},
+
+			getAddressModel : function(attribute, value) {
+				var model = _.find(this.models, function(model) {
+					return model.get(attribute) == value;
+				});
+				return model;
+			},
+		});
+
+		contact.SelectedAddressCollection = app.BackboneCollection.extend({
+			model : contact.AddressModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			getAddressModel : function(attribute, value) {
+				var model = _.find(this.models, function(model) {
+					return model.get(attribute) == value;
+				});
+				return model;
+			},
+		});
+
+		contact.GroupModel = app.BackboneModel.extend({
+			urlRoot : 'groups',
+
+			idAttribute : 'GROUP_IDX',
+
+			defaults : {
+				GROUP_IDX : 0,
+				USERS_IDX : '',
+				GROUP_NM : '',
+				GROUP_SORT_NO : 0,
+				DOMAIN : '',
+				REF_GROUP_IDX : '',
+				GROUP_STMT : '',
+				GROUP_TYPE : '',
+				contactsCount : 0,
+				importantCount : 0,
+				FOLDED : 0,
+			},
+
+			initialize : function() {
+				var groups = this.get("groups");
+				if (groups) {
+					this.groups = new contact.GroupCollection(groups);
+					this.unset('groups');
+				}
+			},
+
+			parse : function(response, options) {
+				app.log('GroupModel.parse() { GROUP_IDX: ' + response.GROUP_IDX + ' }');
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				app.log('GroupModel.validate() {...}');
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+		});
+
+		contact.GroupCollection = app.BackboneCollection.extend({
+			url : 'groups',
+
+			model : contact.GroupModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.log('----------- GroupCollection.parse() {...} -----------');
+				return response;
+			},
+
+			getGroupModel : function(attribute, value) {
+				var model = _.find(this.models, function(model) {
+					return model.get(attribute) == value;
+				});
+				return model;
+			},
+
+			addAllContactsGroup : function() {
+				// 내 연락처
+				this.add({
+					GROUP_IDX : 0,
+					USERS_IDX : contact.contactUserModel.get('USERS_IDX'),
+					GROUP_NM : i18n.myContact,
+					GROUP_SORT_NO : 0,
+					REF_GROUP_IDX : 0,
+					GROUP_STMT : i18n.myContact,
+					GROUP_TYPE : 'A',
+				});
+			},
+
+		});
+
+		contact.ContactPaginator = app.RequestPaginator.extend({
+
+			model : contact.AddressModel,
+
+			url : function() {
+				var url;
+				var hash = location.hash || '';
+				hash = hash.substring(hash.indexOf('/') + 1, hash.lastIndexOf('/'));
+				switch (hash) {
+				case '':
+					url = 'groups/all/contacts';
+					break;
+				case 'all':
+					url = 'groups/all/contacts';
+					break;
+				case 'important':
+					url = 'groups/important/contacts';
+					break;
+				case 'recent':
+					url = 'groups/recent/contacts';
+					break;
+				case 'trash':
+					url = 'groups/trash/contacts';
+					break;
+				default:
+					url = 'groups/' + contact.groupModel.get("GROUP_IDX") + '/contacts';
+					break;
+				}
+				return url;
+			},
+
+			paginator_core : {
+				type : 'POST',
+				dataType : 'json',
+			},
+
+			constructor : function() {
+				app.log('ContactPaginator.constructor() {');
+				app.RequestPaginator.apply(this, arguments);
+				app.log('} // ContactPagerCollection.constructor()');
+			},
+
+			initialize : function(models, options) {
+				app.log('ContactPaginator.initialize(models, options) {');
+				app.RequestPaginator.prototype.initialize.apply(this, arguments);
+				app.log('} // ContactPaginator.initialize(models, options)');
+			},
+
+			parse : function(response, options) {
+				app.log('ContactPaginator.parse(response, options) {');
+				app.RequestPaginator.prototype.parse.apply(this, arguments);
+				var contacts = response.contacts;
+				app.log('} // ContactPaginator.parse(response, options)');
+				return contacts;
+			},
+
+			setParams : function(params) {
+				var server_api = {};
+				for (prop in params) {
+					if (typeof params[prop] == 'string') {
+						server_api[prop] = params[prop];
+					} else if (typeof params[prop] == 'object') {
+						var param = params[prop];
+						for (p in param) {
+							server_api[prop + '.' + p] = param[p];
+						}
+					}
+				}
+				this.server_api = server_api;
+			},
+
+			getURL : function(params) {
+				var url = this.url();
+
+				if (params.page)
+					url += '?currentPage=' + params.page;
+				else
+					url += '?currentPage=' + this.currentPage;
+
+				if (params.perPage)
+					url += '&perPage=' + params.perPage;
+				else
+					url += '&perPage=' + this.perPage;
+
+				if (params.sortField)
+					url += '&sortField=' + params.sortField;
+				else
+					url += '&sortField=' + this.sortField;
+
+				if (params.sortOrder)
+					url += '&sortOrder=' + params.sortOrder;
+				else
+					url += '&sortOrder=' + this.sortOrder;
+
+				if (params.groupBy)
+					url += '&groupBy=' + params.groupBy;
+
+				var search;
+				if (params && params.search) {
+					search = params.search;
+				} else if (this.params && this.params.search) {
+					search = this.params.search;
+				} else if (this.server_api.search) {
+					search = this.server_api.search;
+				}
+
+				if (search) {
+					if (typeof search == 'string') {
+						url += '&search=' + encodeURIComponent(search);
+					}
+				}
+
+				var keyIndex;
+				if (params && params.keyIndex) {
+					keyIndex = params.keyIndex;
+				} else if (this.params && this.params.keyIndex) {
+					keyIndex = this.params.keyIndex;
+				} else if (this.server_api.keyIndex) {
+					keyIndex = this.server_api.keyIndex;
+				}
+
+				if (keyIndex) {
+					if (typeof keyIndex == 'string') {
+						url += '&keyIndex=' + encodeURIComponent(keyIndex);
+					}
+				}
+
+				return url;
+			},
+
+			setGroupModel : function(groupModel) {
+				this.groupModel = groupModel;
+			},
+
+			getAddressModel : function(attribute, value) {
+				var model = _.find(this.models, function(model) {
+					return model.get(attribute) == value;
+				});
+				return model;
+			},
+
+		}); // contact.ContactPaginator
+
+		contact.ContactUserModel = app.BackboneModel.extend({
+			urlRoot : 'contacts/users',
+
+			idAttribute : 'USERS_IDX',
+
+			defaults : {
+				USERS_IDX : 'user',
+				HOME_TYPE : 'all',
+				SORT_TYPE : 'ADDRESS_NAME',
+				EXPOSE_COUNT : 20,
+				NICKNAME_FLAG : 0,
+				PHONE_FLAG : 1,
+				CELLPHONE_FLAG : 0,
+				EMAIL_FLAG : 1,
+				COMPANY_FLAG : 1,
+				DEPARTMENT_FLAG : 0,
+				DUTY_FLAG : 0,
+				HOMEPAGE_FLAG : 0,
+				GROUP_FLAG : 1,
+				RECENT_FLAG : 0,
+				MEMO_FLAG : 0,
+				IMPORTANT_EMAIL_AUTO : 'N',
+				IMPORTANT_EMAIL_AUTO_CNT : 3,
+			},
+
+			constructor : function() {
+				app.log('  ContactUserModel.constructor() {');
+				app.BackboneModel.apply(this, arguments);
+				app.log('  } // ContactUserModel.constructor() { ... }');
+			},
+
+			initialize : function() {
+				app.log('ContactUserModel.initialize(){...}');
+			},
+
+			parse : function(response, options) {
+				app.log('ContactUserModel.parse() { USERS_IDX: ' + response.USERS_IDX + ' }');
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				app.log('ContactUserModel.validate() {...}');
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+		});
+
+		contact.ShareModel = app.BackboneModel.extend({
+			urlRoot : 'shared-groups',
+
+			idAttribute : 'SHARE_IDX',
+
+			defaults : {
+				SHARE_IDX : 0,
+				USERS_IDX : '',
+				SHARE_EMAIL : '',
+				SHARE_NAME : '',
+				USER_GROUP_IDX : 0,
+				GROUP_IDX : 0,
+				SHARE_TYPE : '',
+				important : false,
+			},
+
+			initialize : function() {
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+		});
+
+		contact.ShareCollection = app.BackboneCollection.extend({
+			url : 'shared-groups',
+
+			model : contact.ShareModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			getShareModel : function(attribute, value) {
+				var model = _.find(this.models, function(model) {
+					return model.get(attribute) == value;
+				});
+				return model;
+			},
+		});
+
+		contact.SharedGroupModel = app.BackboneModel.extend({
+			urlRoot : 'shared-groups',
+
+			idAttribute : 'GROUP_IDX',
+
+			defaults : {
+				GROUP_IDX : 0,
+				USERS_IDX : '',
+				GROUP_NM : '',
+				GROUP_SORT_NO : 0,
+				DOMAIN : '',
+				REF_GROUP_IDX : '',
+				GROUP_STMT : '',
+				GROUP_TYPE : '',
+				contactsCount : 0,
+				importantCount : 0,
+				groups : [],
+			},
+
+			initialize : function() {
+				var groups = this.get('groups');
+				if (groups) {
+					if (this.groups)
+						this.groups.reset(groups);
+					else
+						this.groups = new contact.SharedGroupCollection(groups);
+				}
+			},
+
+			parse : function(response, options) {
+				app.log('GroupModel.parse() { GROUP_IDX: ' + response.GROUP_IDX + ' }');
+				var groups = response;
+				if (groups) {
+					if (this.groups)
+						this.groups.reset(groups);
+					else
+						this.groups = new contact.SharedGroupCollection(groups);
+				}
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				app.log('GroupModel.validate() {...}');
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+		});
+
+		contact.SharedGroupCollection = app.BackboneCollection.extend({
+			url : 'shared-groups',
+
+			model : contact.SharedGroupModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			getGroupModel : function(attribute, value) {
+				var model = _.find(this.models, function(model) {
+					return model.get(attribute) == value;
+				});
+				return model;
+			},
+
+			addSharedAllGroup : function() {
+				// 공유받은 그룹
+				this.add({
+					GROUP_IDX : 0,
+					USERS_IDX : contact.contactUserModel.get('USERS_IDX'),
+					GROUP_NM : i18n.sharedGroup,
+					GROUP_SORT_NO : 0,
+					REF_GROUP_IDX : 0,
+					GROUP_STMT : i18n.sharedGroup,
+					GROUP_TYPE : 'A',
+				});
+			},
+		});
+
+		contact.SharedContactPaginator = contact.ContactPaginator.extend({
+
+			model : contact.AddressModel,
+
+			url : function() {
+				var url;
+				var hash = location.hash || '';
+				hash = hash.substring(hash.indexOf('/') + 1, hash.lastIndexOf('/'));
+				switch (hash) {
+				case 'all':
+					url = 'shared-groups/all/contacts';
+					break;
+				default:
+					var groupIdx = contact.sharedGroupModel.get("GROUP_IDX");
+					if (groupIdx) {
+						url = 'shared-groups/' + groupIdx + '/contacts';
+					} else {
+						url = 'shared-groups/all/contacts';
+					}
+					break;
+				}
+				return url;
+			},
+
+			paginator_core : {
+				type : 'POST',
+				dataType : 'json',
+			},
+
+			constructor : function() {
+				app.RequestPaginator.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.RequestPaginator.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.RequestPaginator.prototype.parse.apply(this, arguments);
+				var contacts = response.contacts;
+				return contacts;
+			},
+
+			setParams : function(params) {
+				this.params = params;
+				var server_api = {};
+				for (prop in params) {
+					if (typeof params[prop] == 'string') {
+						server_api[prop] = params[prop];
+					} else if (typeof params[prop] == 'object') {
+						var param = params[prop];
+						for (p in param) {
+							server_api[prop + '.' + p] = param[p];
+						}
+					}
+				}
+				this.server_api = server_api;
+			},
+
+			getURL : function(params) {
+				var url = this.url();
+
+				if (params && params.page)
+					url += '?currentPage=' + params.page;
+				else
+					url += '?currentPage=' + this.currentPage;
+
+				if (params && params.perPage)
+					url += '&perPage=' + params.perPage;
+				else
+					url += '&perPage=' + this.perPage;
+
+				if (params && params.sortField)
+					url += '&sortField=' + params.sortField;
+				else
+					url += '&sortField=' + this.sortField;
+
+				if (params && params.sortOrder)
+					url += '&sortOrder=' + params.sortOrder;
+				else
+					url += '&sortOrder=' + this.sortOrder;
+
+				if (params && params.groupBy)
+					url += '&groupBy=' + params.groupBy;
+
+				var search;
+				if (params && params.search) {
+					search = params.search;
+				} else if (this.params && this.params.search) {
+					search = this.params.search;
+				}
+				if (search) {
+					if (typeof search == 'string') {
+						url += '&search=' + encodeURIComponent(search);
+					}
+				}
+
+				var keyIndex;
+				if (params && params.keyIndex) {
+					keyIndex = params.keyIndex;
+				} else if (this.params && this.params.keyIndex) {
+					keyIndex = this.params.keyIndex;
+				}
+				if (keyIndex) {
+					if (typeof keyIndex == 'string') {
+						url += '&keyIndex=' + encodeURIComponent(keyIndex);
+					}
+				}
+				return url;
+			},
+		}); // contact.SharedContactPaginator
+
+		contact.ShareConfigModel = app.BackboneModel.extend({
+			urlRoot : 'shared-groups/config',
+
+			idAttribute : 'CONFIG_IDX',
+
+			defaults : {
+				CONFIG_IDX : 0,
+				USERS_IDX : '',
+				SHARE_IDX : 0,
+				GROUP_IDX : 0,
+				GROUP_VISIBLE : '',
+				GROUP_SORT_NO : 0,
+			},
+
+			initialize : function() {
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+		});
+
+		contact.ShareConfigCollection = app.BackboneCollection.extend({
+			url : 'shared-groups/config',
+			model : contact.ShareConfigModel,
+			getConfigModel : function(attribute, value) {
+				var model = _.find(this.models, function(model) {
+					return model.get(attribute) == value;
+				});
+				return model;
+			},
+		});
+
+		contact.ContactEntryModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				var urlRoot = 'groups';
+				if (/\/popup\/contacts[\/]*$/.test(location.pathname))
+					urlRoot = '../../' + urlRoot;
+				return urlRoot;
+			},
+
+			defaults : {
+				id : '',
+				attributes : {
+					objectClass : [],
+					cn : [],
+				},
+			},
+
+			initialize : function() {
+				var urlRoot = this.get('urlRoot');
+				if (urlRoot) {
+					this.urlRoot = urlRoot;
+					if (/\/popup\/contacts[\/]*$/.test(location.pathname))
+						this.urlRoot = '../../' + urlRoot;
+				}
+				var attributes = this.get("attributes");
+				if (attributes && attributes.member) {
+					if (this.member)
+						this.member.reset(attributes.member);
+					else
+						this.member = new contact.ContactEntryCollection(attributes.member);
+				}
+			},
+
+			parse : function(response, options) {
+				var urlRoot = response.urlRoot;
+				if (urlRoot) {
+					this.urlRoot = urlRoot;
+					if (/\/popup\/contacts[\/]*$/.test(location.pathname))
+						this.urlRoot = '../../' + urlRoot;
+				}
+				var attributes = response.attributes;
+				if (attributes && attributes.member) {
+					if (this.member)
+						this.member.reset(attributes.member);
+					else
+						this.member = new contact.ContactEntryCollection(attributes.member);
+				}
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+		}); // contact.ContactEntryModel
+
+		contact.ContactEntryCollection = app.BackboneCollection.extend({
+			url : function() {
+				var url = 'groups/root';
+				if (/\/popup\/contacts[\/]*$/.test(location.pathname))
+					url = '../../' + url;
+				return url;
+			},
+
+			model : contact.ContactEntryModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+		}); // contact.ContactEntryCollection
+
+		contact.ShareEntryModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				var url = 'shared-groups';
+				if (/\/popup\/contacts[\/]*$/.test(location.pathname))
+					url = '../../' + url;
+				return url;
+			},
+
+			defaults : {
+				id : '',
+				attributes : {
+					objectClass : [],
+					cn : [],
+				},
+			},
+
+			initialize : function() {
+				var urlRoot = this.get('urlRoot');
+				if (urlRoot) {
+					this.urlRoot = urlRoot;
+					if (/\/popup\/contacts[\/]*$/.test(location.pathname))
+						this.urlRoot = '../../' + urlRoot;
+				}
+				var attributes = this.get("attributes");
+				if (attributes && attributes.member) {
+					if (this.member)
+						this.member.reset(attributes.member);
+					else
+						this.member = new contact.ShareEntryCollection(attributes.member);
+				}
+			},
+
+			parse : function(response, options) {
+				var urlRoot = response.urlRoot;
+				if (urlRoot) {
+					this.urlRoot = urlRoot;
+					if (/\/popup\/contacts[\/]*$/.test(location.pathname))
+						this.urlRoot = '../../' + urlRoot;
+				}
+				var attributes = response.attributes;
+				if (attributes && attributes.member) {
+					if (this.member)
+						this.member.reset(attributes.member);
+					else
+						this.member = new contact.ShareEntryCollection(attributes.member);
+				}
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+		}); // contact.ContactEntryModel
+
+		contact.ShareEntryCollection = app.BackboneCollection.extend({
+			url : function() {
+				var url = 'shared-groups/root';
+				if (/\/popup\/contacts[\/]*$/.test(location.pathname))
+					url = '../../' + url;
+				return url;
+			},
+
+			model : contact.ContactEntryModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+		}); // contact.ShareEntryCollection
+
+		contact.ContactsEntryPaginator = app.ClientPaginator.extend({
+
+			model : contact.ContactEntryModel,
+
+			url : function() {
+				var url = 'groups/root/entries';
+				if (/\/popup\/contacts[\/]*$/.test(location.pathname))
+					url = '../../' + url;
+				return url;
+			},
+
+			paginator_core : {
+				type : 'POST',
+				dataType : 'json',
+				url : 'groups/root/entries',
+			},
+
+			constructor : function() {
+				app.ClientPaginator.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.ClientPaginator.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.ClientPaginator.prototype.parse.apply(this, arguments);
+				var entries = response.entries;
+				return entries;
+			},
+
+			setParams : function(params) {
+				var server_api = {};
+				for (prop in params) {
+					if (typeof params[prop] == 'string') {
+						server_api[prop] = params[prop];
+					} else if (typeof params[prop] == 'object') {
+						var param = params[prop];
+						for (p in param) {
+							server_api[prop + '.' + p] = param[p];
+						}
+					}
+				}
+				this.server_api = server_api;
+			},
+
+			getURL : function(params) {
+				var url = params.url ? params.url : this.url();
+
+				if (params && params.page)
+					url += '?currentPage=' + params.page;
+				else
+					url += '?currentPage=' + this.currentPage;
+
+				if (params && params.perPage)
+					url += '&perPage=' + params.perPage;
+				else
+					url += '&perPage=' + this.perPage;
+
+				if (params && params.sortField)
+					url += '&sortField=' + params.sortField;
+				else
+					url += '&sortField=' + this.sortField;
+
+				if (params && params.sortOrder)
+					url += '&sortOrder=' + params.sortOrder;
+				else
+					url += '&sortOrder=' + this.sortOrder;
+
+				if (params && params.groupBy)
+					url += '&groupBy=' + params.groupBy;
+
+				if (params && params.search)
+					url += '&search=' + encodeURIComponent(params.search);
+				else if (this.server_api && this.server_api.search)
+					url += '&search=' + encodeURIComponent(this.server_api.search);
+
+				return url;
+			},
+		}); // contact.ContactEntryPaginator
+
+		contact.ShareContactEntryPaginator = app.ClientPaginator.extend({
+
+			model : contact.ShareEntryModel,
+
+			url : function() {
+				var url = 'shared-groups/root/entries';
+				if (/\/popup\/contacts[\/]*$/.test(location.pathname))
+					url = '../../' + url;
+				return url;
+			},
+
+			paginator_core : {
+				type : 'POST',
+				dataType : 'json',
+				url : 'shared-groups/root/entries',
+			},
+
+			constructor : function() {
+				app.ClientPaginator.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.ClientPaginator.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.ClientPaginator.prototype.parse.apply(this, arguments);
+				var shareEntries = response.shareEntries;
+				return shareEntries;
+			},
+
+			setParams : function(params) {
+				var server_api = {};
+				for (prop in params) {
+					if (typeof params[prop] == 'string') {
+						server_api[prop] = params[prop];
+					} else if (typeof params[prop] == 'object') {
+						var param = params[prop];
+						for (p in param) {
+							server_api[prop + '.' + p] = param[p];
+						}
+					}
+				}
+				this.server_api = server_api;
+			},
+
+			getURL : function(params) {
+				var url = params.url ? params.url : this.url();
+
+				if (params && params.page)
+					url += '?currentPage=' + params.page;
+				else
+					url += '?currentPage=' + this.currentPage;
+
+				if (params && params.perPage)
+					url += '&perPage=' + params.perPage;
+				else
+					url += '&perPage=' + this.perPage;
+
+				if (params && params.sortField)
+					url += '&sortField=' + params.sortField;
+				else
+					url += '&sortField=' + this.sortField;
+
+				if (params && params.sortOrder)
+					url += '&sortOrder=' + params.sortOrder;
+				else
+					url += '&sortOrder=' + this.sortOrder;
+
+				if (params && params.groupBy)
+					url += '&groupBy=' + params.groupBy;
+
+				if (params && params.search)
+					url += '&search=' + encodeURIComponent(params.search);
+				else if (this.server_api && this.server_api.search)
+					url += '&search=' + encodeURIComponent(this.server_api.search);
+
+				return url;
+			},
+		}); // contact.ShareContactEntryPaginator
+
+		contact.RecentContactModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../contacts/recents';
+				else
+					return 'contacts/recents';
+			},
+
+			idAttribute : 'RECENT_ADDRESS_IDX',
+
+			defaults : {
+				// RECENT_ADDRESS_IDX : 0,
+				USERS_IDX : '',
+				ORD_IDX : 0,
+				ADDRESS_NAME : '',
+				ADDRESS_EMAIL : '',
+				USING_DT : '',
+			},
+
+			initialize : function(attributes, options) {
+				app.BackboneModel.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+
+		}); // contact.RecentContactModel
+
+		contact.RecentContactCollection = app.BackboneCollection.extend({
+			url : function() {
+				if (isPopup())
+					return '../contacts/recents';
+				else
+					return 'contacts/recents';
+			},
+
+			model : contact.RecentContactModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+		}); // contact.RecentContactCollection
+
+		contact.RecipientGroupModel = app.BackboneModel.extend({
+			urlRoot : function() {
+				if (isPopup())
+					return '../recipient-groups';
+				else
+					return 'recipient-groups';
+			},
+
+			idAttribute : 'id',
+
+			defaults : {
+				id : 0,
+				userId : '',
+				name : '',
+				recipientAddresses : [],
+			},
+
+			initialize : function() {
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+		});
+
+		contact.RecipientGroupCollection = app.BackboneCollection.extend({
+			url : function() {
+				var url = 'recipient-groups';
+				if (/\/popup\/contacts[\/]*$/.test(location.pathname))
+					url = '../../' + url;
+				return url;
+			},
+
+			model : contact.RecipientGroupModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initiallize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+		});
+
+	});
+});�%e�`�      c�[c�[E6Mcc�U�   z    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app/contact/contact-models.js?v=202301181454 necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"29021-1664418090000"
+Last-Modified: Thu, 29 Sep 2022 02:21:30 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 29021
+Date: Wed, 01 Feb 2023 07:57:14 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"29021-1664418090000"
+Last-Modified: Thu, 29 Sep 2022 02:21:30 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 29021
+Date: Wed, 01 Feb 2023 07:57:14 GMT
+ ctid 2 uncompressed-len 0 net-response-time-onstart 34 net-response-time-onstop 34   q]

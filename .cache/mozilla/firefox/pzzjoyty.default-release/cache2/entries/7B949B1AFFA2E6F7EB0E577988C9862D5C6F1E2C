@@ -1,0 +1,227 @@
+/**
+ * smartPop
+ *
+ * Copyright (c) 2011 Cho Yong Gu (@inidu2)
+ * Dual licensed under the MIT and GPL licenses:
+ * http://www.opensource.org/licenses/mit-license.php
+ * http://www.gnu.org/licenses/gpl.html
+ *
+ */
+
+/**
+ * 레이어로 팝업 띄우기 - html or url
+ *
+ * 특징
+ * 1. 브라우저 호환
+ * 2. 깔끔한 스크롤바 처리
+ * 3. 브라우저 크기 변경시 레이어 팝업 자동 중앙 정렬
+ * 4. url 페이지를 띄울 경우 프레임 크기 자동 조절
+ * 
+ * 목적
+ * 내용에 상관없이 깔끔한 스크롤바 처리하기
+ * 브라우저 크기에 상관없이 중앙에 띄우기
+ * 
+ * 제한사항
+ * 가로 최대 1300, 세로 5000 - 더 크게할 수 있으나 테두리 이미지 깨짐
+ * 
+ * 사용법
+ * 1. html 내용 보여주기
+ *      $.smartPop.open({title: '스마트팝', width: 500, height: 500, html: '<h1>smartPop</h1> 여기에 보여줄 내용' });
+ * 2. url 페이지 띄우기
+ *      $.smartPop.open({title: '스마트팝', width: 500, height: 500, url: 'smartPop.html 여기에 보여줄 페이지' });
+ *      세로 크기는 불러오는 페이지 크기에 맞게 자동으로 저절됨
+ * 3. 추가 여백을 줘서 띄우기 - 페이지 특성에 따라 자동조절이 안맞을 경우 사용
+ *      $.smartPop.open({title: '스마트팝', width: 500, height: 500, revise: 150, url: 'smartPop.html 여기에 보여줄 페이지' });
+ *      revise - 추가 보정 높이값
+ * 4. 높이값 확인 로그
+ *      $.smartPop.open({title: '스마트팝', width: 500, height: 500, log: true, url: 'smartPop.html 여기에 보여줄 페이지' });
+ *      log: true 설정
+ *
+ * 기본 옵션
+ * $.smartPop.defaults = {
+ *     title       : 'smartPop',
+ *     background  : '#fff',
+ *     opacity     : .7,
+ *     width       : '720px',
+ *     height      : '500px',
+ *     html        : '',
+ *     url         : '',
+ *     revise      : 0,
+ *     log         : false
+ * };
+ * 
+ * 
+ * 
+ * @name $.smartPop
+ * @author Pharos @inidu2
+ */
+    
+;(function($) {
+    var ie6     = $.browser.msie && ($.browser.version < 8);
+    var innerH  = window.innerHeight;
+    
+    $.smartPop = {
+        isInstall : false,
+        opts : {},
+        open : function(options) {
+            this.opts = $.extend({}, $.smartPop.defaults, options);
+            this.install();
+            this.resize();
+
+            $('html').css({ marginRight: '15px', display: 'block', overflow: 'hidden', overflowY: 'hidden' });
+            $('#smartPop').show();
+            if(this.opts.log) $('#smartPop_log').show();
+        },
+        resize : function() {
+            this.log(this.opts.width + ' x ' + this.opts.height);
+            this.log('revise : ' + this.opts.revise);
+            this.log('background : ' + this.opts.background);
+            this.log('opacity : ' + this.opts.opacity);
+            this.log('');
+
+            $('#smartPop_container').width(this.opts.width);
+            
+            this.resizeHeight(this.opts.height);
+        },
+        resizeHeight : function(h) {
+            this.log('resizeHeight : ' + h);
+            if(ie6) {
+                $('body').attr({ scroll: 'no' }); // ie7에서 overflow 적용안됨 
+                innerH = document.documentElement.clientHeight;
+            }
+            
+            // 위치설정
+            if(this.opts.position == 'center') {
+                var t;
+                t = (h < innerH) ? (innerH - h) / 2 : 10;
+                $('#smartPop_container').css({ marginLeft: 'auto', marginTop: t + 'px' });
+            } else {
+                $('#smartPop_container').css({ marginLeft: this.opts.left, marginTop: this.opts.top });
+            }
+            
+            // 높이설정
+            h = h + this.opts.revise;
+            this.log('revise + : ' + h);
+            $('#smartPop_container').height(h);
+            
+            h = h - parseInt($('#smartPop_top').height());   
+            this.log('smartPop_top - : ' + h);         
+            $('#smartPop_bottom').height(h);
+
+            var margin = parseInt($('#smartPop_bottom_content').css('paddingTop')) + parseInt($('#smartPop_bottom_content').css('paddingBottom'));
+            h = h - margin;
+            this.log('margin - : ' + h);
+            $('#smartPop_bottom_content').height(h);
+            if(this.opts.url == '') {
+                $('#smartPop_content').html(this.opts.html).height(h).show();
+                $('#smartPop_frame').hide();
+            } else {
+                $('#smartPop_content').hide();
+                $('#smartPop_frame').height(h).show();
+            }
+            $('#smartPop_loading').hide();
+            this.log('');
+        },
+        install : function() {
+            if(this.isInstall == false) {
+                var body                    = $('body');
+                var smartPop_overlay        = $('<div />').attr('id', 'smartPop_overlay').css({ opacity: this.opts.opacity, background: this.opts.background });
+                var smartPop                = $('<div />').attr('id', 'smartPop');
+                var smartPop_container      = $('<div />').attr('id', 'smartPop_container');
+                var smartPop_top            = $('<div />').attr('id', 'smartPop_top');
+                var smartPop_top_content    = $('<div />').attr('id', 'smartPop_top_content');
+                var smartPop_bottom         = $('<div />').attr('id', 'smartPop_bottom');
+                var smartPop_bottom_content = $('<div />').attr('id', 'smartPop_bottom_content');
+                var smartPop_content        = $('<div />').attr('id', 'smartPop_content');
+                var smartPop_close          = $('<div />').attr('id', 'smartPop_close');
+                var smartPop_loading        = $('<div />').attr('id', 'smartPop_loading');
+                var smartPop_frame          = $('<iframe />').attr({ id: 'smartPop_frame', frameBorder: 0, scrolling: 'no', title : '파일업로드 창' });
+                
+                smartPop_top.append(smartPop_close).append(smartPop_top_content).appendTo(smartPop_container);
+                                
+                smartPop.append($('<div />').attr('id', 'smartPop_log'));            
+                smartPop_bottom_content.append(smartPop_content).append(smartPop_frame);
+                smartPop_bottom.append(smartPop_bottom_content).appendTo(smartPop_container);
+                smartPop_container.append(smartPop_loading).appendTo(smartPop);
+                body.append(smartPop_overlay).append(smartPop);
+                this.isInstall = true;
+            } else {
+                //$('#smartPop_frame').attr({ src : this.opts.url });
+                $('#smartPop').show();
+                $('#smartPop_overlay').show();
+            }
+            
+            if(this.opts.url != '') {
+                $.smartPop.resizeHeight(400);   // 사이즈 보정 - 새로고침할 경우 크기 늘어나는거 방지
+                $('#smartPop_frame').attr({ src : this.opts.url }).load(function () {
+                
+                    var h = $(this).contents().height() - 2;
+                    $.smartPop.resizeHeight(h + 50);
+                });
+            }
+            
+            if(this.opts.bodyClose) {
+                $('body').bind('click', function(event) {
+                    if (!event) event = window.event;
+                    var target = (event.target) ? event.target : event.srcElement;
+                    event.stopPropagation(); // 이벤트 버블링 전파를 막음
+                    if(target.id == 'smartPop') { $.smartPop.close(); }
+                });
+            }
+            
+            $('#smartPop_close').click(function() {
+                $.smartPop.close();
+            });
+        },
+        close : function() {
+            if(ie6) {
+                $('body').attr({ scroll: 'yes' });
+            }
+            $('html').css({ marginRight: 0, display: '', overflowY: 'scroll'});
+
+            $('#smartPop_frame').attr('src', '');
+            $('#smartPop').hide();
+            $('#smartPop_overlay').hide();            
+        },
+        log : function(msg) {
+            var log = $('#smartPop_log').html();
+            $('#smartPop_log').html(log + '<br />' + msg);
+        }
+    };
+    
+    $.smartPop.defaults = {
+        position    : 'center',
+        left        : '310px',
+        top         : '10px',
+        bodyClose   : false,
+        title       : 'smartPop',
+        background  : '#fff',
+        opacity     : .7,
+        width       : '720px',
+        height      : '500px',
+        html        : '',
+        url         : '',
+        revise      : 0,
+        log         : false
+    };
+})(jQuery);
+����      c�Ec�EE6MTc�U�   m    O^partitionKey=%28https%2Cseoultech.ac.kr%29,:https://www.seoultech.ac.kr/common/js/jquery/jquery.smartPop.js necko:classified 1 strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 OK
+Date: Wed, 01 Feb 2023 07:56:53 GMT
+ETag: "0-2297-6080dad1"
+Last-Modified: Thu, 22 Apr 2021 02:09:21 GMT
+Accept-Ranges: bytes
+Content-Length: 8855
+Content-Type: application/x-javascript
+X-Cache: MISS from cf4.seoultech.ac.kr
+X-Cache-Lookup: MISS from cf4.seoultech.ac.kr:3128
+ original-response-headers Date: Wed, 01 Feb 2023 07:56:53 GMT
+ETag: "0-2297-6080dad1"
+Last-Modified: Thu, 22 Apr 2021 02:09:21 GMT
+Accept-Ranges: bytes
+Content-Length: 8855
+Content-Type: application/x-javascript
+X-Cache: MISS from cf4.seoultech.ac.kr
+X-Cache-Lookup: MISS from cf4.seoultech.ac.kr:3128
+Via: 
+Connection: keep-alive
+ ctid 2 uncompressed-len 0 net-response-time-onstart 44 net-response-time-onstop 44   "�

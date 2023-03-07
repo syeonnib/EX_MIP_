@@ -1,0 +1,1296 @@
+ 
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"> 
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+	
+<link rel="canonical" href="https://www.robotis.com/index.php">
+
+<!-- 20181115 트위터카드 추가 -->
+<meta property="og:type" content="website">
+<meta name="keywords" content="자율주행로봇 전문기업, 서비스로봇 하드웨어 및 소프트웨어 솔루션 공급, ROBOTIS 집개미&일개미, DYNAMIXEL, 터틀봇3">
+<meta name="description" content="자율주행로봇 전문기업, 서비스로봇 하드웨어 및 소프트웨어 솔루션 공급, ROBOTIS 집개미&일개미, DYNAMIXEL, 터틀봇3">
+<meta property="og:url" content="https://www.robotis.com/">
+<meta property="og:title" content="ROBOTIS">
+<meta property="og:description" content="자율주행로봇 전문기업, 서비스로봇 하드웨어 및 소프트웨어 솔루션 공급, ROBOTIS 집개미&일개미, DYNAMIXEL, 터틀봇3">
+<meta property="og:image" content="http://www.robotis.com/img/common/robotis_og.png">
+
+<!-- 20181115 트위터카드 추가 끝 -->
+
+
+<!-- 20181115 트위터카드 추가 -->
+<meta name="twitter:card" content="photo" />
+<!--meta name="description" itemprop="description" content="자율주행로봇 전문기업, 서비스로봇 하드웨어 및 소프트웨어 솔루션 공급, ROBOTIS 집개미&일개미, DYNAMIXEL, 터틀봇3" />-->
+<!-- 20181115 트위터카드 추가 끝 -->
+
+<meta property="og:locale" content="ko_KR" />
+<meta property="og:type" content="website" />
+<meta property="article:tag" content="ROBOTIS" />
+<meta property="og:site_name" content="로보티즈" />
+<meta property="article:section" content="ROBOTIS" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=0,maximum-scale=10">
+<meta name="HandheldFriendly" content="true">
+<meta name="format-detection" content="telephone=no">
+
+
+<!-- 20181115 sitemap 추가 -->
+<link rel=contents href="sitemap.html">
+<meta name="sitemap" content="https://www.robitis.com/sitemap.xml" />
+<link rel="sitemap" type="application/rss+xml" href="www.robitis.rss" />
+<!-- 20181115 sitemap 추가 끝 -->
+
+
+<link rel="shortcut icon" type="image/x-icon" href="https://www.robotis.com/img/common/favicon_211001.ico">
+<link rel="icon" type="image/x-icon" href="https://www.robotis.com/img/common/favicon_211001.ico">
+
+
+
+<title>로보티즈</title>
+
+
+<link rel="stylesheet" href="https://www.robotis.com/css/default_shop.css?ver=20230201042706">
+<link rel="stylesheet" href="https://www.robotis.com/css/common.css?ver=20230201042706" >
+<link rel="stylesheet" href="https://www.robotis.com/css/sub.css?ver=20230201042706" >
+
+<link rel="stylesheet" href="https://www.robotis.com/css/button.css?ver=20230201042706">
+
+<!--[if lte IE 8]>
+<script src="https://www.robotis.com/js/html5.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]><script src="https://www.robotis.com/js/html5shiv.min.js"></script><![endif]-->
+<!--[if lt IE 9]><script src="https://www.robotis.com/js/respond.min.js"></script><![endif]-->
+
+<script>
+// 자바스크립트에서 사용하는 전역변수 선언
+var g5_url       = "https://www.robotis.com";
+var g5_bbs_url   = "https://www.robotis.com/model";
+var g5_is_member = "";
+var g5_is_admin  = "";
+var g5_is_mobile = "";
+var g5_bo_table  = "";
+var g5_sca       = "";
+var g5_editor    = "";
+var g5_cookie_domain = "";
+</script>
+
+
+<!-- JQUERY -->
+<script src="https://www.robotis.com/js/jquery-1.12.2.min.js"></script>
+
+<!-- Calander -->
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<!-- Layer popup -->
+<script src="https://www.robotis.com/js/pop_app.js?ver=20230201042706" ></script>
+
+
+<!-- bxslider -->
+<link rel="stylesheet" href="https://www.robotis.com/css/bxslider/jquery.bxslider.css" >
+<script type="text/javascript" src="https://www.robotis.com/js/library/jquery.easing.1.3.min.js"></script>
+<script type="text/javascript" src="https://www.robotis.com/js/library/tweenmax/TweenMax.min.js"></script>
+<script type="text/javascript" src="https://www.robotis.com/js/library/bxslider/jquery.bxslider.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+
+
+<!-- slick -->
+<link rel="stylesheet" type="text/css" href="https://www.robotis.com/css/slick/slick.css?ver=20230201042706"/>
+<link rel="stylesheet" type="text/css" href="https://www.robotis.com/css/slick/slick-theme_main.css?ver=20230201042706"/>
+<script type="text/javascript" src="https://www.robotis.com/js/library/slick/slick.min.js?ver=20230201042706"></script> 
+
+<!-- jcarousellite -->
+<script type="text/javascript" src="https://www.robotis.com/js/jquery.jcarousellite.min.js"></script>
+
+
+<script src="https://www.robotis.com/js/jquery.menu.js?ver=20230201042706"></script>
+
+<script src="https://www.robotis.com/js/wrest.js?ver=20230201042706"></script>
+
+
+
+<!-- 사용자정의 -->
+<script type="text/javascript" src="https://www.robotis.com/js/common.js?ver=20230201042706"></script>
+<script type="text/javascript" src="https://www.robotis.com/js/main.js?ver=20230201042706"></script>
+
+
+<!-- Npay -->
+<script type="text/javascript" src="//wcs.naver.net/wcslog.js"></script>
+<script type="text/javascript">
+    if(!wcs_add) var wcs_add = {};
+    wcs_add["wa"] = "s_35c9a83dfe7e";
+    wcs.inflow("robotis.com");
+</script>
+<!-- 20220615 구글 전환 태그 설정 추가 -->
+<script>
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-52FHPWC');
+</script>
+
+
+<!-- 20220808 페이스북 픽셀 설정 추가 Meta Pixel Code -->
+<script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '1084558845793661');
+    fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+               src="https://www.facebook.com/tr?id=1084558845793661&ev=PageView&noscript=1"
+    /></noscript>
+<!-- End Meta Pixel Code -->
+</head>
+
+
+<body  >
+ 
+  
+
+<script>
+	function fsearchbox_submit(f)
+	{
+        // 한글자 검색 가능 키워드
+        if(f.stx.value == '축' ||  f.stx.value == '줄' || f.stx.value == '휠') {
+
+        } else {
+            if (f.stx.value.length < 2) {
+                alert("검색어는 두글자 이상 입력하십시오.");
+                f.stx.select();
+                f.stx.focus();
+                return false;
+            }
+        }
+
+
+		// 검색에 많은 부하가 걸리는 경우 이 주석을 제거하세요.
+		var cnt = 0;
+		for (var i=0; i<f.stx.value.length; i++) {
+			if (f.stx.value.charAt(i) == ' ')
+				cnt++;
+		}
+
+		if (cnt > 2) {
+			alert("빠른 검색을 위하여 검색어에 공백은 2개만 입력할 수 있습니다.");
+			f.stx.select();
+			f.stx.focus();
+			return false;
+		}
+
+		return true;
+	}
+
+</script>
+
+
+
+<style>
+    @media screen and (max-width:900px) {
+        .popup_content .popup_inner {
+            width: 84%;
+        }
+        .popup_content .popup_inner .btn_close {
+            margin-top:5px;
+            min-width:60px;
+        }
+    }
+</style>
+<div id="popup_search" class="popup"> 
+		<div  class="popup_content" >
+			<div  class="popup_inner" >
+			
+				<div class="btn_close">
+					<a  href="javascript: popup_close()" class="mybtn">닫기</a>
+				</div>
+
+				<div  style="text-align:left;">
+					<form name="fsearchbox" method="get" action="//www.robotis.com/model/search.php" onsubmit="return fsearchbox_submit(this);">
+						<input type="hidden" name="sfl" value="wr_subject||wr_content">
+						<input type="hidden" name="sop" value="and"> 
+						<input type="text" name="stx" class="search_box_top " maxlength="20">
+						<input type="image"  src="https://www.robotis.com/img/common/icon_search.png" > 
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+<!-- NAV -->
+<nav id="nav">
+
+	<div class="gnb dis_mob">  
+
+		<!-- 모바일 로고 -->
+		<div class="logo_mobile "><a href="https://www.robotis.com/shop" title="ROBOTIS">ROBOTIS</a></div>
+
+        
+		<!-- 모바일 검색버튼 -->
+		<div class="search_mobile " style="position: absolute; top: 20px; right: 74px;" onclick="mobile_searchbox_open('popup_search', 'popup_bar', 53, 100)"  >
+				<img src="https://www.robotis.com/img/common/icon_search.png" >
+		</div>
+		<!-- 모바일 Hidden navi -->
+		<div class="menu_mobile "><a href="#" class="메뉴">메뉴</a></div>
+	</div>
+
+	<div class="gnb dis_web ">
+		
+		
+		<!--퀵링크-->
+			<div class="top_quick">
+				
+				<div class="con clearfix">
+					<ul class="quick_link">
+						<!--<li><a href="#" onclick="try{window.external.AddFavorite('http://https://www.robotis.com/shop/','로보티즈 스토어')}catch(e){alert('이 브라우저에서는 즐겨찾기 기능을 사용할 수 없습니다.\n크롬에서는 Ctrl 키와 D 키를 동시에 눌러서 즐겨찾기에 추가할 수 있습니다.')}; return false;">스토어 즐겨찾기<img src="../img/store/ico_plus.png"></a></li>-->
+						<li><a href="https://www.robotis.com/" >홈페이지</a></li>
+						<li><a href="http://www.dynamixel.com/" target="_blank" >다이나믹셀닷컴</a></li>
+						<li><a href="https://emanual.robotis.com/docs/kr/" class="f_red" target="_blank" >e-매뉴얼</a></li>
+						<li><a href="https://www.robotis.com/service/downloadcenter.php"><img src="/img/common/icon_download.png" style="margin:0px 0px 2px 0px;">&nbsp;다운로드센터</a></li>
+					</ul>
+					
+				</div>
+				
+			</div>
+		
+		
+		
+		<div class="gnb_body ">
+			<div class="gnb_body_inner">
+
+				<div class="gnb_body_inner_left ">
+					<div class="logo_web" onclick="location.href='https://www.robotis.com/shop'" ></div>
+				</div>  
+
+				<ul class="gnb_body_inner_right ">
+					
+					<li class="btn_line">
+						<select name="site_lang" onChange="gotoRegion(this.value)" style="font-size:0.9em;margin-top: -5px;">
+							<option value="http://www.robotis.com/shop/">=지역선택=</option>
+                            <option Value="http://www.robotis.com/shop/" >Korea</option>
+                            <option Value="http://en.robotis.com/shop_en/">International</option>
+                            <option Value="http://robotis.us/">Americas</option>
+                            <option Value="https://e-shop.robotis.co.jp/">Japan</option>
+                            <option Value="https://shop292418244.taobao.com/index.htm?spm=2013.1.w5002-17478325885.2.5bbc75c1kB9jsV">China</option>
+						</select>
+					</li>
+
+											<li class="btn_line"><a href="https://www.robotis.com/shop/orderinquiry.php">주문조회</a> </li>
+						<li class="btn_line"><a href="https://www.robotis.com/shop/cart.php">장바구니</a>l </li>
+						<li class="btn_line "><a href="https://www.robotis.com/model/register_check.php">회원가입</a>l </li>
+						<li class="btn_line "><a href="https://www.robotis.com/model/login.php"><b>로그인</b></a>l </li>
+					
+				</ul>  
+
+
+				<div class="gn_bar_searchbox ">
+
+					<fieldset >
+						<legend>사이트 내 전체검색</legend>
+						<form name="fsearchbox" method="get" action="//www.robotis.com/model/search.php" onsubmit="return fsearchbox_submit(this);" style="text-align: right;">
+							<input type="hidden" name="sfl" value="wr_subject||wr_content">
+							<input type="hidden" name="sop" value="and"> 
+							<input type="text" name="stx" class="search_box_top " maxlength="20" style="border: 2px solid #000000;">
+							<input type="image"  src="https://www.robotis.com/img/common/icon_search.png" >
+						</form>
+					</fieldset>
+
+				</div>  
+
+
+			</div>  
+		</div>
+
+		<div class="gn_bar  clearfix">
+
+			<div class="gn_bar_inner">
+					
+				<div class="gn_bar_inner_left ">
+					<div class="hidden_home"  onclick="location.href='https://www.robotis.com'"><img src="https://www.robotis.com/img/common/ico_home.png"></div>
+					<ul class="gn_list"> 
+						<li style='width:140px;'  ><a href='/shop/category.php?ca_id=20' class='gn_link' target='_self' >다이나믹셀</a></li><li style='width:160px;'  ><a href='/shop/category.php?ca_id=40' class='gn_link' target='_self' >전문가용 로봇</a></li><li style='width:120px;'  ><a href='/shop/category.php?ca_id=30' class='gn_link' target='_self' >로봇부품</a></li><li style='width:160px;'  ><a href='/shop/category.php?ca_id=10' class='gn_link' target='_self' >스팀컵인증키트</a></li><li style='width:120px;'  ><a href='/model/board.php?bo_table=store_notice' class='gn_link' target='_self' >고객지원</a></li>					</ul>
+
+				</div>  
+
+			</div>  
+
+		</div>
+		
+	</div> 
+
+</nav> 
+
+
+
+<style>
+	.gnb_mobile {padding-top: 54px;  border-bottom: 1px solid #d6d6d6; }
+	.gnb_mobile .mobile_gn_list .gn_item  { float:left; padding: 10px 0; box-sizing:border-box;}
+	.gnb_mobile .mobile_gn_list a {
+			position: relative;
+			font-family: 'Nanum gothic';
+			font-weight: bold;
+			font-size: 1.1em;
+			color: #252525;
+			box-sizing:border-box;
+			padding: 0 12px;
+		}
+</style>
+
+<script>
+	 $(document).ready(function(){
+		$('.mobile_gn_list').slick({
+			  dots: false,
+			  infinite: false,
+			  speed: 300,
+			  centerMode: false,
+			  variableWidth: true,
+			  slidesToShow: 4,
+			  slidesToScroll: 4,
+			  arrows: false,
+		});
+    });
+
+
+</script>
+
+
+<div class="gnb_mobile dis_mob clearfix">
+	  <div class="mobile_gn_list">
+			<div class='gn_item'><a href='/shop/category.php?ca_id=20' class='gn_link' target='_self'>다이나믹셀</a></div><div class='gn_item'><a href='/shop/category.php?ca_id=40' class='gn_link' target='_self'>전문가용 로봇</a></div><div class='gn_item'><a href='/shop/category.php?ca_id=30' class='gn_link' target='_self'>로봇부품</a></div><div class='gn_item'><a href='/shop/category.php?ca_id=10' class='gn_link' target='_self'>스팀컵인증키트</a></div><div class='gn_item'><a href='/model/board.php?bo_table=store_notice' class='gn_link' target='_self'>고객지원</a></div>	  </div>
+</div>
+
+<!-- //NAV -->
+ 
+
+<!-- NAV-MOBILE -->
+<div id="nav_mobile">
+ 
+		<div  class="mobile_very_top" >		
+			<a class="close" href="#" title="Close"><img src="https://www.robotis.com/img/common/btn_gnb_close.png"></a>
+		</div>
+
+
+		<ul class="gn_list depth_1"> 
+			<li id='mobile_depth_0'><a href='#' title=다이나믹셀>다이나믹셀</a><ul class='depth_2'><li><a href="/shop/list.php?ca_id=2020"  target="_self"  >다이나믹셀-X</a></li><li><a href="/shop/list.php?ca_id=2030"  target="_self"  >다이나믹셀-P</a></li><li><a href="/shop/list.php?ca_id=2040"  target="_self"  >다이나믹셀 드라이브 (DYD)</a></li><li><a href="/shop/list.php?ca_id=2010"  target="_self"  >다이나믹셀</a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li></ul></li><li id='mobile_depth_1'><a href='#' title=전문가용 로봇>전문가용 로봇</a><ul class='depth_2'><li><a href="/shop/list.php?ca_id=4050"  target="_self"  >터틀봇3</a></li><li><a href="/shop/list.php?ca_id=4030"  target="_self"  >오픈매니퓰레이터</a></li><li><a href="/shop/list.php?ca_id=4010"  target="_self"  >로봇핸드</a></li><li><a href="/shop/list.php?ca_id=4020"  target="_self"  >로보티즈 OP</a></li><li><a href="/shop/list.php?ca_id=4040"  target="_self"  >THORMANG</a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li></ul></li><li id='mobile_depth_2'><a href='#' title=로봇부품>로봇부품</a><ul class='depth_2'><li><a href="/shop/list.php?ca_id=3040"  target="_self"  >제어기</a></li><li><a href="/shop/list.php?ca_id=3010"  target="_self"  >연결부품</a></li><li><a href="/shop/list.php?ca_id=3020"  target="_self"  >기타부품</a></li><li><a href="/shop/list.php?ca_id=3030"  target="_self"  >서적/공구</a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li></ul></li><li id='mobile_depth_3'><a href='#' title=스팀컵인증키트>스팀컵인증키트</a><ul class='depth_2'><li><a href="/shop/list.php?ca_id=1020"  target="_self"  >중/고등용 로봇</a></li><li><a href="/shop/list.php?ca_id=1030"  target="_self"  >초등용 로봇</a></li><li><a href="/shop/list.php?ca_id=1010"  target="_self"  >유아용 로봇</a></li><li><a href="/shop/list.php?ca_id=1050"  target="_self"  >알쥐</a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li></ul></li><li id='mobile_depth_4'><a href='#' title=고객지원>고객지원</a><ul class='depth_2'><li><a href="/model/board.php?bo_table=store_notice"  target="_self"  >공지사항</a></li><li><a href="/model/board.php?bo_table=qna"  target="_self"  >1:1 구매문의</a></li><li><a href="/service/selection_guide.php"  target="_self"  >선택가이드</a></li><li><a href="/service/compatibility_table.php?cate=dx"  target="_self"  >부품호환가이드</a></li><li><a href="/model/board.php?bo_table=robotis_faq"  target="_self"  >자주묻는질문</a></li><li><a href="/model/board.php?bo_table=tutorial_vod"  target="_self"  >튜토리얼</a></li><li><a href="https://forum.robotis.com/c/community/kr/68"  target="_blank"  >기술 포럼</a></li><li><a href="/shop/rma.php"  target="_self"  >A/S신청</a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li></ul></li>		</ul>
+ 
+		<ul  class="sign_box">	
+							<li><a href="https://www.robotis.com/model/login.php">로그인</a></li>
+					</ul>
+
+		
+		<ul class="gn_drop_sns"> 
+			<li>
+				<a href="https://ko-kr.facebook.com/robotis.kor/" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_facebook.png"></a>
+				<a href="https://github.com/robotis-git" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_github.png"></a>
+				<a href="https://twitter.com/ROBOTIS" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_twitter.png"></a>
+				<a href="https://www.youtube.com/user/ROBOTISCHANNEL/" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_youtube.png"></a>
+			</li>
+			<li>
+                <select name="site_lang" onChange="gotoRegion(this.value)" >
+                    <option value="http://www.robotis.com/shop/">=지역선택=</option>
+                    <option Value="http://www.robotis.com/shop/" >Korea</option>
+                    <option Value="http://en.robotis.com/shop_en/">International</option>
+                    <option Value="http://robotis.us/">Americas</option>
+                    <option Value="https://e-shop.robotis.co.jp/">Japan</option>
+                    <option Value="https://shop292418244.taobao.com/index.htm?spm=2013.1.w5002-17478325885.2.5bbc75c1kB9jsV">China</option>
+                </select>
+			</li>
+		</ul> 
+		
+</div> 
+<!-- //NAV-MOBILE -->
+
+<!-- PC 2뎁스메뉴 -->
+<ul id="nav_drop" class="gn_drop dis_web">
+	<li class="gn_drop_menu" >
+		<div class="container">
+			<div class="menu_down" >
+				<div  class='sub'  style='width:140px;' ><ul ><li><a href="/shop/list.php?ca_id=2020"  target="_self"  >다이나믹셀-X</a></li><li><a href="/shop/list.php?ca_id=2030"  target="_self"  >다이나믹셀-P</a></li><li><a href="/shop/list.php?ca_id=2040"  target="_self"  >다이나믹셀 드라이브 (DYD)</a></li><li><a href="/shop/list.php?ca_id=2010"  target="_self"  >다이나믹셀</a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li></ul></div><div  class='sub'  style='width:160px;' ><ul ><li><a href="/shop/list.php?ca_id=4050"  target="_self"  >터틀봇3</a></li><li><a href="/shop/list.php?ca_id=4030"  target="_self"  >오픈매니퓰레이터</a></li><li><a href="/shop/list.php?ca_id=4010"  target="_self"  >로봇핸드</a></li><li><a href="/shop/list.php?ca_id=4020"  target="_self"  >로보티즈 OP</a></li><li><a href="/shop/list.php?ca_id=4040"  target="_self"  >THORMANG</a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li></ul></div><div  class='sub'  style='width:120px;' ><ul ><li><a href="/shop/list.php?ca_id=3040"  target="_self"  >제어기</a></li><li><a href="/shop/list.php?ca_id=3010"  target="_self"  >연결부품</a></li><li><a href="/shop/list.php?ca_id=3020"  target="_self"  >기타부품</a></li><li><a href="/shop/list.php?ca_id=3030"  target="_self"  >서적/공구</a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li></ul></div><div  class='sub'  style='width:160px;' ><ul ><li><a href="/shop/list.php?ca_id=1020"  target="_self"  >중/고등용 로봇</a></li><li><a href="/shop/list.php?ca_id=1030"  target="_self"  >초등용 로봇</a></li><li><a href="/shop/list.php?ca_id=1010"  target="_self"  >유아용 로봇</a></li><li><a href="/shop/list.php?ca_id=1050"  target="_self"  >알쥐</a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li></ul></div><div  class='sub'  style='width:120px;' ><ul ><li><a href="/model/board.php?bo_table=store_notice"  target="_self"  >공지사항</a></li><li><a href="/model/board.php?bo_table=qna"  target="_self"  >1:1 구매문의</a></li><li><a href="/service/selection_guide.php"  target="_self"  >선택가이드</a></li><li><a href="/service/compatibility_table.php?cate=dx"  target="_self"  >부품호환가이드</a></li><li><a href="/model/board.php?bo_table=robotis_faq"  target="_self"  >자주묻는질문</a></li><li><a href="/model/board.php?bo_table=tutorial_vod"  target="_self"  >튜토리얼</a></li><li><a href="https://forum.robotis.com/c/community/kr/68"  target="_blank"  >기술 포럼</a></li><li><a href="/shop/rma.php"  target="_self"  >A/S신청</a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li></ul></div>			</div>
+		</div>
+	</li>
+</ul>
+<!-- 2뎁스메뉴 끝 -->
+
+
+<!-- 콘텐츠 시작 { -->
+
+<div id="wrap">
+
+
+	<div id="smoke" class="smoke">...</div>
+	
+<!--
+	<div style="position:fixed; bottom:30px; right:10px; width:48px; height:48px; z-index:9997" ><a id="btn_Top" href="javascript:moveup();" title="맨위로"><img src="https://www.robotis.com/img/common/btn_top.png" alt="맨위로"/></a></div>
+
+
+	<script>
+	
+		/* 맨위로 버튼 */
+		function moveup(){
+			$("html, body").animate({ scrollTop: 0 }, "500");
+		};
+
+	</script>
+-->
+
+
+    <div id="container">
+
+	<style>
+    /*읽기전용으로 변경 2022-09-13*/
+    .forum .sub_1_col .sub_inner .page_view_content .like_area:hover {  color:#3d3d3d; }
+</style>
+<div class="body_wrap forum"> 
+ 
+	<section class="sub_1_col clearfix">	
+
+		<section style="text-align:center; ">	
+			
+	<div class="now_where_wrap">	
+		<div id="now_where" >
+			<a href="https://www.robotis.com" class="home"> 홈&nbsp;</a>
+				 <div class="drop_box">
+					 <img src="https://www.robotis.com/img/common/btn_pull_down.png"> 고객지원 
+					<div class="sub_list_wrap" style="display:none;">
+						<ul><li><a href="/shop/category.php?ca_id=20">다이나믹셀</a></li><li><a href="/shop/category.php?ca_id=40">전문가용 로봇</a></li><li><a href="/shop/category.php?ca_id=30">로봇부품</a></li><li><a href="/shop/category.php?ca_id=10">스팀컵인증키트</a></li><li><a href="/model/board.php?bo_table=store_notice">고객지원</a></li>
+						</ul>
+					</div>
+				</div>
+				<div class="drop_box">
+				 <img src="https://www.robotis.com/img/common/btn_pull_down.png"> 기술 포럼 
+					<div class="sub_list_wrap" style="display:none;">
+						<ul><li><a href="/model/board.php?bo_table=store_notice">공지사항</a></li><li><a href="/model/board.php?bo_table=qna">1:1 구매문의</a></li><li><a href="/service/selection_guide.php">선택가이드</a></li><li><a href="/service/compatibility_table.php?cate=dx">부품호환가이드</a></li><li><a href="/model/board.php?bo_table=robotis_faq">자주묻는질문</a></li><li><a href="/model/board.php?bo_table=tutorial_vod">튜토리얼</a></li><li><a href="https://forum.robotis.com/c/community/kr/68">기술 포럼</a></li><li><a href="/shop/rma.php">A/S신청</a></li>
+						</ul>
+					</div>
+				</div>
+		</div>
+	</div>
+			</section>
+
+
+		<div class="sub_inner left">
+
+			<div class="list_btn_box">
+				<a href="javascript:history.back()" class="list_back_btn"> < LIST</a>
+			</div>
+			
+
+			<div class="page_view_subject"> 
+				<div style="color:#a8a8a8; font-size:10pt;font-weight:normal;">POST No. 2590546</div>
+				ros설치 질문			</div> 
+ 
+			<div class="page_view_content" >
+
+				<div class="like_box" >
+					<!-- LIKE -->			
+					<div class="like_area" onclick="likeUpdate('robo_forum_table', '2590546', 'robo_forum_table', '2590546', 0)" >
+						<i class="fa fa-thumbs-up"></i><br />
+						<span id="like_cnt0">0</span>   
+					</div>
+				</div>
+
+				<div class="content_box" style="line-height:25px">
+
+							<!-- 작성자정보 : 모바일-->
+							<div class="writer_box_mobile dis_mob">
+									<img src="https://www.robotis.com/img/common/mbicon_nobody.gif" > 2019-07-04 14:40:45 olive623									<!-- 수정/삭제 -->
+																</div>
+
+							<!-- 글  -->
+							<p><span style="color: rgb(61, 61, 61); font-family: Dotum, Arial; font-size: 10pt; background-color: rgb(228, 228, 228);">&nbsp;안녕하세요. 터틀봇3 사용을 위해 <a href="http://emanual.robotis.com/docs/en/platform/turtlebot3/raspberry_pi_3_setup/#install-linux-based-on-raspbian">http://emanual.robotis.com/docs/en/platform/turtlebot3/raspberry_pi_3_setup/#install-linux-based-on-raspbian</a>에서 robotis에서 제공하는 라즈비안 파일을 다운로드 후 라즈베리 파이에 설치하였습니다. 설치후 sudo apt-get update를 입력하니 아래와 같은 메세지가 출력되는데 설치가 잘 못된건가요? 해결책에 대해 답변해주시면 감사하겠습니다.</span>&nbsp;</p><p><span style="color: rgb(61, 61, 61); font-family: Dotum, Arial; font-size: 14px; background-color: rgb(228, 228, 228);">&nbsp;</span></p><p><font color="#3d3d3d" face="Dotum, Arial"><span style="font-size: 10pt;">pi@raspberrypi:~ $ sudo apt-get update</span></font></p><p><font color="#3d3d3d" face="Dotum, Arial"><span style="font-size: 10pt;">Hit:1 <a href="http://archive.raspberrypi.org/debian">http://archive.raspberrypi.org/debian</a> stretch InRelease&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</span></font></p><p><font color="#3d3d3d" face="Dotum, Arial"><span style="font-size: 10pt;">Hit:2 <a href="http://raspbian.raspberrypi.org/raspbian">http://raspbian.raspberrypi.org/raspbian</a> stretch InRelease&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span></font></p><p><font color="#3d3d3d" face="Dotum, Arial"><span style="font-size: 10pt;">Get:3 <a href="http://packages.ros.org/ros/ubuntu">http://packages.ros.org/ros/ubuntu</a> stretch InRelease [4,661 B]</span></font></p><p><font color="#3d3d3d" face="Dotum, Arial"><span style="font-size: 10pt;">Err:3 <a href="http://packages.ros.org/ros/ubuntu">http://packages.ros.org/ros/ubuntu</a> stretch InRelease</span></font></p><p><font color="#3d3d3d" face="Dotum, Arial"><span style="font-size: 10pt;">&nbsp; The following signatures couldn't be verified because the public key is not available: NO_PUBKEY F42ED6FBAB17C654</span></font></p><p><font color="#3d3d3d" face="Dotum, Arial"><span style="font-size: 10pt;">Fetched 4,661 B in 5s (819 B/s)</span></font></p><p><font color="#3d3d3d" face="Dotum, Arial"><span style="font-size: 10pt;">Reading package lists... Done</span></font></p><p><font color="#3d3d3d" face="Dotum, Arial"><span style="font-size: 10pt;">W: An error occurred during the signature verification. The repository is not updated and the previous index files will be used. GPG error: <a href="http://packages.ros.org/ros/ubuntu">http://packages.ros.org/ros/ubuntu</a> stretch InRelease: The following signatures couldn't be verified because the public key is not available: NO_PUBKEY F42ED6FBAB17C654</span></font></p><p><font color="#3d3d3d" face="Dotum, Arial"><span style="font-size: 10pt;">W: Failed to fetch <a href="http://packages.ros.org/ros/ubuntu/dists/stretch/InRelease">http://packages.ros.org/ros/ubuntu/dists/stretch/InRelease</a>&nbsp; The following signatures couldn't be verified because the public key is not available: NO_PUBKEY F42ED6FBAB17C654</span></font></p><p><font color="#3d3d3d" face="Dotum, Arial"><span style="background-color: rgb(228, 228, 228); font-size: 14px;"></span></font></p><p><font color="#3d3d3d" face="Dotum, Arial"><span style="font-size: 10pt;">W: Some index files failed to download. They have been ignored, or old ones used instead.</span></font></p><div><br></div>							
+							<!-- 첨부파일  -->
+							<div class="file_line">
+																															</div>
+				</div>
+
+				<div class="writer_box dis_web" style="float:left">
+							
+							<!-- 작성자정보 -->
+							<table>
+								<tr>
+									<td rowspan=2> 
+										<img src="https://www.robotis.com/img/common/mbicon_nobody.gif" >
+									</td>
+									<td>2019-07-04 14:40:45</td>
+								</tr>
+								<tr>
+									<td>olive623</td>
+								</tr>
+
+								<!-- 수정/삭제 -->
+															</table>
+				</div>
+
+			</div>  <!-- //page_view_content -->
+
+		</div>
+
+
+		 	
+
+		<div class="sub_inner left" id="tr_2601038" style="clear:both; "> 
+
+			<div class="page_view_content">
+			 
+				<div class="like_box" >
+							<!-- LIKE -->		
+
+							<div class="like_area" onclick="likeUpdate('robo_forum_comment_table', '2601038', 'robo_forum_table', '2590546', '1' )" > 						
+									<i class="fa fa-thumbs-up"></i><br />
+									<span id="like_cnt1">4</span>    
+							</div>
+							
+													
+				</div>
+
+				<div class="content_box" style="line-height:25px">
+						
+							<div>
+										<!-- 작성자정보 : 모바일-->
+										<div class="writer_box_mobile dis_mob">
+											<img src="https://www.robotis.com/img/common/mbicon_nobody.gif"> 2019-07-04 15:27:30 유기웅											<!-- 삭제 -->
+																					</div>
+
+										<!-- 글  -->
+										<p>안녕하세요.</p><p>&nbsp;</p><div style="color: rgb(34, 34, 34); font-family: Arial, Helvetica, sans-serif; font-size: small; background-color: rgb(255, 255, 255);">최근에 ROS 패키지 저장소의 키가 변경되어 그렇습니다.</div><div style="color: rgb(34, 34, 34); font-family: Arial, Helvetica, sans-serif; font-size: small; background-color: rgb(255, 255, 255);">아래 링크의 해결법을 참고해주세요.</div><div style="color: rgb(34, 34, 34); font-family: Arial, Helvetica, sans-serif; font-size: small; background-color: rgb(255, 255, 255);"><br></div><div style="color: rgb(34, 34, 34); font-family: Arial, Helvetica, sans-serif; font-size: small; background-color: rgb(255, 255, 255);"><a href="http://answers.ros.org/question/325039/apt-update-fails-cannot-install-pkgs-key-not-working/" target="_blank" data-saferedirecturl="https://www.google.com/url?q=http://answers.ros.org/question/325039/apt-update-fails-cannot-install-pkgs-key-not-working/&amp;source=gmail&amp;ust=1562308010026000&amp;usg=AFQjCNFr_NUcA5aeWqz6qXn2ilddUeWz1w" style="color: rgb(17, 85, 204);">http://answers.ros.org/<wbr>question/325039/apt-update-<wbr>fails-cannot-install-pkgs-key-<wbr>not-working/</a></div><div style="color: rgb(34, 34, 34); font-family: Arial, Helvetica, sans-serif; font-size: small; background-color: rgb(255, 255, 255);"><br></div><div style="color: rgb(34, 34, 34); font-family: Arial, Helvetica, sans-serif; font-size: small; background-color: rgb(255, 255, 255);">감사합니다.</div>
+							</div>
+
+								<!-- ******************************* 댓글(comment) 박스   ******************************* -->
+							<div class="comment_box">
+
+								
+								 
+									<div id="reply_title2601038" style="font-weight:bold; font-size:1.2em; color:#d59faa;   background-color:#e4e4e4;  padding:10px;  ">
+									comment <i class="fa fa-comment" aria-hidden="true"></i>  </div> 
+								
+								<div class="comment_content" id="tr_2601039" > 
+								
+									<div class="hr"></div>
+
+									<table >
+										<tr>
+											<td style="padding:5px; ">
+											
+														<!-- 작성자정보 : 모바일-->
+														<div class="writer_box_mobile dis_mob">
+															<img src="https://www.robotis.com/img/common/mbicon_nobody.gif" > 2019-07-04 16:07:48 olive623 															<!-- 삭제 -->
+																													</div>
+
+														안녕하세요. 답변해주신 해결책 덕분에 문제 해결되었습니다. 답변 감사합니다.
+											</td>												
+											<td  class="writer_box dis_web" > 
+
+												<!-- 작성자정보 -->
+												<table>
+													<tr>
+														<td rowspan=2> 
+															<img src="https://www.robotis.com/img/common/mbicon_nobody.gif" >
+														</td>
+														<td>2019-07-04 16:07:48</td>
+													</tr>
+													<tr>
+														<td>olive623 </td>
+													</tr>
+
+													<!-- 삭제 -->
+																									</table>
+
+											</td>
+										</tr>
+									</table>
+
+								</div>
+
+								
+
+								<div id="comment_add_box2601038" class="comment_add_box" >
+
+									<form name="reply_form" id="reply_form2601038" method="post" enctype="MULTIPART/FORM-DATA" autocomplete="off" >
+										
+										<input type="hidden" name="data"  value="cmt_add">
+										<input type="hidden" name="comm_thread"  value="AA">
+										<input type="hidden" name="bbs_no" value="2590546">
+										<input type="hidden" name="comm_parent_no" value="2601038">
+										<input type="hidden" id="cmt_cnt2601038"  value="1">
+										
+										<ul>
+											<li style="list-style:none;"><textarea name="comm_content"></textarea></li>
+											<li style="list-style:none;"><button type="button"  onclick="comment_update(2601038)" class="btn_sk_5_10">확인</button></li>
+										</ul>
+
+									</form>
+
+								</div>
+								<!--div  class="btn_line" id="reply_btn2601038" ><a href="javascript: show_comment_add_box(2601038);" > + 댓글달기 </a></div>-->
+
+							</div>
+							<!-- //코맨트박스  -->
+
+
+				</div>
+						 
+				<div class="writer_box dis_web" style="float:left">
+							<!-- 작성자정보 -->
+							<table>
+								<tr>
+									<td rowspan=2> 
+										<img src="https://www.robotis.com/img/common/mbicon_nobody.gif">
+									</td>
+									<td>2019-07-04 15:27:30</td>
+								</tr>
+								<tr>
+									<td>ykw4463  </td>
+								</tr>
+
+								<!-- 수정/삭제 -->
+															</table>
+
+				</div> 
+
+			</div> <!-- page_view_content -->
+
+		</div>
+
+				
+		
+		<div class="sub_inner left" style="clear:both;display: none; ">
+
+			<div class="page_view_reply">
+
+				<div class="subject"><i class="fa fa-reply" aria-hidden="true"></i> 답변달기</div>
+
+				<div> 
+					<form name="replyform" method="post" enctype="MULTIPART/FORM-DATA" autocomplete="off" action="forum_rep_update.php" >
+					
+						<input type="hidden" name="w" value="">
+						<input type="hidden" name="bbs_no" value="2590546">
+						<input type="hidden" name="comm_thread"  value="A">
+						<input type="hidden" id="rep_cnt" value="1">
+
+								<span class="sound_only">웹에디터 시작</span>
+<script src="https://www.robotis.com/plugin/editor/smarteditor2/js/HuskyEZCreator.js"></script>
+<script>var g5_editor_url = "https://www.robotis.com/plugin/editor/smarteditor2", oEditors = [], ed_nonce = "SBquTRUHsJ|1675240026|c16aaf179e1b407772d240792efd586187dd3c8a";</script>
+<script src="https://www.robotis.com/plugin/editor/smarteditor2/config.js"></script>
+<script>
+        $(function(){
+            $(".btn_cke_sc").click(function(){
+                if ($(this).next("div.cke_sc_def").length) {
+                    $(this).next("div.cke_sc_def").remove();
+                    $(this).text("단축키 일람");
+                } else {
+                    $(this).after("<div class='cke_sc_def' />").next("div.cke_sc_def").load("https://www.robotis.com/plugin/editor/smarteditor2/shortcut.html");
+                    $(this).text("단축키 일람 닫기");
+                }
+            });
+            $(document).on("click", ".btn_cke_sc_close", function(){
+                $(this).parent("div.cke_sc_def").remove();
+            });
+        });
+</script>
+<textarea id="comm_content" name="comm_content" class="smarteditor2" maxlength="65536" style="width:100%;height:300px"></textarea>
+<span class="sound_only">웹 에디터 끝</span>
+					</form>
+
+				</div>
+
+				<!--div class="btn_line">
+					<a href="javascript: reply_write();" class="btn_ak_10_20"><i class="fa fa-pencil-square-o fa-2" aria-hidden="true"></i> 답변등록</a> 
+				</div>-->
+
+			</div><!-- page_view_reply -->
+
+		</div><!-- sub_inner -->
+
+		 
+
+
+	</section> <!-- sub_1_col -->
+ 
+</div> <!-- forum -->
+
+
+
+<!-- ::::::::::::: 삭제용 Form  :::::::::::::::::::::::  -->
+<form name="delform"  method="post" enctype="MULTIPART/FORM-DATA" autocomplete="off" onsubmit="return delformcheck(this)">
+	<input type="hidden" name="w" value="d">
+	<input type="hidden" name="bbs_no" value="2590546"> 
+</form>
+<!-- ::::::::::::: 삭제용 Form  :::::::::::::::::::::::  -->
+
+
+<script>
+
+	var rep_cnt = '1';
+	var bbs_owner = 'olive623';
+	var mb_id = '';
+	var bbs_no = '2590546';
+
+	
+	function show_comment_add_box (trno){
+		
+					
+			alert('로그인 하신후 댓글 쓰기가 가능합니다');
+			location.href=g5_url+"/model/login.php?url="+g5_url+"/service/forum_view.php?bbs_no="+bbs_no;
+			return;
+		
+		$("#comment_add_box"+trno).css("display", "block");
+		$("#reply_btn"+trno).css("display", "block");
+	}
+
+
+
+	function comment_del(comm_no, comm_parent_no){
+	    return false;
+		
+		if(!confirm("댓글을 삭제하시겠습니까? 복구할 수 없습니다.")){
+			return;
+		}
+ 
+		var ajax_url = "./ajax_forum_update.php";
+		var ajax_data = "comm_no=" + comm_no;
+		ajax_data += "&data=del";
+			
+		$.ajax({
+			async: false,
+			type: "POST",
+			url: ajax_url,
+			data : ajax_data,
+			dataType: 'jsonp', 
+			jsonpCallback: "callback",
+			success: function (jsonData) {
+				if(jsonData.code =="000") {
+					alert('삭제되었습니다');
+					$("#tr_"+comm_no).remove();
+					var cnt = $("#cmt_cnt"+comm_parent_no).val() -1 ;
+					$("#cmt_cnt"+comm_parent_no).val(cnt);
+					if(cnt==0){
+						$("#reply_title"+comm_parent_no).remove();
+					}
+				}else if(jsonData.code =="100") {
+					alert('쿼리에러발생. 관리자에게 문의하세요.');
+				}else if(jsonData.code =="400") {
+					alert('권한이 없습니다.');
+				}
+			},
+			error:function(request, status, error){
+				alert( "code : " + request.status + "\n message : " + request.responseText + "\n" + error);
+			}
+		});
+
+	}
+
+
+	function comment_update(reply_idx){
+	    return false;
+
+		var ajax_url = "./ajax_forum_update.php";
+		var ajax_data = $('#reply_form'+reply_idx).serialize();
+
+		$.ajax({
+			async: false,
+			type: "POST",
+			url: ajax_url,
+			data : ajax_data,
+			dataType: 'jsonp', 
+			jsonpCallback: "callback",
+			success: function (jsonData) {
+				if(jsonData.code =="000") {
+					location.reload();
+				}else {
+					alert('댓글등록실패');
+				}
+			},
+			error:function(request, status, error){
+				alert( "code : " + request.status + "\n message : " + request.responseText + "\n" + error);
+			}
+		});
+
+	}
+
+
+	function reply_edit(comm_no) {
+	    return false;
+		window.open("./forum_rep_edit.php?comm_no="+comm_no+"&bbs_no="+bbs_no, "comment_window", "scrollbars=no, toolbar=no, location=no, directories=no, width=780, height=400,resizable=no,mebar=no,left=0,top=0");
+	} 
+
+	function reply_write() {
+	    return false;
+
+		var form=document.replyform;
+
+					
+			alert('로그인 하신후 코멘트 쓰기가 가능합니다');
+			return;
+			}
+ 
+	function reply_del(comm_no ){
+        return false;
+		 
+		var cmt_cnt = $("#cmt_cnt"+comm_no).val();
+
+		if(cmt_cnt != 0 ){
+			alert( cmt_cnt  + ' 개의 댓글이 있습니다. 댓글이 있는 게시물은 삭제할 수 없습니다  ' );
+			return;
+		}
+
+		if(!confirm("답변을 삭제하시겠습니까? 복구할 수 없습니다.")){
+			return;
+		}
+ 
+		var ajax_url = "./ajax_forum_update.php";
+		var ajax_data = "comm_no=" + comm_no;
+		ajax_data += "&data=del";
+			
+		$.ajax({
+			async: false,
+			type: "POST",
+			url: ajax_url,
+			data : ajax_data,
+			dataType: 'jsonp', 
+			jsonpCallback: "callback",
+			success: function (jsonData) {
+
+				if(jsonData.code =="000") {
+					alert('삭제되었습니다');
+					$("#tr_"+comm_no).remove();
+					rep_cnt--;
+					$("#rep_cnt").val(rep_cnt);
+
+				}else if(jsonData.code =="100") {
+					alert('쿼리에러발생. 관리자에게 문의하세요.');
+
+				}else if(jsonData.code =="400") {
+					alert('권한이 없습니다.');
+
+				}
+			},
+			error:function(request, status, error){
+				alert( "code : " + request.status + "\n message : " + request.responseText + "\n" + error);
+			}
+		});
+
+	}
+
+
+
+	function reply_Choice( comm_no, article_no, trno){
+	    return false;
+		
+		if(bbs_owner!=mb_id){		
+			alert('질문자만 답변을 채택할 수 있습니다.');
+			return;
+		}
+		var ajax_url = "./ajax_forum_update.php";
+		var ajax_data = "comm_no=" + comm_no;	
+		ajax_data += "&bbs_no=" + article_no;	
+		ajax_data += "&data=choice";
+		
+		console.log(ajax_data);
+
+		$.ajax({
+			async: false,
+			type: "POST",
+			url: ajax_url,
+			data : ajax_data,
+			dataType: 'jsonp', 
+			jsonpCallback: "callback",
+			success: function (jsonData) {
+
+		console.log(jsonData.code);
+
+				if(jsonData.code=="001"){
+					alert('로그인하셔야합니다.'); 
+					location.href=g5_url+"/model/login.php?url="+g5_url+"/service/forum_view.php?bbs_no="+bbs_no;
+				}else{ 
+					if(jsonData.cur_state==1){
+						$("#choice"+trno).css("color", "#00cccc");
+						alert('답변이 채택되었습니다.');
+					}else{
+						$("#choice"+trno).css("color", "#cccccc");
+						alert('답변 채택을 취소하셨습니다.');
+					}
+				}
+			},
+			error:function(request, status, error){
+				alert( "code : " + request.status + "\n message : " + request.responseText + "\n" + error);
+			}
+		});
+
+	}
+
+	function likeUpdate(bbs_name, article_no, parent_board, parent_board_idx, trno){
+	    return false;
+
+		var ajax_url = "./ajax_forum_update.php";
+		var ajax_data = "bbs_no=" + article_no;
+		ajax_data += "&bbs_name=" + bbs_name;		
+		ajax_data += "&parent_board=" + parent_board;
+		ajax_data += "&parent_board_idx=" + parent_board_idx;
+		ajax_data += "&data=like";
+			
+		$.ajax({
+			async: false,
+			type: "POST",
+			url: ajax_url,
+			data : ajax_data,
+			dataType: 'jsonp', 
+			jsonpCallback: "callback",
+			success: function (jsonData) {
+				if(jsonData.code=="001"){
+					alert('로그인 하셔야합니다.');
+					location.href=g5_url+"/model/login.php?url="+g5_url+"/service/forum_view.php?bbs_no="+parent_board_idx;
+				}else 	if(jsonData.code=="002"){
+					alert('한 아이디당 한번만 기록할 수 있습니다.');
+				}else{
+					$("#like_cnt"+trno).html(jsonData.like);
+				}
+			},
+			error:function(request, status, error){
+				alert( "code : " + request.status + "\n message : " + request.responseText + "\n" + error);
+			}
+		});
+
+	}
+
+
+
+	function content_del(){
+	    return false;
+
+		var cnt = $("#rep_cnt").val();
+
+		if(cnt > 0){
+			alert('답변이 있는 게시물은 삭제할 수 없습니다.');
+			return;
+		}else{
+			
+			if(!confirm("게시물을 삭제하시겠습니까? 복구할 수 없습니다.")){
+				return;
+			}else{
+				var df = document.delform;
+				df.action="./forum_delete.php";
+				df.submit();
+			}
+		}
+	}
+
+
+
+</script>
+
+
+
+
+    </div> <!-- container -->
+</div><!-- wrapper -->
+
+<!-- } 콘텐츠 끝 -->
+
+<hr>
+
+<!-- FOOTER -->
+<div class="modal_back"></div>
+
+
+<footer id="footer_head" >
+
+		<div class="footer_wrap  ">
+			<div class="footer_left">
+				<ul>
+					<li><a href="https://www.robotis.com/sub/about_ceo.php" target="_blank">회사소개</a></li>
+					<li><a href="https://www.robotis.com/sub/about_contact.php" target="_blank">오시는 길</a></li>
+					<li><a href="https://www.robotis.com/model/page.php?co_id=policy">사이트이용약관</a></li>
+					<!--li><a href="javascript:pop_pop('https://www.robotis.com/sub/privacy.html', '', 1000, 600);"  style="font-weight:bold; color:#ff0000;">개인정보처리방침</a></li>-->
+					<li><a href="https://www.robotis.com/sub/privacy_s.php" target="_blank" style="font-weight:bold; color:#ff0000;">개인정보처리방침</a></li>
+				</ul>
+			</div>
+
+			<div class="footer_right">
+				<!-- -->
+			</div>
+		</div> 
+
+</footer>
+
+<footer id="footer" > 
+
+		<div class="footer_wrap">
+			<div class="footer_right" >
+				
+				<div style="font-size:1.5em; margin-bottom:20px; " class="dis_mob">				
+					<a href="https://ko-kr.facebook.com/robotis.kor/" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_facebook.png"></a>
+					<a href="https://github.com/robotis-git" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_github.png"></a>
+					<a href="https://twitter.com/ROBOTIS" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_twitter.png"></a>
+					<a href="https://www.youtube.com/user/ROBOTISCHANNEL/" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_youtube.png"></a>
+                    <a href="https://www.linkedin.com/company/robotis/" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_linkedin.png"></a>
+                    <a href="https://www.instagram.com/robotis_global/" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_instagram.png"></a>
+                    <a href="https://blog.naver.com/robotismaker" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_blog_w.png"></a>
+				</div>
+
+				<a class="footer_logo" href="#" title="ROBOTIS 바로가기">ROBOTIS</a>
+			
+				<ul class="info" >
+					<li>(주)로보티즈 / 대표자 : 김병수 </li>
+					<li class="adderss">서울 강서구 마곡중앙5로1길 37 (우편번호: 07594) </li>			
+					<li>E-mail : korea@robotis.com </li>	
+					<li>Tel : 070-8671-2600 Fax : 070-8230-1336 </li>	
+					<li>사업자번호 : 209-81-22390 	<a href="javascript: check_bizno('2098122390');" style="color:#9b9b9b;"> [사업자정보확인]</a>  </li>
+					<li>통신판매신고번호 : 제2018-서울강서-1400호</li>		
+					<li>호스팅사업자: (주)가비아 </li>	
+					
+				</ul>
+
+
+				<p class="copylight">Copyright &copy; <b>robotis.com.</b> All rights reserved.<br> </p>
+				
+				<ul class="policy" style="color: #9b9b9b;">
+					<br/>
+					<a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank"><img alt="크리에이티브 커먼즈 라이선스" style="border-width:0" src="https://i.creativecommons.org/l/by-nc-nd/4.0/88x31.png" /></a><br />이 저작물은 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" style="color:#ffffff;" target="_blank">크리에이티브 커먼즈 저작자표시-비영리-변경금지 4.0 국제 라이선스</a>에 따라 이용할 수 있습니다.
+				</ul>
+
+			</div>  <!-- footer_right -->
+
+			<nav class="footer_nav">
+
+				<div style="font-size:1.5em; margin-bottom:20px;" class="dis_web">
+                    <span itemscope="" itemtype="http://schema.org/Organization">
+                    <link itemprop="url" href="http://www.robotis.com">
+                        <a itemprop="sameAs" href="https://ko-kr.facebook.com/robotis.kor/" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_facebook.png"></a>
+                        <a itemprop="sameAs" href="https://github.com/robotis-git" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_github.png"></a>
+                        <a itemprop="sameAs" href="https://twitter.com/ROBOTIS" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_twitter.png"></a>
+                        <a itemprop="sameAs" href="https://www.youtube.com/user/ROBOTISCHANNEL/" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_youtube.png"></a>
+                        <a itemprop="sameAs" href="https://www.linkedin.com/company/robotis/" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_linkedin.png"></a>
+                        <a itemprop="sameAs" href="https://www.instagram.com/robotis_global/" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_instagram.png"></a>
+                        <a itemprop="sameAs" href="https://blog.naver.com/robotismaker" target="_blank"><img src="https://www.robotis.com/img/common/sns_icon_blog_w.png"></a>
+                    </span>
+				</div>
+
+				<ul class="depth_1"> 
+										<li class="depth_1_sub0" style="width:120px;" >
+							<p>다이나믹셀</p>
+							<ul class="depth_2">
+								<li><a href="/shop/list.php?ca_id=2020"  target="_self"  >다이나믹셀-X</a></li><li><a href="/shop/list.php?ca_id=2030"  target="_self"  >다이나믹셀-P</a></li><li><a href="/shop/list.php?ca_id=2040"  target="_self"  >다이나믹셀 드라이브 (DYD)</a></li><li><a href="/shop/list.php?ca_id=2010"  target="_self"  >다이나믹셀</a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li>							</ul>
+						</li>
+										<li class="depth_1_sub1" style="width:140px;" >
+							<p>전문가용 로봇</p>
+							<ul class="depth_2">
+								<li><a href="/shop/list.php?ca_id=4050"  target="_self"  >터틀봇3</a></li><li><a href="/shop/list.php?ca_id=4030"  target="_self"  >오픈매니퓰레이터</a></li><li><a href="/shop/list.php?ca_id=4010"  target="_self"  >로봇핸드</a></li><li><a href="/shop/list.php?ca_id=4020"  target="_self"  >로보티즈 OP</a></li><li><a href="/shop/list.php?ca_id=4040"  target="_self"  >THORMANG</a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li>							</ul>
+						</li>
+										<li class="depth_1_sub2" style="width:100px;" >
+							<p>로봇부품</p>
+							<ul class="depth_2">
+								<li><a href="/shop/list.php?ca_id=3040"  target="_self"  >제어기</a></li><li><a href="/shop/list.php?ca_id=3010"  target="_self"  >연결부품</a></li><li><a href="/shop/list.php?ca_id=3020"  target="_self"  >기타부품</a></li><li><a href="/shop/list.php?ca_id=3030"  target="_self"  >서적/공구</a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li>							</ul>
+						</li>
+										<li class="depth_1_sub3" style="width:140px;" >
+							<p>스팀컵인증키트</p>
+							<ul class="depth_2">
+								<li><a href="/shop/list.php?ca_id=1020"  target="_self"  >중/고등용 로봇</a></li><li><a href="/shop/list.php?ca_id=1030"  target="_self"  >초등용 로봇</a></li><li><a href="/shop/list.php?ca_id=1010"  target="_self"  >유아용 로봇</a></li><li><a href="/shop/list.php?ca_id=1050"  target="_self"  >알쥐</a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li>							</ul>
+						</li>
+										<li class="depth_1_sub4" style="width:100px;" >
+							<p>고객지원</p>
+							<ul class="depth_2">
+								<li><a href="/model/board.php?bo_table=store_notice"  target="_self"  >공지사항</a></li><li><a href="/model/board.php?bo_table=qna"  target="_self"  >1:1 구매문의</a></li><li><a href="/service/selection_guide.php"  target="_self"  >선택가이드</a></li><li><a href="/service/compatibility_table.php?cate=dx"  target="_self"  >부품호환가이드</a></li><li><a href="/model/board.php?bo_table=robotis_faq"  target="_self"  >자주묻는질문</a></li><li><a href="/model/board.php?bo_table=tutorial_vod"  target="_self"  >튜토리얼</a></li><li><a href="https://forum.robotis.com/c/community/kr/68"  target="_blank"  >기술 포럼</a></li><li><a href="/shop/rma.php"  target="_self"  >A/S신청</a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li><li><a href=""  target=""  ></a></li>							</ul>
+						</li>
+								</ul>
+
+			</nav>  <!-- footer_nav -->
+
+		</div>
+
+</footer>
+
+<!-- //FOOTER --> 
+<script language="JavaScript">
+
+	function check_bizno(saupja_no) {
+		var url = "https://www.ftc.go.kr/info/bizinfo/communicationViewPopup.jsp?wrkr_no="+saupja_no;
+		window.open(url, "communicationViewPopup", "width=750, height=700;");
+	}
+</script>
+
+<!-- Npay -->
+<script type="text/javascript">
+    wcs_do();
+</script>
+
+<!-- **************************   마케팅 분석스크립트 영역  **********************-->
+
+
+<!--  naver Analytics -->
+<!--  2020년5월6일 변경 : kif -->
+<script type="text/javascript" src="//wcs.naver.net/wcslog.js"></script>
+<script type="text/javascript">
+if(!wcs_add) var wcs_add = {};
+wcs_add["wa"] = "5e2be7456bd05c";
+if(window.wcs) {
+  wcs_do();
+}
+</script>
+
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<!--  2017년12월26일 변경 : ked -->
+<!--script async src="https://www.googletagmanager.com/gtag/js?id=UA-83196341-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-83196341-1');
+</script>-->
+
+<!-- 2021-12-22 -->
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-RKRNPVF4D4"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-RKRNPVF4D4');
+</script>
+
+<!-- 2022-02-23 황은솔매니저 추가요청 -->
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-NB2YQZDMM3"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-NB2YQZDMM3');
+
+    //gtag('config', 'AW-10822612219'); //20221005 구글 애즈 동영상 액션 캠페인 -> 태그 설정 없이 수동전환 진행함
+</script>
+
+<!--  Facebook Pixel Code : 2017-12-04 :  12월~2월까지
+<script>
+  !function(f,b,e,v,n,t,s)
+  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+  n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];
+  s.parentNode.insertBefore(t,s)}(window, document,'script',
+  'https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '237028846834683');
+  fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=237028846834683&ev=PageView&noscript=1"
+/></noscript>
+ End Facebook Pixel Code -->
+
+
+
+<!-- 네이버 프리미엄 로그 분석  :  2017-12-18 설치  -->
+<!--
+<script type="text/javascript" src="//wcs.naver.net/wcslog.js"> </script>
+<script type="text/javascript">
+
+
+	// 공통 적용 스크립트 , 모든 페이지에 노출되도록 설치. 단 전환페이지 설정값보다 항상 하단에 위치해야함
+	if (!wcs_add) var wcs_add={};
+	wcs_add["wa"] = "s_35c9a83dfe7e";
+	if (!_nasa) var _nasa={};
+	wcs.inflow();
+	wcs_do(_nasa);
+</script>
+-->
+<!-- End 네이버 프리미엄 로그 분석  :  2017-12-18 설치  -->
+
+
+
+<!-- 카카오스크립트(전환추적) :  2017-12-26 설치  -->
+    <!--
+	 <script type="text/javascript">
+	 //<![CDATA[
+	 var DaumConversionDctSv="type=P,orderID=,amount=";
+	 var DaumConversionAccountID="VFwnu7ZhqPCuibQ88crA1A00";
+	 if(typeof DaumConversionScriptLoaded=="undefined"&&location.protocol!="file:"){
+	  var DaumConversionScriptLoaded=true;
+	  document.write(unescape("%3Cscript%20type%3D%22text/javas"+"cript%22%20src%3D%22"+(location.protocol=="https:"?"https":"http")+"%3A//t1.daumcdn.net/cssjs/common/cts/vr200/dcts.js%22%3E%3C/script%3E"));
+	 }
+	 //]]>
+	 </script>
+	 -->
+ 
+<!-- 카카오스크립트 :  2017-12-15 설치  -->
+<!--
+<script type="text/javascript">
+    var roosevelt_params = {
+        retargeting_id:'VFwnu7ZhqPCuibQ88crA1A00',
+        tag_label:'MuImcTLRT4OffZyJwB9qWg'
+    };
+</script>
+<script type="text/javascript" src="//adimg.daumcdn.net/rt/roosevelt.js" async></script>
+-->
+<!-- End 카카오스크립트 :  2017-12-15 설치  -->
+
+
+
+
+<!-- **************************  // 마케팅 분석스크립트 영역  **********************-->
+
+
+
+<!-- } 하단 끝 -->
+
+
+
+
+
+
+<!-- ie6,7에서 사이드뷰가 게시판 목록에서 아래 사이드뷰에 가려지는 현상 수정 -->
+<!--[if lte IE 7]>
+<script>
+$(function() {
+    var $sv_use = $(".sv_use");
+    var count = $sv_use.length;
+
+    $sv_use.each(function() {
+        $(this).css("z-index", count);
+        $(this).css("position", "relative");
+        count = count - 1;
+    });
+});
+</script>
+<![endif]-->
+
+    </body>
+</html>
+��#I      c�Kc�FE6H~c�K   �    O^partitionKey=%28https%2Crobotis.com%29,:https://www.robotis.com/service/forum_view.php?bbs_no=2590546&page=1&save_sca=&sca=&save_stx=&stx=&sfl= necko:classified 1 strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 OK
+Date: Wed, 01 Feb 2023 07:27:05 GMT
+Server: Apache/2.2.20 (Unix) mod_ssl/2.2.20 OpenSSL/1.0.1e-fips DAV/2 PHP/5.2.14
+X-Powered-By: PHP/5.2.14
+P3P: CP="ALL CURa ADMa DEVa TAIa OUR BUS IND PHY ONL UNI PUR FIN COM NAV INT DEM CNT STA POL HEA PRE LOC OTC"
+Expires: 0
+Last-Modified: Wed, 01 Feb 2023 07:27:06 GMT
+Cache-Control: pre-check=0, post-check=0, max-age=0
+Pragma: no-cache
+Content-Type: text/html; charset=utf-8
+ original-response-headers Date: Wed, 01 Feb 2023 07:27:05 GMT
+Server: Apache/2.2.20 (Unix) mod_ssl/2.2.20 OpenSSL/1.0.1e-fips DAV/2 PHP/5.2.14
+X-Powered-By: PHP/5.2.14
+P3P: CP="ALL CURa ADMa DEVa TAIa OUR BUS IND PHY ONL UNI PUR FIN COM NAV INT DEM CNT STA POL HEA PRE LOC OTC"
+Set-Cookie: PHPSESSID=85e9fe4af60639dfa303c78c2ea48195; path=/
+Expires: 0
+Last-Modified: Wed, 01 Feb 2023 07:27:06 GMT
+Cache-Control: pre-check=0, post-check=0, max-age=0
+Pragma: no-cache
+Set-Cookie: 4b0442247d0d380f2ed7cee0301310e9=NmJjYzczNzRmYjZkYjdjMGY3Njg1M2FkYzFkYWU1N2Y%3D; expires=Wed, 01-Feb-2023 08:27:05 GMT; path=/
+Connection: close
+Transfer-Encoding: chunked
+Content-Type: text/html; charset=utf-8
+ ctid 1 uncompressed-len 0 net-response-time-onstart 737 net-response-time-onstop 757   �A

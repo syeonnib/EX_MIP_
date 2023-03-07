@@ -1,0 +1,666 @@
+define([ 'app', 'i18n!app/mail/nls/mail-i18n', 'app/app-init', 'app/mail/mail-models', 'app/mail/mail-views',
+		'app/settings/settings-models' ], function(app, i18n) {
+
+	app.module('mail', function(mail, app, Backbone, Marionette, $, _) {
+
+		mail.Controller = Backbone.Marionette.Controller.extend({
+			initialize : function(options) {
+				app.debug("mail.Controller.initialize(options) {");
+
+				mail.mboxModel = mail.mboxCollection.findModel('MBOX_TYPE', 1);
+				if (!mail.mboxModel) {
+					this.listenToOnce(mail.mboxCollection, 'sync', function() {
+						this.initialize(options);
+					});
+					return;
+				}
+				this.listenTo(mail.mboxCollection, 'sync', this.syncMboxModel);
+
+				mail.labelModel = new mail.LabelModel();
+
+				mail.paginator = new mail.MailPaginator();
+
+				mail.mailModel = new mail.MailModel();
+
+				mail.deliveryStatusPaginator = new mail.DeliveryStatusPaginator();
+
+				mail.approvalPaginator = new mail.ApprovalPaginator();
+				mail.approvalModel = new mail.ApprovalModel();
+				mail.approvalMboxModel = new mail.ApprovalMboxModel();
+				mail.approvalMboxCollection = new mail.ApprovalMboxCollection();
+				this.listenTo(app.userModel, 'sync', function() {
+					if (!app.config.approvalMail.enabled || !app.domainDetailsModel.get('approvalEnabled'))
+						return;
+					mail.approvalMboxCollection.fetch();
+					var approverModel = new mail.ApproverModel({
+						id : app.userModel.get('USERS_IDX')
+					});
+					approverModel.fetch({
+						success : function(model, response, options) {
+							var USERS_IDX = app.userModel.get('USERS_IDX');
+							if (model.get('approver') == USERS_IDX || model.get('deputyApprover') == USERS_IDX) {
+								app.userModel.set('isApprover', true);
+								app.userModel.trigger('approver:verified');
+							}
+						},
+						error : function(model, response, options) {
+							app.log('Failed to fetch mail.ApproverModel');
+						},
+					});
+				});
+				if (app.userModel.get('USERS_IDX') !== 'user') {
+					app.userModel.trigger('sync');
+				}
+
+				mail.secureMailCollection = new mail.SecureMailCollection();
+
+				this.showSidebarView();
+				this.showContentLayout();
+				this.showSettingsLayout();
+
+				app.debug("} // mail.Controller.initialize(options)");
+			},
+
+			onClose : function() {
+				app.debug("mail.Controller.onClose() {");
+				this.sidebarView.close();
+				this.contentLayout.close();
+				this.settingsLayout.close();
+				app.debug("} // mail.Controller.onClose()");
+			},
+
+			showSidebarView : function() {
+				this.sidebarView = new mail.SidebarView({
+					collection : mail.mboxCollection
+				});
+				app.snbRegion.show(this.sidebarView);
+			},
+
+			showContentLayout : function() {
+				app.debug("mail.Controller.showContentLayout() {");
+				this.contentLayout = new mail.ContentLayout({
+					model : mail.mboxModel,
+					collection : mail.mboxCollection,
+					paginator : mail.paginator,
+					mailModel : mail.mailModel,
+					userModel : app.userModel,
+					deliveryStatusPaginator : mail.deliveryStatusPaginator,
+					approvalModel : mail.approvalModel,
+					approvalPaginator : mail.approvalPaginator,
+				});
+				app.contentRegion.show(this.contentLayout);
+				// Split Pane
+				var split = app.userModel.get('USERS_MAIL_VIEW_MODE');
+				switch (split) {
+				case '0': // No Split
+					this.contentLayout.showNoSplit();
+					break;
+				case '1': // Horizontal Split
+					this.contentLayout.showHorizontalSplit();
+					break;
+				case '2': // Vertical Split
+					this.contentLayout.showVerticalSplit();
+					break;
+				default: // No Split
+					this.contentLayout.showNoSplit();
+				}
+				app.debug("} // mail.Controller.showContentLayout()");
+			},
+
+			paginateMails : function(mboxId, params) {
+				app.debug("mail.Controller.paginateMails(mboxId, params) {");
+				app.debug("  mboxId: " + mboxId);
+				app.debug("  params: ").debug(params);
+				app.debug("} // mail.Controller.paginateMails(mboxId, params)");
+
+				if (!mail.mboxModel) {
+					this.listenToOnce(mail.mboxCollection, 'sync', function() {
+						this.paginateMails(mboxId, params);
+					});
+					return;
+				}
+				var listView = this.contentLayout.listRegion.currentView;
+				if (listView && listView.$itemViewContainer) {
+					listView.$itemViewContainer.empty();
+				}
+				if (mail.mboxModel.get('MBOX_IDX') != mboxId) {
+					mail.mailModel.set('M_IDX', 0); // To show an empty mail
+				}
+				if (mboxId) {
+					mail.mboxModel = this.getMboxModel(mboxId);
+				} else {
+					if (app.userModel.get('MAIL_FIRST_VIEW'))
+						mail.mboxModel = this.getMboxModel(app.userModel.get('MAIL_FIRST_VIEW'));
+				}
+
+				mail.params = params;
+				app.vent.trigger('paginate:mails', mail.mboxModel, params);
+				app.vent.trigger('change:mbox', mail.mboxModel);
+				var $layoutParent = this.contentLayout.$el.parent().parent();
+				if ($layoutParent.is(':hidden')) {
+					$layoutParent.show();
+					this.settingsLayout.$el.parent().hide();
+				}
+				this.contentLayout.showMailList();
+			},
+
+			fetchMail : function(mboxId, mailId, params) {
+				app.debug("mail.Controller.fetchMail(mboxId, mailId, params) {");
+				app.debug("  mboxId: " + mboxId);
+				app.debug("  mailId: " + mailId);
+				app.debug("  params: ").debug(params);
+				app.debug("} // mail.Controller.fetchMail(mboxId, mailId, params)");
+				if (!mboxId) {
+					return;
+				}
+				if (!mail.mboxModel) {
+					this.listenToOnce(mail.mboxCollection, 'sync', function() {
+						this.fetchMail(mboxId, mailId, params);
+					});
+					return;
+				}
+				if (mail.mailModel.get('M_IDX') != mailId || !_.isEqual(mail.params, params)) {
+					this.contentLayout.viewRegion.currentView.$el.empty();
+					mail.overlayView.showLoading();
+					mail.mailModel.set('M_IDX', mailId, {
+						silent : true,
+					});
+					var data = mail.mailModel.getUrlData(params);
+					mail.mailModel.fetch({
+						type : 'POST',
+						data : data,
+						success : function(model, response, options) {
+							mail.overlayView.hideLoading();
+						},
+						error : function(model, response, options) {
+							mail.overlayView.hideLoading();
+						}
+					});
+				}
+				if (mail.mboxModel.get('MBOX_IDX') != mboxId) {
+					mail.mboxModel = this.getMboxModel(mboxId);
+					mail.params = params;
+					app.vent.trigger('paginate:mails', mail.mboxModel, params);
+					app.vent.trigger('change:mbox', mail.mboxModel);
+				} else if (params && !_.isEqual(mail.params, params)) {
+					mail.params = params;
+					if (app.userModel.get('USERS_MAIL_VIEW_MODE') !== '0')
+						app.vent.trigger('paginate:mails', mail.mboxModel, params);
+					else
+						mail.paginator.setParameters(params);
+				} else if (mail.paginator.length === 0) {
+					mail.mboxModel = this.getMboxModel(mboxId);
+					mail.params = params;
+					app.vent.trigger('paginate:mails', mail.mboxModel, params);
+					app.vent.trigger('change:mbox', mail.mboxModel);
+				}
+
+				var $layoutParent = this.contentLayout.$el.parent().parent();
+				if ($layoutParent.is(':hidden')) {
+					$layoutParent.show();
+					this.settingsLayout.$el.parent().hide();
+				}
+
+				if (params && params['delivery-status']) {
+					this.contentLayout.showDeliveryStatusView();
+				} else {
+					this.contentLayout.showMailView();
+				}
+			},
+
+			composeMail : function(params) {
+				if (!mail.mboxModel) {
+					this.listenToOnce(mail.mboxCollection, 'sync', function() {
+						this.composeMail(params);
+					});
+					return;
+				}
+
+				var $layoutParent = this.contentLayout.$el.parent().parent();
+				if ($layoutParent.is(':hidden')) {
+					$layoutParent.show();
+					this.settingsLayout.$el.parent().hide();
+				}
+
+				this.contentLayout.showComposeView(params);
+			},
+
+			paginateDeliveryStatus : function(param) {
+				app.vent.trigger('content-header:delivery-status');
+				app.vent.trigger('paginate:delivery-status', param);
+				if (!this.contentLayout) {
+					var self = this;
+					setTimeout(function() {
+						self.paginateDeliveryStatus(param);
+					}, 1000);
+					return;
+				}
+				var $layoutParent = this.contentLayout.$el.parent().parent();
+				if ($layoutParent.is(':hidden')) {
+					$layoutParent.show();
+					this.settingsLayout.$el.parent().hide();
+				}
+
+				this.contentLayout.showDeliveryStatusList();
+			},
+
+			getMboxModel : function(mboxId) {
+				// Special-Use Mailboxes http://tools.ietf.org/html/rfc6154
+				var mboxName, mboxModel;
+				switch (mboxId) {
+				case 'all':
+					mboxName = i18n.mbox.all;
+					break;
+				case 'unseen':
+					mboxName = i18n.mbox.unseen;
+					break;
+				case 'sent-me':
+					mboxName = i18n.mbox.sentMe;
+					break;
+				case 'important':
+					mboxName = i18n.mbox.important;
+					break;
+				case 'attached':
+					mboxName = i18n.mbox.attached;
+					break;
+				case 'delivery-status':
+					mboxName = i18n.mbox.deliveryStatus;
+					break;
+				default:
+					mboxModel = mail.mboxCollection.findModel('MBOX_IDX', mboxId);
+					break;
+				}
+				if (!mboxModel) {
+					mboxModel = new mail.MboxModel({
+						MBOX_IDX : mboxId,
+						USERS_IDX : app.userModel.get('USERS_IDX'),
+						MBOX_TYPE : 6,
+						MBOX_REF : 0,
+						MBOX_NAME : mboxName,
+						MBOX_SUBSCRIBE : 'Y',
+						MBOX_PASSWD : '',
+						MBOX_NOTIFICATION : 'N',
+						MBOX_NAME_ENG : '',
+						MBOX_SIZE : 0,
+						MBOX_MAILCOUNT : 0,
+						MBOX_NEW_MAILCOUNT : 0,
+					});
+					mail.overlayView.showLoading();
+					mboxModel.fetch({
+						async : false,
+					});
+					mail.overlayView.hideLoading();
+				}
+				return mboxModel;
+			},
+
+			syncMboxModel : function() {
+				var mboxSize = 0, mailCount = 0, unseenCount = 0;
+				mail.mboxCollection.each(function(mboxModel) {
+					var MBOX_TYPE = mboxModel.get('MBOX_TYPE');
+					if (!(MBOX_TYPE === 1 || MBOX_TYPE === 6))
+						return;
+					var MBOX_PUBLIC = mboxModel.get('MBOX_PUBLIC');
+					if (MBOX_PUBLIC === 'S' || mboxModel.get('SHARED_MBOX_ID') > 0)
+						return;
+					mboxSize += mboxModel.get('MBOX_SIZE');
+					mailCount += mboxModel.get('MBOX_MAILCOUNT');
+					unseenCount += mboxModel.get('MBOX_NEW_MAILCOUNT');
+				});
+				switch (mail.mboxModel.get('MBOX_IDX')) {
+				case 'all':
+					mail.mboxModel.set({
+						'MBOX_SIZE' : mboxSize,
+						'MBOX_MAILCOUNT' : mailCount,
+						'MBOX_NEW_MAILCOUNT' : unseenCount,
+					});
+					break;
+				case 'unseen':
+					mail.mboxModel.set({
+						'MBOX_SIZE' : mboxSize,
+						'MBOX_MAILCOUNT' : unseenCount,
+						'MBOX_NEW_MAILCOUNT' : unseenCount,
+					});
+					break;
+				case 'sent-me':
+				case 'important':
+				case 'attached':
+				}
+			},
+
+			showSettingsLayout : function() {
+				this.settingsLayout = new app.settings.ContentLayout({
+					model : app.userModel,
+					mboxCollection : mail.mboxCollection,
+					searchMboxCollection : mail.searchMboxCollection,
+					labelCollection : mail.labelCollection,
+					deletedMailPaginator : mail.deletedMailPaginator,
+				});
+				app.settingsRegion.show(this.settingsLayout);
+				this.settingsLayout.showGeneralSettingsView();
+				mail.overlayView.hideLoading();
+			},
+
+			showSettingsView : function(settings, subPart) {
+				if (!mail.mboxModel) {
+					this.listenToOnce(mail.mboxCollection, 'sync', function() {
+						this.showSettingsView(settings, subPart);
+					});
+					return;
+				}
+				var $layoutParent = this.settingsLayout.$el.parent();
+				if ($layoutParent.is(':hidden')) {
+					$layoutParent.show();
+					this.contentLayout.$el.parent().parent().hide();
+				}
+				switch (settings) {
+				case 'general':
+					this.settingsLayout.showGeneralSettingsView(subPart);
+					break;
+				case 'security':
+					this.settingsLayout.showSecuritySettingsView(subPart);
+					break;
+				case 'mboxes':
+					this.settingsLayout.showMboxesSettingsTabView(settings);
+					break;
+				case 'search-mboxes':
+					this.settingsLayout.showMboxesSettingsTabView(settings);
+					break;
+				case 'labels':
+					this.settingsLayout.showMboxesSettingsTabView(settings);
+					break;
+				case 'clean-up':
+					this.settingsLayout.showCleanUpSettingsView();
+					break;
+				case 'filters':
+					this.settingsLayout.showFiltersSettingsView();
+					break;
+				case 'signature':
+					this.settingsLayout.showSignatureSettingsView();
+					break;
+				case 'recipient-group':
+					this.settingsLayout.showRecipientGroupSettingsView();
+					break;
+				case 'vacation-response':
+					this.settingsLayout.showVacationResponseSettingsView();
+					break;
+				case 'spam':
+					this.settingsLayout.showSpamSettingsView();
+					break;
+				case 'import':
+					this.settingsLayout.showImportSettingsView();
+					break;
+				case 'pop-imap':
+					this.settingsLayout.showPopImapSettingsView();
+					break;
+				case 'aliases-forwarding':
+					this.settingsLayout.showAliasesForwardingSettingsView();
+					break;
+				case 'kpns':
+					this.settingsLayout.showKpnsSettingsView();
+					break;
+				case 'deleted-mail':
+					this.settingsLayout.showDeletedMailView();
+					break;
+				default:
+					this.settingsLayout.showGeneralSettingsView();
+				}
+				mail.overlayView.hideLoading();
+			},
+
+			paginateApprovals : function(mboxName, params) {
+				if (!mail.mboxModel) {
+					this.listenToOnce(mail.mboxCollection, 'sync', function() {
+						this.paginateApprovals(mboxName, params);
+					});
+					return;
+				}
+				if (!mail.approvalMboxCollection.size()) {
+					this.listenToOnce(mail.approvalMboxCollection, 'sync', function() {
+						this.paginateApprovals(mboxName, params);
+					});
+					return;
+				}
+				var listView = this.contentLayout.approvalListRegion.currentView;
+				if (listView && listView.$itemViewContainer) {
+					listView.$itemViewContainer.empty();
+				}
+				mail.approvalMboxModel = mail.approvalMboxCollection.findModel('mboxName', mboxName);
+				mail.params = params;
+				app.vent.trigger('paginate:approvals', params);
+				app.vent.trigger('change:approval-mbox', mail.approvalMboxModel);
+				var $layoutParent = this.contentLayout.$el.parent().parent();
+				if ($layoutParent.is(':hidden')) {
+					$layoutParent.show();
+					this.settingsLayout.$el.parent().hide();
+				}
+				this.contentLayout.showApprovalList();
+			},
+
+			fetchApproval : function(mboxName, id, params) {
+				if (!mboxName) {
+					return;
+				}
+				if (!mail.approvalMboxCollection.size()) {
+					this.listenToOnce(mail.approvalMboxCollection, 'sync', function() {
+						this.fetchApproval(mboxName, id, params);
+					});
+					return;
+				}
+				if (mboxName != mail.approvalMboxModel.get('mboxName')) {
+					mail.approvalMboxModel = mail.approvalMboxCollection.findModel('mboxName', mboxName);
+				}
+				this.contentLayout.approvalViewRegion.currentView.$el.empty();
+				mail.overlayView.showLoading();
+				mail.approvalModel.set('id', id, {
+					silent : true,
+				});
+				var data = mail.approvalModel.getUrlData(params);
+				mail.approvalModel.fetch({
+					type : 'POST',
+					data : data,
+					success : function(model, response, options) {
+						mail.overlayView.hideLoading();
+						if (model.get('id') > 0) {
+							var policyModel = new mail.ApprovalPolicyModel({
+								id : model.get('policyId')
+							});
+							policyModel.fetch({
+								async : false
+							});
+
+							mail.mailModel.set(model.get('mail'));
+						}
+						mail.approvalModel.set({
+							filters : policyModel.get('filters')
+						});
+					},
+					error : function(model, response, options) {
+						mail.overlayView.hideLoading();
+					}
+				});
+
+				var $layoutParent = this.contentLayout.$el.parent().parent();
+				if ($layoutParent.is(':hidden')) {
+					$layoutParent.show();
+					this.settingsLayout.$el.parent().hide();
+				}
+
+				this.contentLayout.showApprovalView();
+			},
+
+			paginateLabelMails : function(labelId, params) {
+				app.debug("mail.Controller.paginateLabelMails(labelId, params) {");
+				app.debug("  labelId: " + labelId);
+				app.debug("  params:").debug(params);
+				app.debug("} // mail.Controller.paginateLabelMails(labelId, params)");
+
+				if (!mail.labelModel) {
+					this.listenToOnce(mail.labelCollection, 'sync', function() {
+						this.paginateLabelMails(labelId, params);
+					});
+					return;
+				}
+
+				if (labelId) {
+					mail.labelModel = mail.labelCollection.findModel('id', labelId);
+					mail.mboxModel = new mail.MboxModel({
+						MBOX_IDX : 'all',
+						USERS_IDX : app.userModel.get('USERS_IDX'),
+						MBOX_TYPE : 6,
+						MBOX_REF : 0,
+						MBOX_NAME : i18n.mbox.all,
+						MBOX_SUBSCRIBE : 'Y',
+						MBOX_PASSWD : '',
+						MBOX_NOTIFICATION : 'N',
+						MBOX_NAME_ENG : '',
+						MBOX_SIZE : 0,
+						MBOX_MAILCOUNT : 0,
+						MBOX_NEW_MAILCOUNT : 0,
+						SHARED_MBOX_ID : 0,
+						SHARING_MBOX_ID : 0,
+					});
+				}
+
+				if (mail.labelModel.get('id') != labelId) {
+					mail.mailModel.set('M_IDX', 0); // To show an empty mail
+				}
+				var listView = this.contentLayout.listRegion.currentView;
+				if (listView && listView.$itemViewContainer) {
+					listView.$itemViewContainer.empty();
+				}
+				mail.params = params;
+				app.vent.trigger('paginate:labelMails', mail.labelModel, params);
+				var $layoutParent = this.contentLayout.$el.parent().parent();
+				if ($layoutParent.is(':hidden')) {
+					$layoutParent.show();
+					this.settingsLayout.$el.parent().hide();
+				}
+				this.contentLayout.showMailList();
+			},
+
+			fetchLabelMail : function(labelId, mailId, params) {
+				app.debug("mail.Controller.fetchLabelMail(labelId, mailId, params) {");
+				app.debug("  labelId: " + labelId);
+				app.debug("  mailId: " + mailId);
+				app.debug("  params: ").debug(params);
+				app.debug("} // mail.Controller.fetchLabelMail(labelId, mailId, params)");
+				if (!labelId) {
+					return;
+				}
+				if (!mail.labelModel) {
+					this.listenToOnce(mail.labelCollection, 'sync', function() {
+						this.fetchLabelMail(labelId, mailId, params);
+					});
+					return;
+				}
+				if (mail.mailModel.get('M_IDX') != mailId) {
+					this.contentLayout.viewRegion.currentView.$el.empty();
+					mail.overlayView.showLoading();
+					mail.mailModel.set('M_IDX', mailId, {
+						silent : true,
+					});
+					var data = mail.mailModel.getUrlData(params);
+					mail.mailModel.fetch({
+						type : 'POST',
+						data : data,
+						success : function(model, response, options) {
+							mail.overlayView.hideLoading();
+						},
+						error : function(model, response, options) {
+							mail.overlayView.hideLoading();
+						}
+					});
+				}
+				if (mail.labelModel.get('id') != labelId) {
+					mail.labelModel = mail.labelCollection.findModel('id', labelId);
+					mail.params = params;
+					app.vent.trigger('paginate:labelMails', mail.labelModel, params);
+				} else if (params && !_.isEqual(mail.params, params)) {
+					mail.params = params;
+					app.vent.trigger('paginate:labelMails', mail.labelModel, params);
+				} else if (mail.paginator.length === 0) {
+					mail.labelModel = mail.labelCollection.findModel('id', labelId);
+					mail.params = params;
+					app.vent.trigger('paginate:labelMails', mail.labelModel, params);
+				}
+
+				var $layoutParent = this.contentLayout.$el.parent().parent();
+				if ($layoutParent.is(':hidden')) {
+					$layoutParent.show();
+					this.settingsLayout.$el.parent().hide();
+				}
+				this.contentLayout.showMailView();
+			},
+
+		}); // mail.Controller = Marionette.Controller.extend({...});
+
+		mail.addInitializer(function(options) {
+			app.debug("mail.addInitializer(function(options) {");
+
+			$.datepicker.setDefaults(i18n.datepicker.options);
+
+			if (!mail.overlayView) {
+				mail.overlayView = new mail.OverlayView();
+				mail.overlayView.render();
+			}
+			mail.overlayView.showLoading();
+
+			app.vent.trigger('activate:gnb-item', 'mail');
+
+			mail.mboxCollection = new mail.MboxCollection();
+			var fetchMboxCollection = function() {
+				mail.mboxCollection.fetch();
+			};
+			fetchMboxCollection();
+			// mail.mboxesInterval = setInterval(fetchMboxCollection, 60000);
+
+			mail.labelCollection = new mail.LabelCollection();
+			var fetchLabelCollection = function() {
+				mail.labelCollection.fetch();
+			};
+			fetchLabelCollection();
+
+			mail.searchMboxCollection = new mail.SearchMboxCollection();
+			var fetchSearchMboxCollection = function() {
+				mail.searchMboxCollection.fetch();
+			};
+			fetchSearchMboxCollection();
+
+			mail.controller = new mail.Controller({
+				contentRegion : options.contentRegion,
+			});
+
+			app.debug("} // mail.addInitializer(function(options) {...})");
+		}); // mail.addInitializer(function(options) {...});
+
+		mail.addFinalizer(function(options) {
+			app.debug("mail.addFinalizer(function(options) {");
+			if (mail.mboxCollection) {
+				clearInterval(mail.mboxesInterval);
+				delete mail.mboxCollection;
+			}
+			if (mail.controller) {
+				mail.controller.close();
+				delete mail.controller;
+			}
+			app.debug("} // mail.addFinalizer(function(options) {...})");
+		}); // mail.addFinalizer(function(options) {...});
+
+	}); // app.module('mail', function() {...});
+
+}); // define(['app'], function(app) {...});
+éç«èi      dﬂ∏dﬂ∏EUUd7   i    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app/mail/mail-controller.js necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"21277-1659949284000"
+Last-Modified: Mon, 08 Aug 2022 09:01:24 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 21277
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"21277-1659949284000"
+Last-Modified: Mon, 08 Aug 2022 09:01:24 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 21277
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ ctid 2 uncompressed-len 0 net-response-time-onstart 19 net-response-time-onstop 25   S

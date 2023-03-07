@@ -1,0 +1,23 @@
+<launch>
+    <node name="UNO_node"        pkg="rosserial_python"      type="serial_node.py">
+    <param name="port"              type="string"               value="/dev/UNO"/>
+    <param name="baud"              type="int"                  value="57600"/>
+    </node>
+
+    <node name="MEGA_node"        pkg="rosserial_python"      type="serial_node.py">
+        <param name="port"              type="string"               value="/dev/MEGA"/>
+        <param name="baud"              type="int"                  value="57600"/>
+    </node>
+    
+    <node name="can_node"        pkg="socketcan_bridge"      type="socketcan_bridge_node">
+        
+    </node>
+
+    <node name="Steering_node"        pkg="control"      type="eps_control_with_limit.py">
+        
+    </node>
+    <node name="pub_cmd_node"        pkg="control"      type="1742ack_cmd_brake_pot.py">
+        
+    </node>
+    
+</launch>

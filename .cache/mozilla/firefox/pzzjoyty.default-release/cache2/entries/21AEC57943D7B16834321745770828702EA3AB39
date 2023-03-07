@@ -1,0 +1,4982 @@
+<script type="text/template" id="sidebar-template">
+	<!-- 연락처추가 | 그룹추가 -->
+	<div class="mc-btn_workset">
+		<a href="#" class="mc-btn_quick" title="<%= i18n.add.contact %>"><strong><span><%= i18n.add.contact %></span></strong></a>
+		<a href="#" class="mc-btn_import" title="<%= i18n.add.group %>"><strong><span><%= i18n.add.group %></span></strong></a>
+	</div>
+
+	<!-- 중요 | 최근등록 -->
+	<div class="section_top">
+		<ul class="st_list">
+			<li>
+				<a href="#contacts/important/contacts" class="ma" id="importantContacts"><span class="mic imp"></span><%= i18n.important %></a>
+			</li>
+			<li>
+				<a href="#contacts/recent/contacts" class="ma" id="recentContacts"><span class="mic rec"></span><%= i18n.recentReg %></a>
+			</li>
+		</ul>
+	</div>
+
+	<div class="section_list">
+		<h3 class="mc-blind"><%= i18n.list %></h3>
+		<ul class="tabbox">
+			<!-- 내 주소록 -->
+			<li class="tbm1" id="contact-tab" >
+				<a href="#contacts/all/contacts" name="contact">
+					<span><%= i18n.myContacts %></span>
+					<em><strong><%= i18n.myContacts %></strong></em>
+				</a>
+			</li>
+			<!-- 조직도 
+			<li class="tbm2" id="org-tab" >
+				<a href="#org" name="org">
+					<span><%= i18n.organization %></span>
+					<em class="addr"><strong><%= i18n.organization %></strong></em>
+				</a>
+			</li>-->
+			<!-- 공용주소록 -->
+			<li class="tbm2" id="share-tab">
+				<a href="#shared-groups/all/contacts" name="shared-groups">
+					<span><%= i18n.sharedContacts %></span>
+					<em><strong><%= i18n.sharedContacts %></strong></em>
+				</a>
+			</li>
+		</ul>
+		<div class="mc-svc_menu_area mcScrl">
+			<!-- Layout(#contact-layout-template) -->
+			<div class="default_group contacts-group" style="display:" id="fol_allGroup">
+				<!-- 내주소록 (#contact-item-template) -->
+			</div>
+			<div class="tree_lst org-group" style="display: none" id="org_allGroup">
+				<fieldset class="mc-orgTree">
+					<legend>조직도</legend>
+					<div class="treeWrapping">
+					<!-- 조직도 (#org-template) -->
+					</div>
+				</fieldset>
+			</div>
+			<div class="default_group share-contacts-group" style="display: none" id="shared_allGroup">
+				<!-- 공용주소록 (#share-group-template) -->
+			</div>
+		</div>
+
+	</div>
+
+	<!-- 기타 메뉴 -->
+	<div class="section_etc">
+		<h3 class="mc-blind"><%= i18n.etc %></h3>
+		<!-- 휴지통 -->
+		<div class="section_grp">
+			<ul class="menu_add">
+				<li>
+					<a href="#contacts/trash/contacts" id="trashContacts">
+						<span class="mic wastebasket"></span><%= i18n.trash %><em class="mc-cut"></em>
+					</a>
+					<a href="#" class="mc-btn_clean" title="<%= i18n.empty %>">
+						<span><%= i18n.empty %></span>
+					</a>
+				</li>
+			</ul>
+		</div>
+		<!-- 외부연락처 불러오기 -->
+		<div class="section_grp">
+			<ul class="menu_add">
+				<li>
+					<a href="#contacts/import" id="importContacts"><span class="mic mi_input"></span><%= i18n.importExternal %></a>
+				</li>
+				<li>
+					<!-- 연락처 저장, 내보내기 -->
+					<!--<a href="#contacts/fileexport" id="exportContact" class=""><span class="mic mi_output"></span><%= i18n.exportFile %></a>-->
+					<a href="#contacts/file-export" id="exportContacts"><span class="mic mi_output"></span><%= i18n.exportFile %></a>
+				</li>
+			</ul>
+		</div>
+	</div>
+
+	<!--그룹 설명 (#group-description-template-->
+	<div id="groupDescriptionLayer" class="dh_layer" style="left: 30%; top: 20%; display: none" hidable="true">
+	</div>
+	<!--그룹 설명-->
+
+	<!-- 왼쪽메뉴 그룹삭제시 -->
+	<div id="deleteGroupConfirmLayer" class="dh_layer" style="width: 330px; left: 35%; top: 25%; display: none;">
+		<!-- #group-delete-template -->
+	</div>
+	<!-- // 왼쪽메뉴 그룹삭제시 -->
+
+	<!-- 주소록 내보내기 -->
+	<div id="fileDownloadComfirm" class="dh_layer" style="left: 30%; top: 20%; display: none">
+		<div class="type_b type_b_w1">
+			<div class="layer_content">
+				<h4>
+					<span class="img_q"></span> 파일을 다운로드 하시겠습니까?
+				</h4>
+				<p>‘AyersRock_Contact’ 파일로 다운로드 됩니다.</p>
+				<div class="dh_layer_btn_area">
+					<button type="button" class="b">예</button>
+					<button type="button">아니오</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- // 주소록 내보내기 -->
+	<!-- 주소록 엑셀불러오기 저장 확인창 -->
+	<div class="dh_layer" style="left: 35%; top: 25%; display: none; z-index: 105;">
+		<div class="type_b type_b_w1 type_c_alert">
+			<div class="layer_content">
+				<h4>
+					<span class="img_chk"></span> 불러온 연락처 3개 중 3개를<br /> 저장했습니다.
+				</h4>
+				<div class="dh_layer_btn_area">
+					<button class="b" type="button">확인</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="contact-template">
+<%
+	var totalCount = 0;
+	groupCollection.forEach(function(groupModel) {
+		if (groupModel.get('GROUP_TYPE') == 'T')
+			return;
+		totalCount += groupModel.get('contactsCount');
+	});
+%>
+	<!-- [D] 내연락처 선택시 .section_list에 fd_on 클래스 추가 -->
+	<h3 class="menu_tadd">
+		<span class="ml_t">
+			<a href="#contacts/all/contacts" class="ma">
+				<span class="myadrs"></span><%= i18n.allContact %><em class="mc-cut">&nbsp;<%= totalCount %></em>
+			</a>
+		</span>
+		<a href="#contacts/settings/group" class="btn_group"><span><%= i18n.groupManage %></span></a>
+	</h3>
+	<ul class="menu_add">
+		<!-- [D] 클릭시 li에 choice 클래스 추가 -->
+		<!-- #group-item-template -->
+	</ul>
+</script>
+<script type="text/template" id="group-item-template">
+	<span class="ml_t">
+<%
+	var folderClass = group.sharedCount == 0 ? 'ict folder' : 'ic_ext ic_share';
+%>
+		<button type="button" class="btn_folder">
+			<span class="mc-blind">하위 메일함 열기/접기 토글</span>
+		</button>
+		<span class="<%= folderClass %>"></span>
+		<!-- 일반 모드 -->
+		<span class="folder_name set_onp">
+			<a href="#" class="mdf" id="editDisplay"><%= i18n.more %></a>
+			<a class="ma" href="#contacts/<%- group.GROUP_IDX %>/contacts" value="<%- group.GROUP_IDX %>"><%- group.GROUP_NM %></a>
+			<em class="mc-cut"><%- group.contactsCount == 0 ? '' : group.contactsCount %></em>
+		</span>
+		<!-- 수정 모드 -->
+		<span class="folder_name set_inp" style="display:none;">
+			<input type="text" class="input_text">
+		</span>
+	</span>
+	<ul><!-- group-item-template --></ul>
+</script>
+<script type="text/template" id="org-sidebar-entry-template">
+	<a href="#" class="orgNode"><em>└</em></a>
+<%
+	if (_.contains(entry.attributes.objectClass, 'groupOfNames')) {
+		// entry.id : 'domain.com/groups/123'
+		var tokens = entry.id.split('/');
+		var id = 'org-group-' + tokens[2];
+		var cn = entry.attributes.cn && entry.attributes.cn[0];
+%>
+	<label for="<%- id %>" class="lbtxt"><%- cn %></label>
+	<span class="fld">folder</span>
+<%
+	} else {
+		// entry.id : 'domain.com/users/userid'
+		var tokens = entry.id.split('/');
+		var id = 'org-person-' + tokens[2] + '@' + tokens[0];
+		var cn = entry.attributes.cn && entry.attributes.cn[0];
+%>
+	<label for="<%- id %>" class="lbtxt"><%- cn %></label>
+	<span class="man">member</span>
+<%
+	}
+%>
+	<ul style="display:none"></ul>
+</script>
+<script type="text/template" id="org-sidebar-template">
+	<!-- D: 최상위 카테고리[회사] -->
+	<span class="orgCorp"><label for="<%- entry.attributes.id %>"><%- entry.attributes.cn[0] %></label></span>
+	<!-- D:
+		# .orgNode_p 펼침 연결자 PLUS - .fld 폴더 아이콘 담힘
+		# .orgNode_m 닫힘 연결자 Minus - .fld 폴더 아이콘 열림
+		# .orgNode_pBott 최하단 펼침 연결자
+		# .orgNode_mBott 최하단 닫힘 연결자
+		# .orgNode_join 연결자 - .fld 닫힘폴더
+		# .orgNode_elbow 최하단 연결자 - .fld 닫힘폴더
+	-->
+	<!-- DEPTH 1-->
+	<ul class="orgDepth1"></ul>
+</script>
+<script type="text/template" id="org-header-template">
+	<div class="mc-headFolder" id="orgListHeadDiv" style="display:">
+		<strong class="mc-folderName">
+<%
+var totalRecords = paginator && paginator.totalRecords ? paginator.totalRecords : 0;
+
+if (!(paginator.server_api && paginator.server_api.search)) {
+	var attribute = group && group.attributes;
+	var groupName;
+	if (attribute) {
+		groupName = attribute.cn && attribute.cn[0];
+	}
+%>
+			<%= groupName %><span class="mc-newMail"><%= totalRecords %></span>
+<%
+} else {
+	var search = decodeURIComponent(paginator.server_api.search);
+%>
+			<%= i18n.results %><span class="mc-newMail"><%= i18n.resultsPrefix %><%= totalRecords %><%= i18n.resultsSuffix %></span> / <%- search %>
+<%
+}
+%>
+		</strong>
+	</div>
+	<!-- SIMPLE SEARCH -->
+	<fieldset class="mc-msearch">
+		<legend><%= i18n.search.placeholder %></legend>
+		<input name="" type="text" class="mc-search" placeholder="<%= i18n.search.placeholder %>">
+		<input name="" type="button" class="mc-search_btn">
+	</fieldset>
+	<!-- //SIMPLE SEARCH -->
+</script>
+<script type="text/template" id="org-toolbar-template">
+	<div class="mc-buttonSet">
+		<button type="button" class="btn_selectAll"><%= i18n.organize.selectAll %></button>
+		<button type="button" class="btn_addToContact" onClick="orgManagementLayer.style.left='275px'">
+			<%= i18n.organize.addToContact %><span  class="ic_ext buExp"></span>
+		</button>
+		<!--<button type="button" class="org_export"><%= i18n.organize.exporting %></button>-->
+	</div>
+	<div class="mc-buttonSet" id="servicePopup">
+		<button type="button" class="org_mail_btn"><span class="ic_ext ic_mail"></span><%= i18n.organize.mail %></button>
+		<!--<button type="button" class="org_sms_btn"><span class="ic_ext ic_sms"></span><%= i18n.organize.sms %></button>-->
+		<!--<button type="button" class="org_note_btn"><span class="ic_ext ic_note"></span><%= i18n.organize.note %></button>-->
+	</div>
+	<!--<div class="mc-rightTool">
+		<button type="button" class="ic"><span class="ic_ext ic_print">인쇄</span></button>
+	</div> -->
+</script>
+<script type="text/template" id="selected-entrybar-template">
+	<div class="cphone_abs">
+		<div class="cphone_pad">
+			<div class="cphone_view">
+				<h4 class="cphone_tit">
+					<span class="name"><%= i18n.selectedContact %>&nbsp;<strong class=""><%- entry.length %></strong></span><a class="del" href="#"><%= i18n.selectNoneAll %></a>
+				</h4>
+				<ul class="cphone_list">
+					<!-- #selected-entry-item-template -->
+				</ul>
+			</div>
+			<span class="cphone_btn"><a href="#"><%= i18n.expansion %></a></span>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="selected-entry-item-template">
+	<span class="name"><%= entry.attributes.cn %></span><a href="#" class="del"><span><%= i18n.selectNone %></span></a>
+</script>
+<script type="text/template" id="org-filter-toolbar-template">
+	<h2 class="mc-blind"><%= i18n.contentTitle %></h2>
+	<h3 class="mc-blind"><%= i18n.categoryViewOption %></h3>
+	<ul class="word_box">
+		<!--<li class="clk"><a href="#"><span>그룹</span><span class="bul">&nbsp;</span></a></li>-->
+		<li class="clk"><a href="#"><span><%= i18n.all %></span></a></li>
+		<li><a href="#"><span>ㄱ</span></a></li>
+		<li><a href="#"><span>ㄴ</span></a></li>
+		<li><a href="#"><span>ㄷ</span></a></li>
+		<li><a href="#"><span>ㄹ</span></a></li>
+		<li><a href="#"><span>ㅁ</span></a></li>
+		<li><a href="#"><span>ㅂ</span></a></li>
+		<li><a href="#"><span>ㅅ</span></a></li>
+		<li><a href="#"><span>ㅇ</span></a></li>
+		<li><a href="#"><span>ㅈ</span></a></li>
+		<li><a href="#"><span>ㅊ</span></a></li>
+		<li><a href="#"><span>ㅋ</span></a></li>
+		<li><a href="#"><span>ㅌ</span></a></li>
+		<li><a href="#"><span>ㅍ</span></a></li>
+		<li><a href="#"><span>ㅎ</span></a></li>
+		<li><a href="#"><span>A~Z</span></a></li>
+		<li><a href="#"><span>0~9</span></a></li>
+		<li><a href="#" class="etc"><span><%= i18n.other %></span></a></li>
+		<li><a href="#" class="unknown"><span><%= i18n.noname %></span></a></li>
+	</ul>
+	<ul class="view_box">
+		<li class="typeFilter"><span class="rin"><a href="#" onClick="$('#orgTypeFilterLayer').toggle().attr('hidable',false)"><%= i18n.categoryView %></a></span><span class="bul"></span></li>
+		<li class="customField"><span class="rin"><a href="#" onClick="$('#orgCustomFieldLayer').toggle().attr('hidable',false)"><%= i18n.exposureList %></a></span><span class="bul"></span></li>
+	</ul>
+</script>
+<script type="text/template" id="org-category-filter-template">
+	<div class="layer_bd layer_mouseright">
+		<ul>
+			<li><a href="#" class="category-important" ><%= i18n.organize.importantMember %></a></li>
+			<li><a href="#" class="category-mobile"><%= i18n.organize.mobile %></a></li>
+			<li><a href="#" class="category-mail"><%= i18n.organize.email %></a></li>
+			<li><a href="#" class="category-company"><%= i18n.organize.company %></a></li>
+		</ul>
+	</div>
+</script>
+<script type="text/template" id="org-expose-template">
+	<div class="grp_mv">
+		<ul class="mailBoxList mailBoxList_input">
+			<li>
+				<input type="checkbox" id="org-listLayer_1" name="phone" <% if (user.PHONE_FLAG) {%> checked <% } %>>
+				<label for="org-listLayer_1"><%= i18n.title.phone %></label>
+			</li>
+			<li>
+				<input type="checkbox" id="org-listLayer_2" name="cellphone" <% if (user.CELLPHONE_FLAG) {%> checked <% } %>>
+				<label for="org-listLayer_2"><%= i18n.title.cellphone %></label>
+			</li>
+			<li>
+				<input type="checkbox" id="org-listLayer_3" name="email" <% if (user.EMAIL_FLAG) {%> checked <% } %>>
+				<label for="org-listLayer_3"><%= i18n.title.email %></label>
+			</li>
+			<li>
+				<input type="checkbox" id="org-listLayer_4" name="company" <% if (user.COMPANY_FLAG) {%> checked <% } %>>
+				<label for="org-listLayer_4"><%= i18n.title.company %></label>
+			</li>
+			<li>
+				<input type="checkbox" id="org-listLayer_5" name="department" <% if (user.DEPARTMENT_FLAG) {%> checked <% } %>>
+				<label for="org-listLayer_5"><%= i18n.title.department %></label>
+			</li>
+			<li>
+				<input type="checkbox" id="org-listLayer_6" name="duty" <% if (user.DUTY_FLAG) {%> checked <% } %>>
+				<label for="org-listLayer_6"><%= i18n.title.duty %></label>
+			</li>
+		</ul>
+		<div class="add_layer_btn">
+			<button type="button" class="b"><%= i18n.organize.save %></button>
+			<button type="button" class="c"><%= i18n.organize.cancel %></button>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="org-add-contact-template">
+	<div class="add_layertbl" id="orgAddLayer" style="left: 73px; top: 82px;">
+		<div class="org_ad" style="min-width: 277px;">
+			<!-- [D] 선택시 li에 클래스 selected 추가 -->
+			<ul class="mailBoxList b_scroll" style="max-height: 230px;"><!-- [D] 해상도에 따라 개수가 다르게 노출이 되는데 높이값은 노출개수 * 23 으로 계산하면 됨 -->
+				<!-- #org-add-contact-item-template -->
+			</ul>
+			<div class="add_area">
+				<!-- #org-add-contact-new-group-template -->
+			</div>
+			<div class="add_layer_btn">
+				<button class="add" type="button"><%= i18n.organize.addContact %></button><!-- [D] 조직도(tree구조) 일때 display:none -->
+			</div>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="org-add-contact-item-template">
+	<input id="addLayer_<%- group.GROUP_IDX %>" type="checkbox" value="<%- group.GROUP_IDX %>">
+	<label for=addLayer_<%- group.GROUP_IDX %>" class="group-name"><%- group.GROUP_NM %></label>
+</script>
+<script type="text/template" id="org-add-contact-add-area-template">
+	<span class="add_text">
+		<em>
+			<label class="mc-blind" for="newGroupAdd"><%= i18n.organize.newGroupName %></label>
+			<input id="newGroupAdd" onfocus="" onblur="" type="text" value="" placeholder="<%= i18n.organize.newGroup %>">
+		</em>
+	</span>
+	<span class="add_btn"><button class="addrGroup_add" type="button"><%= i18n.organize.add %></button></span>
+</script>
+<script type="text/template" id="org-group-add-contact-template">
+<%
+	var attributes = entry.attributes;
+	var grpNm = attributes.cn && attributes.cn[0] ? attributes.cn[0] : '';
+%>
+	<div class="add_layertbl" id="orgGrpAddLayer" style="left: 73px; top: 82px;">
+  		<div class="grp_mv" style="min-width: 277px;">
+    		<!-- [D] 선택시 li에 클래스 selected 추가 -->
+    		<div class="grp_p">
+      			<p>* "<%- grpNm %>" <%= i18n.organize.addContactGroup %></p>
+      			<p>* <%= i18n.organize.changesNotReflected %></p>
+    		</div>
+    		<div class="add_layer_btn">
+      			<button class="add" type="button"><%= i18n.organize.add %></button><!-- [D] 조직도(tree구조) 일때 display:none -->
+      			<button class="cancel" type="button"><%= i18n.organize.cancel %></button>
+    		</div>
+	  	</div>
+	</div>
+</script>
+<script type="text/template" id="org-list-template">
+	<div class="list_title">
+		<h3 class="mc-blind">조직도 목록</h3>
+		<table id="org-listHead" style="display: table;">
+			<colgroup>
+				<col class="col_check" />
+				<col class="col_star" />
+				<col class="col_auto" />
+				<% if (user.EMAIL_FLAG) { %>
+				<col class="col_mail" data-expose="none"/>
+				<% } %>
+				<% if (user.PHONE_FLAG) { %>
+				<col class="col_phone" data-expose="none"/>
+				<% } %>
+				<% if (user.CELLPHONE_FLAG) { %>
+				<col class="col_phone" data-expose="none"/>
+				<% } %>
+				<% if (user.COMPANY_FLAG) { %>
+				<col class="col_company" data-expose="none"/>
+				<% } %>
+				<% if (user.DEPARTMENT_FLAG) { %>
+				<col class="col_department" />
+				<% } %>
+				<% if (user.DUTY_FLAG) { %>
+				<col class="col_duty" />
+				<% } %>
+				<col class="col_modify" />
+			</colgroup>
+			<thead>
+			<tr>
+				<!-- 정렬 선택시 select 적용 -->
+				<!-- 오름차순일때 select_up 적용 -->
+				<th class="check" scope="col">
+					<input class="inp_ch" id="checkListAll" type="checkbox" />
+					<label for="checkListAll"><%= i18n.contactListSelectAll %></label>
+				</th>
+			<%
+				var sortField = paginator.sortField;
+				var sortImportant,sortName,sortCompany,sortDept;
+
+				switch (sortField) {
+				case 'on' :
+					sortImportant = paginator.sortOrder == 'ASC' ? 'select_up' : 'select';
+				break;
+				case 'cn' :
+					sortName = paginator.sortOrder == 'ASC' ? 'select_up' : 'select';
+				break;
+				case 'company' :
+					sortCompany = paginator.sortOrder == 'ASC' ? 'select_up' : 'select';
+				break;
+				case 'department' :
+					sortDept = paginator.sortOrder == 'ASC' ? 'select_up' : 'select';
+				break;
+				}
+			%>
+				<th class="star <%- sortImportant %>" scope="col">
+					<a title="<%= i18n.staredContactSort%>" id="sortByImportant" class="on" href="#"><%= i18n.staredContactSort %></a>
+				</th>
+				<th  class="<%- sortName %>"scope="col" id="selectName">
+					<div class="inpd_div">
+						<span class="ib"><a href="#" id="sortByName" class="cn"><%= i18n.nameSortPrefix %></a></span><span class="arrow"><%= i18n.nameSortSuffix %></span>
+					</div>
+				</th>
+				<% if (user.EMAIL_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.email %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.PHONE_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.phone %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.CELLPHONE_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.cellphone %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.COMPANY_FLAG) { %>
+				<th class="<%- sortCompany %>" scope="col">
+					<div class="inpd_div">
+						<span class="ib"><a href="#" id="sortByCompany" class="company"><%= i18n.companySortPrefix %></a></span><span class="arrow"><%= i18n.companySortSuffix %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.DEPARTMENT_FLAG) { %>
+				<th class="<%- sortDept %>"  scope="col">
+					<div class="inpd_div">
+						<span class="ib"><a href="#" id="sortByDept" class="dept"><%= i18n.departmentSortPrefix %></a></span><span class="arrow"><%= i18n.departmentSortSuffix %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.DUTY_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.duty %></span>
+					</div>
+				</th>
+				<% } %>
+				<th scope="col">
+				</th>
+			</tr>
+			</thead>
+		</table>
+	</div>
+	<div class="org-list_area list_area" id="defaultArea" style="display:">
+		<div class="scroll_zoom">
+			<table>
+				<caption class="mc-blind"><%= i18n.title.caption %></caption>
+				<colgroup>
+					<col class="col_check" />
+					<col class="col_star" />
+					<col class="col_auto" data-expose="none"/>
+					<% if (user.EMAIL_FLAG) { %>
+					<col class="col_mail" data-expose="none"/>
+					<% } %>
+					<% if (user.PHONE_FLAG) { %>
+					<col class="col_phone" data-expose="none"/>
+					<% } %>
+					<% if (user.CELLPHONE_FLAG) { %>
+					<col class="col_phone" data-expose="none"/>
+					<% } %>
+					<% if (user.COMPANY_FLAG) { %>
+					<col class="col_company" data-expose="none"/>
+					<% } %>
+					<% if (user.DEPARTMENT_FLAG) { %>
+					<col class="col_department" />
+					<% } %>
+					<% if (user.DUTY_FLAG) { %>
+					<col class="col_duty" />
+					<% } %>
+					<col class="col_modify" style="width:36px;" />
+				</colgroup>
+				<thead class="mc-blind">
+				<tr>
+					<th scope="col"><%= i18n.title.select %></th>
+					<th scope="col"><%= i18n.title.stared %></th>
+					<th scope="col"><%= i18n.title.name %></th>
+					<% if (user.EMAIL_FLAG) { %>
+					<th scope="col"><%= i18n.title.email %></th>
+					<% } %>
+					<% if (user.PHONE_FLAG) { %>
+					<th scope="col"><%= i18n.title.phone %></th>
+					<% } %>
+					<% if (user.CELLPHONE_FLAG) { %>
+					<th scope="col"><%= i18n.title.cellphone %></th>
+					<% } %>
+					<% if (user.COMPANY_FLAG) { %>
+					<th scope="col"><%= i18n.title.company %></th>
+					<% } %>
+					<% if (user.DEPARTMENT_FLAG) { %>
+					<th scope="col"><%= i18n.title.department %></th>
+					<% } %>
+					<% if (user.DUTY_FLAG) { %>
+					<th scope="col"><%= i18n.title.duty %></th>
+					<% } %>
+					<th scope="col"></th>
+				</tr>
+				</thead>
+				<tbody>
+				<!-- #org-item-template -->
+				</tbody>
+			</table>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="org-item-template">
+<%
+	var attribute = member.attributes;
+	var isUser = _.contains(attribute.objectClass, 'user');
+	var objClass = isUser ? 'user' : 'group';
+	var uid = isUser ? attribute.uid : member.id;
+	var colNum = 1;
+	for(strName in user) {
+		if (strName.indexOf('FLAG') && user[strName] === 1) {
+			if (strName != 'NICKNAME_FLAG' && strName != 'GROUP_FLAG' && strName != 'MEMO_FLAG' && strName != 'HOMEPAGE_FLAG' && strName != 'RECENT_FLAG')
+				colNum++;
+		}
+		//strValue = user[strName];
+	}
+	var colNum = isUser ? 0 : colNum;
+%>
+	<td class="check">
+		<input class="inp_ch <%- objClass %>" type="checkbox" id="list_<%- uid %>" value="<%- uid %>" />
+		<label for="list_<%- attribute.uid %>"><%- attribute.cn %> <span>주소를 선택</span></label>
+	</td>
+	<td class="star">
+<% if (_.contains(attribute.objectClass, 'user')) { %>
+		<a title="<%= i18n.item.stared %>" class="important_<%- uid %>" href="#"><%= i18n.item.stared %></a>
+<% } else { %>
+		<span class="ict folder">폴더</span>
+<% } %>
+	</td>
+	<td class="name" colspan="<%- colNum %>">
+		<div title="<%- attribute.cn %>" class="inpd_div">
+<% if (_.contains(attribute.objectClass, 'user')) { %>
+			<span class="inpd"><span class="inpd_a"><%- attribute.cn %></span></span>
+<% } else { %>
+			<span class="inpd"><span class="inpd_a"><a href="#"><%- attribute.cn %></a></span></span>
+<% } %>
+		</div>
+	</td>
+<% if (user.EMAIL_FLAG && isUser) { %>
+	<td>
+		<div title="<%- attribute.mail %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><a href="#compose?to=<%- attribute.mail %>"><%- attribute.mail %></a></span></span>
+		</div>
+	</td>
+<% } %>
+<% if (user.PHONE_FLAG && isUser) { %>
+	<td>
+		<div title="<%- attribute.mobile %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- attribute.homePhone %></span></span>
+		</div>
+	</td>
+<% } %>
+<% if (user.CELLPHONE_FLAG && isUser) { %>
+	<td>
+		<div title="<%- attribute.mobile %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- attribute.mobile %></span></span>
+		</div>
+	</td>
+<% } %>
+<% if (user.COMPANY_FLAG && isUser) { %>
+	<td>
+		<div title="" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- attribute.company %></span></span>
+		</div>
+	</td>
+<% } %>
+<% if (user.DEPARTMENT_FLAG && isUser) { %>
+	<td>
+		<div title="<%- attribute.department %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- attribute.memberOf.attributes.cn %></span></span>
+		</div>
+	</td>
+<% } %>
+<% if (user.DUTY_FLAG && isUser) { %>
+	<td>
+		<div title="" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- attribute.title %></span></span>
+		</div>
+	</td>
+<% } %>
+	<td class="modify">
+		<div class="inpd_div bdrnone">
+		</div>
+	</td>
+</script>
+<script type="text/template" id="org-pagination-template">
+<% if (info.firstPage != info.currentPage) { %>
+	<a href="#" class="pre_end" title="<%= i18n.firstPage %>">
+<% } else { %>
+	<a href="#" class="pre_end_n" title="<%= i18n.firstPage %>">
+<% } %>
+		<span class="mc-blind"><%= i18n.firstPage %></span>
+	</a>
+
+<% if (info.currentPage > info.firstPage) { %>
+	<a href="#" class="pre" title="<%= i18n.previousPage %>">
+<% } else { %>
+	<a href="#" class="pre_n"  title="<%= i18n.previousPage %>">
+<% } %>
+		<span class="mc-blind"><%= i18n.previousPage %></span>
+	</a>
+
+	<span class="mc-paging_num">
+<% _.each(info.pageSet, function(page) { %>
+	<% if (info.currentPage == page) { %>
+		<strong><%= page %></strong>
+	<% } else { %>
+		<a href="#" class="org-entries-page"><%= page %></a>
+	<% } %>
+<% }); %>
+	</span>
+
+<% if (info.currentPage < info.totalPages) { %>
+	<a href="#" class="next" title="<%= i18n.nextPage %>">
+<% } else { %>
+	<a href="#" class="next_n" title="<%= i18n.nextPage %>">
+<% } %>
+		<span class="mc-blind"><%= i18n.nextPage %></span>
+	</a>
+
+<% if (info.lastPage != info.currentPage) { %>
+	<a href="#" class="next_end" title="<%= i18n.lastPage %>">
+<% } else { %>
+	<a href="#" class="next_end_n" title="<%= i18n.lastPage %>">
+<% } %>
+		<span class="mc-blind"><%= i18n.lastPage %></span>
+	</a>
+</script>
+<script type="text/template" id="group-contextmenu-template">
+	<ul>
+		<!--<li class="contact-compose-sms"><a href="#"><%= i18n.composeSms %></a></li>-->
+		<li class="contact-compose-mail"><a href="#"><%= i18n.composeMail %></a></li>
+		<li class="division">&nbsp;</li>
+		<li class="contact-share-setting"><a href="#"><%= i18n.shareGroupSettings %></a></li>
+		<li class="division">&nbsp;</li>
+		<li class="contact-add-group"><a href="#"><%= i18n.add.group %></a></li>
+		<li class="contact-rename-group"><a href="#"><%= i18n.rename %></a></li>
+		<li class="contact-add-description"><a href="#" onClick="$('#groupDescriptionLayer').show();$('#folderControl').hide();"><%= i18n.addDiscription %></a></li>
+		<li class="contact-delete-group"><a href="#" onClick="$('#deleteGroupConfirmLayer').show();$('#folderControl').hide();"><%= i18n.Delete %></a></li>
+	</ul>
+</script>
+<script type="text/template" id="group-description-template">
+	<div class="type_a">
+		<h4><%= i18n.groupDiscription %></h4>
+		<div class="p2 groupcomment">
+			<textarea title="<%= i18n.inputGroupDiscription %>" class="" cols="40" rows="3"><%= group.GROUP_STMT %></textarea>
+		</div>
+		<div class="dh_layer_btn_area">
+			<button type="button" class="b" onClick="groupDescriptionLayer.style.display='none'"><%= i18n.confirm %></button>
+			<button type="button" class="" onClick="groupDescriptionLayer.style.display='none'"><%= i18n.cancel %></button>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="group-delete-template">
+	<div class="type_c">
+		<div class="layer_content">
+			<h4><%= i18n.deleteGroup %></h4>
+			<p>
+				<span class="ly_chk_line">
+					<input type="radio" checked="checked" name="delete_contact" value="0" id="grp_chk">
+					<label for="grp_chk"><%= i18n.deleteGroupAndContacts %></label>
+				</span>
+				<span>
+					<input type="radio" class="_onlyGroup" name="delete_contact" value="1" id="grp_chk2">
+					<label for="grp_chk2"><%= i18n.deleteOnlyGroup %></label>
+				</span>
+			</p>
+			<ul class="type_add_list">
+				<li><span class="bul"></span><%= i18n.deleteSubGroup %></li>
+				<li><span class="bul"></span><%= i18n.keepContacts %></li>
+				<li><span class="bul"></span><%= i18n.inMyContact %></li>
+			</ul>
+			<div class="dh_layer_btn_area">
+				<button type="button" class="b" onClick="$('#deleteGroupConfirmLayer').hide()"><%= i18n.confirm %></button>
+				<button type="button" onClick="$('#deleteGroupConfirmLayer').hide()"><%= i18n.cancel %></button>
+			</div>
+			<a href="#" class="lc_close" onClick="$('#deleteGroupConfirmLayer').hide(); return false;"><%= i18n.close %></a>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="content-layout-template">
+	<!-- CONTENT HEAD -->
+	<div id="contentGroupHeader" class="mc-content_header">
+		<!-- #content-header-template -->
+	</div>
+	<div id="orgHeader" class="mc-content_header" style="display:none;">
+		<!-- #org-header-template -->
+	</div>
+	<div id="sharedGroupHeader" class="mc-content_header" style="display:none;">
+		<!-- #shared-content-header-template -->
+	</div>
+	<!-- // CONTENT HEAD -->
+	<!-- CONTENT HEAD -->
+
+	<div class="scroll_frame">
+		<div class="scroll_zoom">
+			<!-- BTN AREA -->
+			<!-- #contact-toolbar-template -->
+			<div class="mc-actionArea" id="addressBtn_fol" style="display:">
+			</div>
+			<!-- #contact-toolbar-template -->
+
+			<!-- #org-toolbar-template -->
+			<div class="mc-actionArea" id="addressBtn_org" style="display:none">
+			</div>
+			<!-- #org-toolbar-template -->
+
+			<!-- #trash-toolbar-template -->
+			<div class="mc-actionArea" id="addressBtn_waste" style="display:none">
+			</div>
+			<!-- #trash-toolbar-template -->
+
+			<!-- #share-contact-toolbar-template -->
+			<div class="mc-actionArea" id="addressBtn_share" style="display:none">
+			</div>
+			<!-- #share-contact-toolbar-template -->
+
+			<!-- // BTN AREA -->
+
+			<div class="set_tab_area">
+			</div>
+
+			<!-- #contact-import-list-template -->
+			<div class="address_pd" style="display:none;">
+			</div>
+			<!-- #contact-import-list-template -->
+
+			<!-- 선택한 연락처 #selected-contactbar-template-->
+			<div class="cphone_area selected-contactbar"><!-- [D] 선택한 연락처 보이는 상태일 때 over된 리스트 추가 보기 ==> .cphone_btn 클릭시 cphone_area + cphone_open 클래스 추가 -->
+			</div>
+			<!-- // 선택한 연락처 -->
+			<div class="content_original">
+				<div class="view_sort_word contact-filter-toolbar">
+					<!-- #contact-filter-toolbar-template -->
+				</div>
+				<div class="view_sort_word org-filter-toolbar" style="display:none;">
+					<!-- #org-filter-toolbar-template -->
+				</div>
+				<div class="view_sort_word shared-filter-toolbar" style="display:none;">
+					<!-- #shared-contact-filter-toolbar-template -->
+				</div>
+
+				<div class="list_view contact-list">
+					<!-- 일반 주소록 #contact-list-template -->
+				</div>
+				<div class="list_view contact-trash-list" style="display: none;">
+					<!-- 휴지통 주소록 #contact-trash-list-template -->
+				</div>
+				<div class="list_view org-list" style="display: none;">
+					<!-- 조직도 사용자 리스트 #org-list-template -->
+				</div>
+				<div class="list_view shared-contact-list" style="display: none;">
+					<!-- 공유 주소록 #shared-contact-list-template -->
+				</div>
+				<div class="env_contentArea" style="display: none;">
+					<!-- 주소록 환경설정 #contact-env-list-template -->
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<!-- PAGINATE -->
+	<div class="mc-paginate">
+		<!-- #contact-pagination-template -->
+	</div>
+	<!-- //PAGINATE -->
+
+	<!-- 컨텐츠 레이어 -->
+	<!-- 이동 -->
+	<div id="groupManagementLayer" class="add_layertbl" style="display: none;" hidable="true">
+		<!-- #move-to-group-template -->
+	</div>
+	<!-- // 이동 -->
+	<!-- 내 주소록에 추가 -->
+	<div id="orgManagementLayer" class="org_add_layertbl" style="display: none;">
+		<!-- #org-add_contact-template -->
+	</div>
+	<!-- // 내 주소록에 추가 -->
+	<!-- 내보내기 -->
+	<div id="exportButtonLayer" class="layer" style="top: 132px; left: 379px; display: none;" hidable="true">
+		<!-- #export-layer-template-->
+	</div>
+	<!-- //내보내기 -->
+	<!-- 이 그룹 공유하기 -->
+	<div id="share_this" class="add_layertbl pmaddr" style="display:none" hidable="true">
+		<!-- #share-settings-layout-template -->
+	</div>
+	<!-- //이 그룹 공유하기 -->
+	<!-- 종류별 보기 -->
+	<div id="contactTypeFilterLayer" class="layer" style="display: none; right: 87px; top: 113px" hidable="true">
+		<!-- #contact-category-filter-template -->
+	</div>
+	<!-- // 종류별 보기 -->
+	<!-- 목록노출 -->
+	<div id="contactCustomFieldLayer" class="add_layertbl" style="display: none; right: 18px; top: 113px">
+		<!-- #contact-expose-template -->
+	</div>
+	<!-- // 목록노출 -->
+	<!-- 조직도 종류별 보기 -->
+	<div id="orgTypeFilterLayer" class="layer" style="display: none; right: 87px; top: 113px" hidable="true">
+		<!-- #org-category-filter-template -->
+	</div>
+	<!-- // 조직도 종류별 보기 -->
+	<!-- 조직도 목록노출 -->
+	<div id="orgCustomFieldLayer" class="add_layertbl" style="display: none; right: 18px; top: 113px">
+		<!-- #org-expose-template -->
+	</div>
+	<!-- // 조직도 목록노출 -->
+	<!-- 공유주소록 종류별 보기 -->
+	<div id="sharedGroupTypeFilterLayer" class="layer" style="display: none; right: 87px; top: 113px" hidable="true">
+		<!-- #shared-contact-category-filter-template -->
+	</div>
+
+
+	<!-- 주소록에서 개인선택시 우클릭 -->
+	<div id="oneRigthClickLayer" class="layer" style="left: 400px; top: 225px; display: none;">
+		<div class="layer_bd layer_mouseright">
+			<ul>
+				<li class="select">가비아 퍼스트몰</li>
+				<li class="division">&nbsp;</li>
+				<li class=""><a href="#" class="_first_tab"><%= i18n.show %></a></li>
+				<li class=""><a href="#"><%= i18n.modify %></a></li>
+				<li class=""><a href="#" class=""><%= i18n.Delete %></a></li>
+				<li class="sub">
+					<a href="#" class="" onMouseOver="groupManagementLayer.style.display='block'" onMouseOut="groupManagementLayer.style.display='none'">
+						<%= i18n.moveContact %> &middot; <%= i18n.copy %><span class="ic_ext spr_arrow"></span>
+					</a>
+				</li>
+				<li class="division">&nbsp;</li>
+				<li class=""><a href="#"><%= i18n.exportProfile %></a></li>
+			</ul>
+		</div>
+	</div>
+	<!-- // 주소록에서 개인선택시 우클릭 -->
+	<!-- 주소록에서 다중선택시 우클릭 -->
+	<div id="mutiRigthClickLayer" class="layer" style="left: 300px; top: 400px; display: none;">
+		<div class="layer_bd layer_mouseright">
+			<ul>
+				<li class="select">3개 연락처</li>
+				<li class="division">&nbsp;</li>
+				<li class="sub">
+					<a href="#" onMouseOver="groupManagementLayer.style.display='block'" onMouseOut="groupManagementLayer.style.display='none'">
+						<%= i18n.moveContact %> &middot; <%= i18n.copy %><span class="ic_ext spr_arrow"></span>
+					</a>
+				</li>
+				<li class=""><a href="#"><%= i18n.merge %></a></li>
+				<li class=""><a href="#" onClick="newGroupMakeLayer.style.display='block'"><%= i18n.createGroup %></a></li>
+				<li class=""><a href="#"><%= i18n.Delete %></a></li>
+			</ul>
+		</div>
+	</div>
+	<!-- // 주소록에서 다중선택시 우클릭 -->
+	<!-- 새 그룹 만들기 -->
+	<div id="newGroupMakeLayer" class="layer" style="left: 763px; top: 257px; display: none;">
+		<div class="wrap_pop w392">
+			<div class="header">
+				<h4><%= i18n.createGroup %></h4>
+			</div>
+			<div class="content groupnew">
+				<table cellpadding="0" cellspacing="0">
+					<caption class="mc-blind">새 그룹 생성 테이블 입니다</caption>
+					<tbody>
+					<tr class="group">
+						<th scope="row">
+							<label for="newGroupName"><%= i18n.groupName %></label>
+						</th>
+						<td>
+							<input type="text" name="newGroupName" id="newGroupName" class="input_txt">
+						</td>
+					</tr>
+					<tr class="summary">
+						<th scope="row">
+							<label for="newGroupDisp"><%= i18n.explanation %></label>
+						</th>
+						<td>
+							<textarea name="newGroupDisp" id="newGroupDisp" cols="40" rows="3"></textarea>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="footer">
+				<button type="button" class="b"><%= i18n.confirm %></button>
+				<button type="button"><%= i18n.cancel %></button>
+			</div>
+			<div class="pop_close">
+				<a href="#" class="ic_ext bt_close" onClick="newGroupMakeLayer.style.display='none'"><%= i18n.close %></a>
+			</div>
+		</div>
+	</div>
+	<!-- //새 그룹 만들기 -->
+	<!-- 공유대상자 상세보기 레이어 -->
+	<div class="add_layertbl grp_sh sharee-list-layer" style="left:360px;top:80px; display:none;">
+	</div>
+	<!-- // 공유대상자 상세보기 레이어 -->
+	<!-- // 컨텐츠 레이어 -->
+</script>
+<script type="text/template" id="content-header-template">
+	<div class="mc-headFolder" id="listHeadDiv" style="display:">
+<%
+	if (group.sharedCount > 0) {
+%>
+		<span class="ic_ext sharing_long"></span>
+		<a href="#" class="sharee-list">
+			<span class="sharing_info">▶ <%= i18n.shareGroup.shareesPrefix %></span><span class="sharing_info_num"><%- group.sharedCount %></span>
+		</a>
+<%
+	}
+%>
+<%
+	var totalCount = 0;
+	 if (group.GROUP_TYPE == 'A' || group.GROUP_TYPE == 'R' || group.GROUP_TYPE == 'I') {
+		totalCount = contacts.totalRecords;
+	} else {
+		totalCount = group.contactsCount;
+	}
+%>
+	<strong class="mc-folderName">
+<%
+	if (!(contacts.server_api && contacts.server_api.search)) {
+%>
+		<%- group.GROUP_NM %><span class="mc-newMail"><%- totalCount %></span>
+<%		
+	} else {
+		var search = decodeURIComponent(contacts.server_api.search);
+%>
+		<%= i18n.results %><span class="mc-newMail"><%- totalCount %><%= i18n.resultsSuffix %></span> / <%- search %>
+<%	
+	}
+%>
+	</strong>
+<%
+	if (group.GROUP_TYPE == 'R') {
+%>
+		<span class="tit_tip">* <%= i18n.recentContactsTip %></span>
+<%
+	}
+%>
+	</div>
+	<!-- SIMPLE SEARCH -->
+	<fieldset class="mc-msearch">
+		<legend><%= i18n.search.placeholder %></legend>
+		<input name="" type="text" class="mc-search" placeholder="<%= i18n.search.placeholder %>">
+		<input name="" type="button" class="mc-search_btn">
+	</fieldset>
+	<!-- //SIMPLE SEARCH -->
+</script>
+<script type="text/template" id="sharee-list-template">
+	<div class="grp_sh_head">
+		<h5><%= i18n.shareGroup.sharer %></h5>
+		<p><%- user.USERS_NAME %> &lt;<%- user.USERS_IDX %>&gt;</p>
+	</div>
+	<ul class="grp_sh_body b_scroll" style="max-height:230px;">
+<%
+	for (var i = 0; i < sharees.length; i++) {
+		var sharee = sharees[i];
+		if (sharee.SHARE_TYPE == 'group') {
+%>
+		<li>$<%- sharee.SHARE_NAME %></li>
+<%
+		} else {
+%>
+		<li><%- sharee.SHARE_NAME %> &lt;<%- sharee.SHARE_EMAIL %>&gt;</li>
+<%
+		}
+	}
+%>
+	</ul>
+</script>
+<script type="text/template" id="contact-toolbar-template">
+	<div class="mc-buttonSet">
+		<button type="button" class="contact-toolbar-selectAll"><%= i18n.selectAll %></button>
+		<button type="button" class="b contact-toolbar-delete"><span class="ic_ext buDel"></span><%= i18n.Delete %></button>
+		<button type="button" class="contact-toolbar-move"><%= i18n.move %><span  class="ic_ext buExp"></span></button>
+<%
+	if (group.GROUP_TYPE != 'T') {
+%>
+		<button type="button" class="contact-toolbar-export"><%= i18n.Export %><span class="ic_ext buExp"></span></button>
+<%
+	}
+%>
+	</div>
+<%
+	if (group.GROUP_TYPE != 'T') {
+%>
+	<div class="mc-buttonSet" id="servicePopup">
+		<button type="button" class="contact-toolbar-compose-mail"><span class="ic_ext ic_mail"></span><%= i18n.mail %></button>
+		<!--<button type="button" class="contact-toolbar-compose-sms"><span class="ic_ext ic_sms"></span><%= i18n.sms %></button>-->
+		<!--<button type="button" class="contact-toolbar-compose-note"><span class="ic_ext ic_note"></span><%= i18n.note %></button>-->
+		<%
+			if (!(group.GROUP_TYPE == 'T' || group.GROUP_TYPE == 'I' || group.GROUP_TYPE == 'R' || group.GROUP_TYPE == 'A')) {
+		%>
+			<button type="button" id="group_share"><span class="ic_ext ic_share"></span><%= i18n.shareSettings.settings %></button>
+		<%
+			}
+		%>
+	</div>
+<%
+	}
+%>
+	<!--<div class="mc-rightTool">
+		<button type="button" class="ic"><span class="ic_ext ic_print"><%= i18n.print %></span></button>
+	</div>-->
+</script>
+<script type="text/template" id="trash-toolbar-template">
+	<div class="mc-buttonSet">
+		<button type="button"><%= i18n.selectAll %></button>
+		<button type="button" class="b"><span class="ic_ext buDel"></span><%= i18n.permanentlyDelete %></button>
+		<button type="button" onClick="$('#groupManagementLayer').toggle();groupManagementLayer.style.left='354px'"><%= i18n.move %><span  class="ic_ext buExp"></span></button>
+	</div>
+	<div class="restore_go">
+		<span class="txt"><%= i18n.returningContacts %></span><span class="link_txt"><a href="#"><%= i18n.restoreContacts %></a><em class="arrow"></em></span>
+	</div>
+</script>
+<script type="text/template" id="selected-contactbar-template">
+	<div class="cphone_abs">
+		<div class="cphone_pad">
+			<div class="cphone_view">
+				<h4 class="cphone_tit">
+					<span class="name"><%= i18n.selectedContact %>&nbsp;<strong class=""><%- contacts.length %></strong></span><a class="del" href="#"><%= i18n.selectNoneAll %></a>
+				</h4>
+				<ul class="cphone_list">
+					<!-- #selected-contact-item-template -->
+				</ul>
+			</div>
+			<span class="cphone_btn"><a href="#"><%= i18n.expansion %></a></span>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="selected-contact-item-template">
+<%
+	var name = '';
+	if (data.ADDRESS_NAME)
+		name = data.ADDRESS_NAME;
+	else if (data.attributes)
+		name = data.attributes.cn;
+%>
+	<span class="name"><%- name %></span><a href="#" class="del"><span><%= i18n.selectNone %></span></a>
+</script>
+<script type="text/template" id="contact-filter-toolbar-template">
+	<h2 class="mc-blind"><%= i18n.contentTitle %></h2>
+	<h3 class="mc-blind"><%= i18n.categoryViewOption %></h3>
+	<ul class="word_box">
+		<!--<li class="clk"><a href="#"><span><%= i18n.group %></span><span class="bul">&nbsp;</span></a></li>-->
+		<li class="clk"><a href="#"><span><%= i18n.all %></span></a></li>
+		<li><a href="#"><span>ㄱ</span></a></li>
+		<li><a href="#"><span>ㄴ</span></a></li>
+		<li><a href="#"><span>ㄷ</span></a></li>
+		<li><a href="#"><span>ㄹ</span></a></li>
+		<li><a href="#"><span>ㅁ</span></a></li>
+		<li><a href="#"><span>ㅂ</span></a></li>
+		<li><a href="#"><span>ㅅ</span></a></li>
+		<li><a href="#"><span>ㅇ</span></a></li>
+		<li><a href="#"><span>ㅈ</span></a></li>
+		<li><a href="#"><span>ㅊ</span></a></li>
+		<li><a href="#"><span>ㅋ</span></a></li>
+		<li><a href="#"><span>ㅌ</span></a></li>
+		<li><a href="#"><span>ㅍ</span></a></li>
+		<li><a href="#"><span>ㅎ</span></a></li>
+		<li><a href="#"><span><%= i18n.aTOz %></span></a></li>
+		<li><a href="#"><span><%= i18n.zeroTOnine %></span></a></li>
+		<li><a href="#" class="etc"><span><%= i18n.other %></span></a></li>
+		<li><a href="#" class="unknown"><span><%= i18n.noname %></span></a></li>
+	</ul>
+	<ul class="view_box">
+		<li><span class="rin"><a href="#" onClick="$('#contactTypeFilterLayer').toggle().attr('hidable',false)"><%= i18n.categoryView %></a></span><span class="bul"></span></li>
+		<li><span class="rin"><a href="#" onClick="$('#contactCustomFieldLayer').toggle().attr('hidable',false)"><%= i18n.exposureList %></a></span><span class="bul"></span></li>
+	</ul>
+</script>
+<script type="text/template" id="contact-list-template">
+	<div class="list_title">
+		<h3 class="mc-blind"><%= i18n.contactList %></h3>
+		<table id="listHead" style="display: table;">
+			<colgroup>
+				<col class="col_check" />
+				<col class="col_star" />
+				<col class="col_name" data-expose="none"/>
+				<% if (user.NICKNAME_FLAG) { %>
+				<col class="col_nickname"/>
+				<% } %>
+				<% if (user.PHONE_FLAG) { %>
+				<col class="col_phone" data-expose="none"/>
+				<% } %>
+				<% if (user.EMAIL_FLAG) { %>
+				<col class="col_mail" data-expose="none"/>
+				<% } %>
+				<% if (user.COMPANY_FLAG) { %>
+				<col class="col_company" data-expose="none"/>
+				<% } %>
+				<% if (user.DEPARTMENT_FLAG) { %>
+				<col class="col_department"/>
+				<% } %>
+				<% if (user.DUTY_FLAG) { %>
+				<col class="col_duty"/>
+				<% } %>
+				<% if (user.HOMEPAGE_FLAG) { %>
+				<col class="col_homepage"/>
+				<% } %>
+				<% if (user.GROUP_FLAG) { %>
+				<col class="col_group" data-expose="none"/>
+				<% } %>
+				<!--<% if (user.RECENT_FLAG) { %>-->
+				<!--<col class="col_recent"/>-->
+				<!--<% } %>-->
+				<% if (user.MEMO_FLAG) { %>
+				<col class="col_memo">
+				<% } %>
+				<col class="col_modify" />
+			</colgroup>
+			<thead>
+			<tr>
+				<!-- 정렬 선택시 select 적용 -->
+				<!-- 오름차순일때 select_up 적용 -->
+				<th class="check" scope="col">
+					<input class="inp_ch" id="checkListAll" type="checkbox" />
+					<label for="checkListAll"><%= i18n.contactListSelectAll %></label>
+				</th>
+			<%
+				var url = function(sortField) {
+					var params = {
+						sortField : sortField,
+						sortOrder : paginator.sortOrder == 'ASC' ? 'DESC' : 'ASC',
+					};
+					var hash = paginator.getURL(params);
+					var path = hash.substring(0, hash.indexOf('/'));
+					if (path == 'groups')
+						hash = hash.replace(path, 'contacts');
+					return '#' + hash;
+				};
+
+				var sortField = paginator.sortField;
+				var sortImportant,sortName,sortOffice,sortDept;
+
+				switch (sortField) {
+				case 'ADDRESS_IMPORTANT' :
+					sortImportant = paginator.sortOrder == 'ASC' ? 'select_up' : 'select';
+				break;
+				case 'ADDRESS_NAME' :
+					sortName = paginator.sortOrder == 'ASC' ? 'select_up' : 'select';
+				break;
+				case 'ADDRESS_OFFICE' :
+					sortOffice = paginator.sortOrder == 'ASC' ? 'select_up' : 'select';
+				break;
+				case 'ADDRESS_DEPT' :
+					sortDept = paginator.sortOrder == 'ASC' ? 'select_up' : 'select';
+				break;
+				}
+			%>
+				<th class="star <%- sortImportant %>" scope="col">
+					<a title="<%= i18n.staredContactSort%>" id="sortByImportant" class="on" href="<%- url('ADDRESS_IMPORTANT') %>"><%= i18n.staredContactSort %></a>
+				</th>
+				<th  class="<%- sortName %>"scope="col" id="selectName">
+					<div class="inpd_div">
+						<span class="ib"><a href="<%- url('ADDRESS_NAME') %>" id="sortByName"><%= i18n.nameSortPrefix %></a></span><span class="arrow"><%= i18n.nameSortSuffix %></span>
+					</div>
+				</th>
+				<% if (user.NICKNAME_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.nickname %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.PHONE_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.phone %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.EMAIL_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.email %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.COMPANY_FLAG) { %>
+				<th class="<%- sortOffice %>" scope="col" id="selectCompany">
+					<div class="inpd_div">
+						<span class="ib"><a href="<%- url('ADDRESS_OFFICE') %>" id="sortByCompany"><%= i18n.companySortPrefix %></a></span><span class="arrow"><%= i18n.companySortSuffix %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.DEPARTMENT_FLAG) { %>
+				<th class="<%- sortDept %>"  scope="col">
+					<div class="inpd_div">
+						<span class="ib"><a href="<%- url('ADDRESS_DEPT') %>" id="sortByDept"><%= i18n.departmentSortPrefix %></a></span><span class="arrow"><%= i18n.departmentSortSuffix %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.DUTY_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.duty %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.HOMEPAGE_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.homepage %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.GROUP_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.group %></span>
+					</div>
+				</th>
+				<% } %>
+				<!--<% if (user.RECENT_FLAG) { %>-->
+				<!--<th scope="col">-->
+					<!--<div class="inpd_div">-->
+						<!--<span class="ib"><%= i18n.recent %></span>-->
+					<!--</div>-->
+				<!--</th>-->
+				<!--<% } %>-->
+				<% if (user.MEMO_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.memo %></span>
+					</div>
+				</th>
+				<% } %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.modify %></span>
+					</div>
+				</th>
+			</tr>
+			</thead>
+		</table>
+	</div>
+	<div class="list_area" id="defaultArea" style="display:">
+		<div class="scroll_zoom">
+			<table>
+				<caption class="mc-blind"><%= i18n.title.caption %></caption>
+				<colgroup>
+					<col class="col_check" />
+					<col class="col_star" />
+					<col class="col_name" data-expose="none"/>
+					<% if (user.NICKNAME_FLAG) { %>
+					<col class="col_nickname"/>
+					<% } %>
+					<% if (user.PHONE_FLAG) { %>
+					<col class="col_phone" data-expose="none"/>
+					<% } %>
+					<% if (user.EMAIL_FLAG) { %>
+					<col class="col_mail" data-expose="none"/>
+					<% } %>
+					<% if (user.COMPANY_FLAG) { %>
+					<col class="col_company" data-expose="none"/>
+					<% } %>
+					<% if (user.DEPARTMENT_FLAG) { %>
+					<col class="col_department"/>
+					<% } %>
+					<% if (user.DUTY_FLAG) { %>
+					<col class="col_duty"/>
+					<% } %>
+					<% if (user.HOMEPAGE_FLAG) { %>
+					<col class="col_homepage"/>
+					<% } %>
+					<% if (user.GROUP_FLAG) { %>
+					<col class="col_group" data-expose="none"/>
+					<% } %>
+					<!--<% if (user.RECENT_FLAG) { %>-->
+					<!--<col class="col_recent"/>-->
+					<!--<% } %>-->
+					<% if (user.MEMO_FLAG) { %>
+					<col class="col_memo">
+					<% } %>
+					<col class="col_modify" style="width:36px;"/>
+				</colgroup>
+				<thead class="mc-blind">
+				<tr>
+					<th scope="col"><%= i18n.title.select %></th>
+					<th scope="col"><%= i18n.title.stared %></th>
+					<th scope="col"><%= i18n.title.name %></th>
+					<% if (user.NICKNAME_FLAG) { %>
+					<th scope="col"><%= i18n.title.nickname %></th>
+					<% } %>
+					<% if (user.PHONE_FLAG) { %>
+					<th scope="col"><%= i18n.title.phone %></th>
+					<% } %>
+					<% if (user.EMAIL_FLAG) { %>
+					<th scope="col"><%= i18n.title.email %></th>
+					<% } %>
+					<% if (user.COMPANY_FLAG) { %>
+					<th scope="col"><%= i18n.title.company %></th>
+					<% } %>
+					<% if (user.DEPARTMENT_FLAG) { %>
+					<th scope="col"><%= i18n.title.department %></th>
+					<% } %>
+					<% if (user.DUTY_FLAG) { %>
+					<th scope="col"><%= i18n.title.duty %></th>
+					<% } %>
+					<% if (user.HOMEPAGE_FLAG) { %>
+					<th scope="col"><%= i18n.title.homepage %></th>
+					<% } %>
+					<% if (user.GROUP_FLAG) { %>
+					<th scope="col"><%= i18n.title.group %></th>
+					<% } %>
+					<!--<% if (user.RECENT_FLAG) { %>-->
+					<!--<th scope="col"><%= i18n.title.recent %></th>-->
+					<!--<% } %>-->
+					<% if (user.MEMO_FLAG) { %>
+					<th scope="col"><%= i18n.title.memo %></th>
+					<% } %>
+					<th scope="col"><%= i18n.title.modify %></th>
+				</tr>
+				</thead>
+				<tbody>
+				<!-- #contact-item-template -->
+				</tbody>
+			</table>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="contact-item-template">
+<%
+	var contacts = [];
+	/*
+		AddressModel 과 하위의 ADDRESS_EXPANSION_LIST 를
+		동일한 depth 가 되도록 베열에 복사함.
+	*/
+	var copyContactProperties = function recursion(contacts,contact) {
+		return {
+			copy : function () {
+				var obj = {};
+				for (var prop in contact) {
+					if (prop === 'ADDRESS_EXPANSION_LIST') {
+						var expCollection = contact.ADDRESS_EXPANSION_LIST;
+						if (!expCollection)
+							continue;
+						for (var i = 0; i < expCollection.length; i++) {
+							//	recursive 처리하여 ADDRESS_EXPANSION_LIST 를
+							//	동일한  depth에 복사되도록함.
+							var self = recursion(contacts,expCollection[i]);
+							self.copy();
+						}
+					}
+					obj[prop] = contact[prop];
+				}
+				contacts.push(obj);
+			}
+		};
+	};
+
+	//	contact 를 contacts로 복사
+	var copyContacts = copyContactProperties(contacts,contact);
+	copyContacts.copy();
+	
+	var reqProperty = function(contacts, keyProp, repProp, isReq) {
+		var prop = {};
+		for (var i = 0; i < contacts.length; i++) {
+			if (prop && prop.value) {
+				break;
+			}
+			var contact = contacts[i];
+			if ($.isArray(keyProp)) {
+				for (var k = 0; k < keyProp.length; k++) {
+					if (contact && contact[keyProp[k]]) {
+						var rep = contact[repProp];
+						if (rep == 'Y' || (isReq && contact[keyProp[k]])) {
+							prop = {
+								key : keyProp[k],
+								value : contact[keyProp[k]],
+							};
+							break;
+						} 
+	 				}
+				}
+			} else {
+				if (contact && contact[keyProp]) {
+					var rep = contact[repProp];
+					if (rep == 'Y' || (isReq && contact[keyProp])) {
+						prop = {
+							key : keyProp,
+							value : contact[keyProp],
+						};
+						break;
+					}
+				}
+			}
+		}
+		// km5 마이그레이션으로 인해 대표정보 값이 없을 경우
+		if (!isReq && (!prop || !prop.value)) {
+			isReq = 'N';
+			prop = reqProperty(contacts, keyProp, repProp, isReq);
+		}
+		return prop;
+	};
+
+	var identity = contact.ADDRESS_EMAIL ? contact.ADDRESS_EMAIL : '';
+		if ( identity.indexOf('@') > -1) {
+			identity = identity.substring(0,identity.indexOf('@'));
+		}
+	var isToday = function(date) {
+		if (!date) {
+			return false;
+		}
+		var now = new Date();
+		var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		if (today.getTime() == date.getTime()) {
+			return true;
+		}
+		return false;
+	};
+
+	var formatDate = function(M_TIME) {
+		var date, parsedDate = $.format.parseDate(M_TIME);
+		date = parsedDate && parsedDate.date;
+		if (isToday(date)) {
+			date = $.format.date(M_TIME, 'HH:mm:ss');
+		} else {
+			date = $.format.date(M_TIME, 'yy.MM.dd');
+		}
+		return date;
+	};
+%>
+	<td class="check">
+		<input class="inp_ch" type="checkbox" id="list_<%- contact.ADDRESS_IDX %>" value="<%- contact.ADDRESS_IDX %>" />
+		<label for="list_<%- contact.ADDRESS_IDX %>"><%- contact.ADDRESS_NAME %> <span>주소를 선택</span></label>
+	</td>
+	<td class="star">
+		<a title="<%= i18n.item.stared %>" class="" href="#"><%= i18n.item.stared %></a>
+	</td>
+	<td class="name">
+		<div title="<%- contact.ADDRESS_NAME %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><a href="#"><%- contact.ADDRESS_NAME || i18n.noname %></a></span></span>
+		</div>
+	</td>
+	<% if (user.NICKNAME_FLAG) { %>
+	<td>
+		<div title="<%- contact.ADDRESS_NICKNAME %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- contact.ADDRESS_NICKNAME %></span></span>
+		</div>
+	</td>
+	<% } %>
+	<% if (user.PHONE_FLAG) { 
+		var keyProp = [ 'ADDRESS_TEL','ADDRESS_CELLTEL', 'ADDRESS_OFFICETEL','ADDRESS_OFFICEFAX',
+						'ADDRESS_ETCTEL','ADDRESS_CUSTOMTEL'];
+		var tel = reqProperty(contacts, keyProp, 'ADDRESS_TEL_REP');
+	%>	
+	<td>
+		<div title="<%- tel.value %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- tel.value %></span></span>
+		</div>
+	</td>
+	<% } %>
+	<% if (user.EMAIL_FLAG) { 
+		var email = reqProperty(contacts, 'ADDRESS_EMAIL', 'ADDRESS_EMAIL_REP');
+	%>
+	<td>
+		<div title="<%- email.value %>" class="inpd_div">
+			<span class="inpd">
+				<span class="inpd_a">
+					<a href="#compose?to=<%- email.value %>"><%- email.value %></a>
+				</span>
+			</span>
+		</div>
+	</td>
+	<% } %>
+	<% if (user.COMPANY_FLAG) { 
+		var company = reqProperty(contacts, 'ADDRESS_OFFICE', 'ADDRESS_OFFICE_REP');
+	%>
+	<td>
+		<div title="<%- company.value %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- company.value %></span></span>
+		</div>
+	</td>
+	<% } %>
+	<% if (user.DEPARTMENT_FLAG) { 
+		var department = reqProperty(contacts, 'ADDRESS_DEPT', 'ADDRESS_OFFICE_REP');
+	%>
+	<td>
+		<div title="<%- department.value %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- department.value %></span></span>
+		</div>
+	</td>
+	<% } %>
+	<% if (user.DUTY_FLAG) { 
+		var duty = reqProperty(contacts, 'ADDRESS_DUTY', 'ADDRESS_OFFICE_REP');
+	%>
+	<td>
+		<div title="<%- duty.value %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- duty.value %></span></span>
+		</div>
+	</td>
+	<% } %>
+	<% if (user.HOMEPAGE_FLAG) { 
+		var homepage = reqProperty(contacts, 'ADDRESS_HOMEURL', 'ADDRESS_HOMEURL_REP');
+	%>
+	<td>
+		<div title="<%- homepage.value %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- homepage.value %></span></span>
+		</div>
+	</td>
+	<% } %>
+	<% if (user.GROUP_FLAG) { %>
+<%
+		var GROUP_NM;
+		if (contact.GROUP_IDX !== 0) {
+			var groupModel = groupCollection.getGroupModel('GROUP_IDX',contact.GROUP_IDX);
+			if (groupModel) {
+				GROUP_NM = groupModel.get('GROUP_NM');
+			}
+		}
+%>
+	<td>
+		<div title="<%- GROUP_NM %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- GROUP_NM || '' %></span></span>
+		</div>
+	</td>
+	<% } %>
+	<!--<% if (user.RECENT_FLAG) { %>-->
+	<!--<td>-->
+		<!--<div title="<%- contact.LAST_REGIST_DATE %>" class="inpd_div">-->
+			<!--<span class="inpd"><span class="inpd_a"><%- formatDate(contact.LAST_REGIST_DATE) %></span></span>-->
+		<!--</div>-->
+	<!--</td>-->
+	<!--<% } %>-->
+	<% if (user.MEMO_FLAG) { %>
+	<td>
+		<div title="<%- contact.LAST_REGIST_DATE %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- contact.ADDRESS_MEMO %></span></span>
+		</div>
+	</td>
+	<% } %>
+	<td class="modify">
+		<div class="inpd_div">
+			<a title="<%= i18n.item.modify %>" href="#"><%= i18n.item.modify %></a>
+		</div>
+	</td>
+</script>
+<script type="text/template" id="contact-trash-list-template">
+	<div class="list_title">
+		<h3 class="mc-blind"><%= i18n.contactList %></h3>
+		<table id="wasteHead">
+			<caption class="mc-blind"><%= i18n.trashCaption %></caption>
+			<colgroup>
+				<col class="col_check">
+				<col class="col_star">
+				<col width="auto">
+				<col width="auto">
+				<col width="auto">
+				<col class="col_company">
+				<col class="col_delete">
+			</colgroup>
+			<thead>
+			<tr>
+				<th scope="col" class="check">
+					<input id="checkListAll" type="checkbox" class="inp_ch contact-trash-check-toggle">
+					<label for="checkListAll"><%= i18n.trashSelectAll %></label>
+				</th>
+				<th scope="col" class="star">
+				<%
+					var url = function(sortField) {
+						var params = {
+							sortField : sortField,
+							sortOrder : paginator.sortOrder == 'ASC' ? 'DESC' : 'ASC',
+						};
+						var hash = paginator.getURL(params);
+						var path = hash.substring(0, hash.indexOf('/'));
+						if (path == 'groups')
+							hash = hash.replace(path, 'contacts');
+						return '#' + hash;
+					};
+
+					var sortField = paginator.sortField;
+					var sortImportant,sortName,sortOffice;
+
+					switch (sortField) {
+					case 'ADDRESS_IMPORTANT' :
+						sortImportant = paginator.sortOrder == 'ASC' ? 'select_up' : 'select';
+						break;
+					case 'ADDRESS_NAME' :
+						sortName = paginator.sortOrder == 'ASC' ? 'select_up' : 'select';
+						break;
+					case 'ADDRESS_OFFICE' :
+						sortOffice = paginator.sortOrder == 'ASC' ? 'select_up' : 'select';
+						break;
+					}
+				%>
+					<a href="<%- url('ADDRESS_NAME') %>" class="on" title="<%= i18n.orderByPriority %>" id="sortByTrashImportant"><%= i18n.orderByPriority %></a>
+				</th>
+				<th scope="col" class="<%- sortName %>" id="selectTrashName">
+					<div class="inpd_div">
+						<span class="ib"><a href="<%- url('ADDRESS_NAME') %>" id="sortByTrashName"> <%= i18n.nameSortPrefix %></a></span>
+						<span class="arrow"><%= i18n.nameSortSuffix %></span>
+					</div>
+				</th>
+				<!-- 정렬 선택시 select 적용 -->
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.phone %></span>
+					</div>
+				</th>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.email %></span>
+					</div>
+				</th>
+				<th class="<%- sortOffice %>" scope="col" id="selectTrashCompany">
+					<div class="inpd_div">
+						<span class="ib"><a href="<%- url('ADDRESS_OFFICE') %>" id="sortByTrashCompany"><%= i18n.companySortPrefix %></a></span><span class="arrow"><%= i18n.companySortSuffix %></span>
+					</div>
+				</th>
+				<!--<th scope="col" id="selectTrashRecent">-->
+					<!--<div class="inpd_div">-->
+						<!--<span class="ib"><a href="#" id="sortByTrashRecent"><%= i18n.recentSortPrefix %></a></span><span class="arrow"><%= i18n.recentSortSuffix %></span>-->
+					<!--</div>-->
+				<!--</th>-->
+				<th scope="col" id="selectTrashDelete">
+					<div class="inpd_div">
+						<span class="ib"><a href="#" id="sortByTrashDelete"><%= i18n.permanentlyDeleteDateSortPrefix %></a></span><span class="arrow"><%= i18n.permanentlyDeleteDateSortSuffix %></span>
+					</div>
+				</th>
+				<!-- 오름차순일때 select_up 적용 -->
+			</tr>
+			</thead>
+		</table>
+	</div>
+	<div class="list_area" id="wasteArea">
+		<div class="scroll_zoom">
+			<table>
+				<caption class="mc-blind"><%= i18n.trashCaption %></caption>
+				<colgroup>
+					<col class="col_check">
+					<col class="col_star">
+					<col width="auto">
+					<col width="auto">
+					<col width="auto">
+					<col class="col_company">
+					<col class="col_delete_scroll">
+				</colgroup>
+				<thead class="mc-blind">
+				<tr>
+					<th scope="col"><%= i18n.selectContactList %></th>
+					<th scope="col"><%= i18n.title.stared %></th>
+					<th scope="col"><%= i18n.title.name %></th>
+					<th scope="col"><%= i18n.title.phone %></th>
+					<th scope="col"><%= i18n.title.email %></th>
+					<th scope="col"><%= i18n.title.company %></th>
+					<!--<th scope="col"><%= i18n.title.recent %></th>-->
+					<th scope="col"><%= i18n.permanentlyDeleteDate %></th>
+				</tr>
+				</thead>
+				<tbody>
+				<!-- #contact-trash-item-template -->
+				</tbody>
+			</table>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="contact-trash-item-template">
+	<td class="check _check">
+		<input class="inp_ch" type="checkbox" id="list_<%- contact.ADDRESS_IDX %>" value="<%- contact.ADDRESS_IDX %>" />
+		<label for="list_<%- contact.ADDRESS_IDX %>"><%- contact.ADDRESS_NAME %> <span><%= i18n.selectAnContact %></span></label>
+	</td>
+	<td class="star">
+		<a title="<%= i18n.item.stared %>"><%= i18n.item.stared %></a>
+	</td>
+	<td class="name">
+		<div title="<%- contact.ADDRESS_NAME %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- contact.ADDRESS_NAME  || i18n.noname %></span></span>
+		</div>
+	</td>
+	<td>
+		<div title="<%- contact.ADDRESS_CELLTEL %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><a href="#"><%- contact.ADDRESS_CELLTEL %></a></span></span>
+		</div>
+	</td>
+	<td>
+		<div title="<%- contact.ADDRESS_EMAIL %>" class="inpd_div">
+			<span class="inpd">
+				<span class="inpd_a">
+					<a href="#compose?to=<%- contact.ADDRESS_EMAIL %>"><%- contact.ADDRESS_EMAIL %></a>
+				</span>
+			</span>
+		</div>
+	</td>
+	<td>
+		<div title="<%- contact.ADDRESS_DEPT %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- contact.ADDRESS_DEPT %></span></span>
+		</div>
+	</td>
+	<!--<td class="c_call">-->
+		<!--<div title="" class="inpd_div">-->
+			<!--<em class="ic_ext gs_mail"></em><span class="date_txt">컬럼생성 필요 출력 형식[15.02.26]</span>-->
+		<!--</div>-->
+	<!--</td>-->
+	<td class="delday">
+		<div class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- contact.LAST_REGIST_DATE %></span></span>
+		</div>
+	</td>
+</script>
+<script type="text/template" id="contact-context-menu-template">
+	<ul>
+		<li class="compose-mail"><a href="#"><%= i18n.composeMail %></a></li>
+		<li class="division">&nbsp;</li>
+		<li class="show-contact"><a href="#"><%= i18n.show %></a></li>
+		<li class="modify-contact"><a href="#"><%= i18n.modify %></a></li>
+		<li class="delete-contact"><a href="#"><%= i18n.Delete %></a></li>
+		<li class="move-contact"><a href="#"><%= i18n.moveContact %></a></li>
+	</ul>
+</script>
+<script type="text/template" id="contact-pagination-template">
+<%
+	var info = paginator.info();
+	var url = function(page) {
+		var hash = paginator.getURL({page:page});
+		var path = hash.substring(0, hash.indexOf('/'));
+		if (path == 'groups')
+			hash = hash.replace(path, 'contacts');
+		return '#' + hash;
+	};
+%>
+
+<% if (info.firstPage != info.currentPage) { %>
+	<a title="<%= i18n.firstPage %>" class="pre_end" href="<%= url(info.firstPage) %>">
+<% } else { %>
+	<a title="<%= i18n.firstPage %>" class="pre_end_n" href="<%= url(info.firstPage) %>">
+<% } %>
+		<span class="mc-blind"><%= i18n.firstPage %></span>
+	</a>
+
+<% if (info.currentPage > info.firstPage) { %>
+	<a title="<%= i18n.previousPage %>" class="pre" href="<%= url(info.previous) %>">
+<% } else { %>
+	<a title="<%= i18n.previousPage %>" class="pre_n" href="<%= url(info.currentPage) %>">
+<% } %>
+		<span class="mc-blind"><%= i18n.previousPage %></span>
+	</a>
+
+	<span class="mc-paging_num">
+<% _.each(info.pageSet, function(page) { %>
+	<% if (info.currentPage == page) { %>
+		<strong><%= page %></strong>
+	<% } else { %>
+		<a href="<%= url(page) %>"><%= page %></a>
+	<% } %>
+<% }); %>
+	</span>
+
+<% if (info.currentPage < info.totalPages) { %>
+	<a title="<%= i18n.nextPage %>" class="next" href="<%= url(info.next) %>">
+<% } else { %>
+	<a title="<%= i18n.nextPage %>" class="next_n" href="<%= url(info.currentPage) %>">
+<% } %>
+		<span class="mc-blind"><%= i18n.nextPage %></span>
+	</a>
+
+<% if (info.lastPage != info.currentPage) { %>
+	<a title="<%= i18n.lastPage %>" class="next_end" href="<%= url(info.lastPage) %>">
+<% } else { %>
+	<a title="<%= i18n.lastPage %>" class="next_end_n" href="<%= url(info.lastPage) %>">
+<% } %>
+		<span class="mc-blind"><%= i18n.lastPage %></span>
+	</a>
+</script>
+<script type="text/template" id="move-to-group-template">
+	<div class="grp_mv" style="min-width: 277px">
+		<!-- [D] 선택시 li에 클래스 selected 추가 -->
+		<ul class="mailBoxList b_scroll" style="max-height: 230px;">
+			<!-- #move-to-group-item-template -->
+		</ul>
+		<div class="add_area">
+			<span class="add_text">
+				<em>
+					<label for="newGroupAdd" class="mc-blind"><%= i18n.moveTo.inputLabel %></label>
+					<input type="text" placeholder="<%= i18n.moveTo.placeholder %>" id="newGroupAdd">
+				</em>
+			</span>
+			<span class="add_btn">
+				<button type="button"><%= i18n.moveTo.newGroup %></button>
+			</span>
+		</div>
+		<div class="add_layer_btn">
+			<button type="button"><%= i18n.moveTo.text %></button>
+			<!-- [D] 조직도(tree구조) 일때 display:none -->
+			<button type="button"><%= i18n.moveTo.copy %></button>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="move-to-group-item-template">
+	<input type="checkbox" id="moveLayer_<%- group.GROUP_IDX %>" value="<%- group.GROUP_IDX %>">
+	<label for="moveLayer_<%- group.GROUP_IDX %>" class="group-name"><%- group.GROUP_NM %></label>
+</script>
+<script type="text/template" id="contact-category-filter-template">
+	<div class="layer_bd layer_mouseright">
+		<ul>
+			<li><a href="#" class="category-important"><%= i18n.categoryType.important %></a></li>
+			<li><a href="#" class="category-tel"><%= i18n.categoryType.tel %></a></li>
+			<li><a href="#" class="category-mail"><%= i18n.categoryType.mail %></a></li>
+			<li><a href="#" class="category-corp"><%= i18n.categoryType.corp %></a></li>
+			<li><a href="#" class="category-homepage"><%= i18n.categoryType.homepage %></a></li>
+			<!--<li><a href="#">최근연락</a></li>-->
+			<li><a href="#" class="category-memo"><%= i18n.categoryType.memo %></a></li>
+		</ul>
+	</div>
+</script>
+<script type="text/template" id="contact-expose-template">
+	<div class="grp_mv">
+		<ul class="mailBoxList mailBoxList_input">
+			<li>
+				<input type="checkbox" id="listLayer_0" name="nickname" <% if (user.NICKNAME_FLAG) {%> checked <% } %>>
+				<label for="listLayer_0"><%= i18n.title.nickname %></label>
+			</li>
+			<li>
+				<input type="checkbox" id="listLayer_1" name="phone" <% if (user.PHONE_FLAG) {%> checked <% } %>>
+				<label for="listLayer_1"><%= i18n.title.phone %></label>
+			</li>
+			<li>
+				<input type="checkbox" id="listLayer_2" name="email" <% if (user.EMAIL_FLAG) {%> checked <% } %>>
+				<label for="listLayer_2"><%= i18n.title.email %></label>
+			</li>
+			<li>
+				<input type="checkbox" id="listLayer_3" name="company" <% if (user.COMPANY_FLAG) {%> checked <% } %>>
+				<label for="listLayer_3"><%= i18n.title.company %></label>
+			</li>
+			<li>
+				<input type="checkbox" id="listLayer_4" name="department" <% if (user.DEPARTMENT_FLAG) {%> checked <% } %>>
+				<label for="listLayer_4"><%= i18n.title.department %></label>
+			</li>
+			<li>
+				<input type="checkbox" id="listLayer_5" name="duty" <% if (user.DUTY_FLAG) {%> checked <% } %>>
+				<label for="listLayer_5"><%= i18n.title.duty %></label>
+			</li>
+			<li>
+				<input type="checkbox" id="listLayer_6" name="homepage" <% if (user.HOMEPAGE_FLAG) {%> checked <% } %>>
+				<label for="listLayer_6"><%= i18n.title.homepage %></label>
+			</li>
+			<li>
+				<input type="checkbox" id="listLayer_7" name="group" <% if (user.GROUP_FLAG) {%> checked <% } %>>
+				<label for="listLayer_7"><%= i18n.title.group %></label>
+			</li>
+			<!--<li>-->
+				<!--<input type="checkbox" id="listLayer_8" name="recent" <% if (user.RECENT_FLAG) {%> checked <% } %>>-->
+				<!--<label for="listLayer_8"><%= i18n.title.recent %></label>-->
+			<!--</li>-->
+			<li>
+				<input type="checkbox" id="listLayer_9" name="memo" <% if (user.MEMO_FLAG) {%> checked <% } %>>
+				<label for="listLayer_9"><%= i18n.title.memo %></label>
+			</li>
+		</ul>
+		<div class="add_layer_btn">
+			<button type="button" class="b"><%= i18n.save %></button>
+			<button type="button" class="close-expose-list"><%= i18n.cancel %></button>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="contact-form-layout-template">
+	<!-- 연락처 필드 -->
+	<div class="layer_wrap" id="contactMan" style="z-index: 3999; left: 50%; top: 45%; display: none">
+		<!-- USER INFO MODIFY -->
+		<div class="layer_area ws1" id="addressModify" style="display: none">
+			<!-- #contact-modify-template -->
+		</div>
+		<!-- // USER INFO MODIFY -->
+
+		<!-- USER INFO VIEW -->
+		<div class="layer_area ws1" id="customerView" style="display: none;">
+			<!-- #contact-detail-template -->
+		</div>
+		<!-- //USER INFO VIEW -->
+	</div>
+	<!-- // 연락처 필드 -->
+</script>
+<script type="text/template" id="contact-detail-template">
+	<div class="layer_pd">
+		<div class="ipt_area view_info_area">
+			<h3><%=i18n.detailView.title%></h3>
+			<dl class="ipt_grp article_top">
+				<dt>
+					<div class="pic_a">
+						<!--<img src="" width="60" height="60">-->
+					</div>
+				</dt>
+<%
+	var contacts = [];
+	/*
+		AddressModel 과 하위의 ADDRESS_EXPANSION_LIST 를
+		동일한 depth 가 되도록 베열에 복사함.
+	*/
+	var copyContactProperties = function recursion(contacts,contact) {
+		return {
+			copy : function () {
+				var obj = {};
+				for (var prop in contact) {
+					if (prop === 'ADDRESS_EXPANSION_LIST') {
+						var expCollection = contact.ADDRESS_EXPANSION_LIST;
+						if (!expCollection)
+							continue;
+						for (var i = 0; i < expCollection.length; i++) {
+							//	recursive 처리하여 ADDRESS_EXPANSION_LIST 를
+							//	동일한  depth에 복사되도록함.
+							var self = recursion(contacts,expCollection[i]);
+							self.copy();
+						}
+					}
+					obj[prop] = contact[prop];
+				}
+				contacts.push(obj);
+			}
+		};
+	};
+
+	//	contact 를 contacts로 복사
+	var copyContacts = copyContactProperties(contacts,contact);
+	copyContacts.copy();
+
+	/*
+		대표 연락처 여부를 구분하여 정렬한다.
+		대표 연락처일경우 최상위 0 번째에 insert
+		대표 연락처가 아닐경우 1번부터  insert
+	*/
+	var sortByRepProperty = function(contact,repProp,valueProp,arry) {
+		var rep = contact[repProp];
+		var value = contact[valueProp];
+
+		if (contact[repProp] == 'Y') {
+			arry[0] = {
+				rep : rep,
+				value : value,
+				type : valueProp,
+			};
+		} else {
+			var idx = arry.length == 0 ? 1 : arry.length;
+			arry[idx] = {
+				rep : rep,
+				value : value,
+				type : valueProp,
+			};
+		}
+	}
+
+	var sortByRepTelProperty = function(contact,repProp,valueProp,arry) {
+		var rep = contact[repProp];
+		var value = contact[valueProp];
+		var customName = contact['ADDRESS_CUSTOMTELNAME'];
+		if (rep == 'Y') {
+			arry[0] = {
+				rep : rep,
+				value : value,
+				type : valueProp,
+				customName : customName,
+			};
+		} else {
+			var idx = arry.length == 0 ? 1 : arry.length;
+			arry[idx] = {
+				rep : rep,
+				value : value,
+				type : valueProp,
+				customName : customName,
+			};
+	  	}
+	}
+
+	var sortByRepBirthProperty = function(contact,arry) {
+		var rep = contact['ADDRESS_BIRTH_REP'];
+		var value = contact['ADDRESS_BIRTH'];
+		var type = contact['ADDRESS_BIRTH_TYPE'];
+		var isSolar = contact['ADDRESS_ISSOLAR'];
+
+		if (rep == 'Y') {
+			arry[0] = {
+				rep : rep,
+				value : value,
+				type : type,
+				isSolar : isSolar,
+			};
+		} else {
+			var idx = arry.length == 0 ? 1 : arry.length;
+			arry[idx] = {
+				rep : rep,
+				value : value,
+				type : type,
+				isSolar : isSolar,
+			};
+		}
+	}
+
+	var sortByRepOfficeProperty = function(contact,arry) {
+		var rep = contact['ADDRESS_OFFICE_REP'];
+		var office = contact['ADDRESS_OFFICE'];
+		var dept = contact['ADDRESS_DEPT'];
+		var duty = contact['ADDRESS_DUTY'];
+
+		if (rep == 'Y') {
+			arry[0] = {
+				rep : rep,
+				office : office,
+				dept : dept,
+				duty : duty,
+			};
+		} else {
+			var idx = arry.length == 0 ? 1 : arry.length;
+			arry[idx] = {
+				rep : rep,
+				office : office,
+				dept : dept,
+				duty : duty,
+			};
+		}
+	}
+
+    var sortByRepAddressProperty = function(contact,zipcodeProp,arry) {
+
+		var rep = contact['ADDRESS_ZIP_REP'];
+		var zipcode = contact[zipcodeProp];
+		var type = zipcodeProp;
+		var addr;
+
+		switch (zipcodeProp) {
+		case	'ADDRESS_OFFICEZIP' :
+			addr = contact['ADDRESS_OFFICEADDR'];
+			break;
+		case	'ADDRESS_HOMEZIP' :
+			addr = contact['ADDRESS_HOMEADDR'];
+			break;
+		case	'ADDRESS_ETCZIP' :
+			addr = contact['ADDRESS_ETCADDR'];
+			break;
+		}
+
+        if (rep == 'Y') {
+            arry[0] = {
+                rep : rep,
+                zipcode : zipcode,
+                addr : addr,
+				type : type,
+            };
+        } else {
+            var idx = arry.length == 0 ? 1 : arry.length;
+            arry[idx] = {
+				rep : rep,
+				zipcode : zipcode,
+				addr : addr,
+				type : type,
+            };
+        }
+    }
+
+	var sortByRepSnsProperty = function(contact,arry) {
+		var rep = contact['ADDRESS_SNS_REP'];
+		var value = contact['ADDRESS_SNS_ID'];
+		var type = contact['ADDRESS_SNS_TYPE'];
+
+		if (rep == 'Y') {
+			arry[0] = {
+				rep : rep,
+				value : value,
+				type : type,
+			};
+		} else {
+			var idx = arry.length == 0 ? 1 : arry.length;
+			arry[idx] = {
+				rep : rep,
+				value : value,
+				type : type,
+			};
+		}
+	}
+
+%>
+
+				<dd>
+					<div class="art_grp">
+						<a href="#" class="a_key <%= contact.ADDRESS_IMPORTANT == 'Y' ? 'a_key_on' : '' %>"><em>중요연락처로 표시하기</em></a>
+						<!-- [D] 중요도 활성화 시 a_key_on 클래스 추가 & 대체텍스트 (중요연락처를 해제하기)로 변경 -->
+						<span><%- contact.ADDRESS_NAME %></span>
+					</div>
+					<div class="art_grp">
+						<span>
+								<% if(contact.ADDRESS_ID) { %>
+									<%- contact.ADDRESS_ID %>(<%=i18n.detailView.id%>)
+								<%}%>
+								<% if(contact.ADDRESS_NICKNAME) { %>
+									<%- contact.ADDRESS_NICKNAME %> (<%=i18n.detailView.nickName%>)
+								<% } %>
+						</span>
+					</div>
+				</dd>
+			</dl>
+			<div class="art_scroll">
+				<div class="art_zoom">
+					<ul class="info_area">
+						<li>
+							<span class="tit"><%= i18n.detailView.phoneTitle %></span>
+						<%
+							var messageMap = {
+								ADDRESS_TEL : i18n.detailView.tel,
+								ADDRESS_CELLTEL : i18n.detailView.cellTel,
+								ADDRESS_OFFICETEL : i18n.detailView.officeTel,
+								ADDRESS_OFFICEFAX : i18n.detailView.officeFax,
+								ADDRESS_ETCTEL : i18n.detailView.etc,
+								ADDRESS_CUSTOMTEL : i18n.detailView.custom,
+							};
+
+							var phoneEnum = [ 'ADDRESS_TEL','ADDRESS_CELLTEL', 'ADDRESS_OFFICETEL','ADDRESS_OFFICEFAX',
+														'ADDRESS_ETCTEL','ADDRESS_CUSTOMTEL'];
+
+							var phones = [];
+							for (var i = 0; i < contacts.length; i++) {
+								for (var k = 0; k < phoneEnum.length; k++) {
+									var contact = contacts[i];
+									if (contact && contact[phoneEnum[k]]) {
+										sortByRepTelProperty(contact,'ADDRESS_TEL_REP',phoneEnum[k],phones)
+									}
+								}
+							}
+
+							for (var i = 0; i < phones.length; i++) {
+								if (!phones[i]) {
+									continue;
+								}
+								var type = phones[i].type;
+						%>
+							<p class="info_user">
+								<% if (phones[i].rep == 'Y') {%>
+									<a class="rep on" href="#"><em><%= i18n.detailView.rep %></em></a>
+								<% } else { %>
+									<a class="rep" href="#"><em><%= i18n.detailView.rep %></em></a>
+								<% } %>
+								<span title="<%= messageMap[type]%>" class="item"><%= messageMap[phones[i].type] %></span>
+								<%- phones[i].customName ? phones[i].customName : '' %>
+								<%- phones[i].value %>
+								<% if (type == 'ADDRESS_CELLTEL') { %>
+									<!--<a title="<%=i18n.detailView.sms%>" class="send_sms" href="#"></a>-->
+								<% } %>
+							</p>
+						<%}%>
+						</li>
+						<li>
+							<span class="tit"><%= i18n.detailView.emailTitle %></span>
+						<%
+							var emails = [];
+
+							 for (var i = 0; i < contacts.length; i++) {
+								var contact = contacts[i];
+								if (contact && contact.ADDRESS_EMAIL) {
+									sortByRepProperty(contact,'ADDRESS_EMAIL_REP','ADDRESS_EMAIL',emails);
+								}
+							}
+
+							for (var i = 0; i < emails.length; i++) {
+								if (!emails[i]) {
+									continue;
+								}
+						%>
+							<p class="info_user">
+								<% if (emails[i].rep == 'Y') {%>
+								<a class="rep on" href="#"><em><%= i18n.detailView.rep %></em></a> <%- emails[i].value %>
+								<% } else { %>
+								<a class="rep" href="#"><em><%= i18n.detailView.rep %></em></a> <%- emails[i].value %>
+								<% } %>
+								<a href="#" class="send_mail" title="<%= i18n.detailView.emailTitle %>"></a>
+							</p>
+							<% } %>
+						</li>
+						<li>
+							<span class="tit"><%= i18n.detailView.groupTitle %></span>
+							<%
+								var group = groups.find(function(group) {
+									return group.get('GROUP_IDX') == contact.GROUP_IDX;
+								});
+							%>
+							<p class="info_user"><%- group && group.get ? group.get('GROUP_NM') : '' %></p>
+						</li>
+						<li>
+							<span class="tit"><%= i18n.detailView.birthTitle %></span>
+						<%
+							var messageMap  = {
+								BIRTH : i18n.detailView.birth,
+								ANNIVERSARY : i18n.detailView.anniversary,
+								ETC : i18n.detailView.etc
+							};
+
+							var births = [];
+
+							for (var i = 0; i < contacts.length; i++) {
+								var contact = contacts[i];
+								if (contact && contact.ADDRESS_BIRTH) {
+									sortByRepBirthProperty(contact,births);
+								}
+							}
+
+							for (var i = 0; i < births.length; i++) {
+								if (!births[i]) {
+									continue;
+								}
+								var type = births[i].type;
+						%>
+							<p class="info_user">
+								<% if (births[i].rep == 'Y') { %>
+									<a class="rep on" href="#"><em><%= i18n.detailView.rep %></em></a>
+								<% } else { %>
+									<a class="rep" href="#"><em><%= i18n.detailView.rep %></em></a>
+								<% } %>
+								<span title="<%= messageMap[type]%>" class="item"><%= messageMap[type]%></span>
+                                <%- births[i].value %> <%- births[i].isSolar == 'S' ? '(' + i18n.detailView.solar + ')' : '(' + i18n.detailView.lunar + ')' %>
+							</p>
+							<% } %>
+						</li>
+						<li>
+							<span class="tit"><%= i18n.detailView.company %></span>
+						<%
+							var offices = [];
+
+							for (var i = 0; i < contacts.length; i++) {
+								var contact = contacts[i];
+								if (contact && (contact.ADDRESS_OFFICE ||
+									contact.ADDRESS_DEPT ||
+									contact.ADDRESS_DUTY)) {
+									sortByRepOfficeProperty(contact,offices);
+								}
+							}
+
+							for (var i = 0; i < offices.length; i++) {
+								if (!offices[i]) {
+									continue;
+								}
+						%>
+							<p class="info_user">
+								<% if (offices[i].rep == 'Y') { %>
+									<a class="rep on" href="#"><em><%= i18n.detailView.rep %></em></a>
+								<% } else { %>
+									<a class="rep" href="#"><em><%= i18n.detailView.rep %></em></a>
+								<% } %>
+								<%- offices[i].office ? offices[i].office : '' %>
+								<%- offices[i].dept ? '.' + offices[i].dept : '' %>
+								<%- offices[i].duty ? '.' + offices[i].duty : '' %>
+							</p>
+						<% } %>
+						</li>
+						<li>
+							<span class="tit"><%= i18n.detailView.address%></span>
+						<%
+
+							var messageMap  = {
+								ADDRESS_OFFICEZIP : i18n.detailView.office,
+								ADDRESS_HOMEZIP : i18n.detailView.home,
+								ADDRESS_ETCZIP : i18n.detailView.etc
+							};
+
+							var addrs = [];
+
+							var addrsEnum = ['ADDRESS_OFFICEZIP','ADDRESS_HOMEZIP', 'ADDRESS_ETCZIP'];
+
+							for (var i = 0; i < contacts.length; i++) {
+								for (var k = 0; k < addrsEnum.length; k++) {
+									var contact = contacts[i];
+									if (contact && contact[addrsEnum[k]]) {
+										sortByRepAddressProperty(contact,addrsEnum[k],addrs);
+									}
+								}
+							}
+
+							for (var i = 0; i < addrs.length; i++) {
+								if (!addrs[i]) {
+									continue;
+								}
+								var type = addrs[i].type;
+						%>
+							<p class="info_user">
+								<% if (addrs[i].rep == 'Y') { %>
+									<a class="rep on" href="#"><em><%= i18n.detailView.rep %></em></a>
+								<% } else { %>
+									<a class="rep" href="#"><em><%= i18n.detailView.rep %></em></a>
+								<% } %>
+								<span title="<%= messageMap[type]%>" class="item"><%= messageMap[type]%></span>
+								<%- addrs[i].zipcode ? '(' + addrs[i].zipcode + ')' : '' %>
+								<%- addrs[i].addr %>
+							</p>
+							<% } %>
+						</li>
+						<li>
+							<span class="tit"><%= i18n.detailView.homepage %></span>
+						<%
+							var homepages = [];
+
+							for (var i = 0; i < contacts.length; i++) {
+								var contact = contacts[i];
+								if (contact && contact.ADDRESS_HOMEURL) {
+									sortByRepProperty(contact,'ADDRESS_HOMEURL_REP','ADDRESS_HOMEURL',homepages);
+								}
+							}
+
+							for (var i = 0; i < homepages.length; i++) {
+								if (!homepages[i]) {
+									continue;
+								}
+						%>
+							<p class="info_user">
+								<% if (homepages[i].rep == 'Y') { %>
+									<a class="rep on" href="#"><em><%= i18n.detailView.rep %></em></a>
+								<% } else { %>
+									<a class="rep" href="#"><em><%= i18n.detailView.rep %></em></a>
+								<% } %>
+								<%- homepages[i].value %>
+							</p>
+							<% } %>
+						</li>
+						<li>
+							<span class="tit"><%= i18n.detailView.sns %></span>
+						<%
+							var messageMap = {
+								KEBI_MESSENGER : i18n.detailView.kebiMsg,
+								KAKAO_TALK : i18n.detailView.kakaoTalk,
+								NATE_ON : i18n.detailView.nateOn,
+								FACEBOOK : i18n.detailView.facebook,
+								TWITTER : i18n.detailView.twitter,
+								ETC : i18n.detailView.etc,
+							};
+							var snses = [];
+
+							for (var i = 0; i < contacts.length; i++) {
+								var contact = contacts[i];
+								if (contact && contact.ADDRESS_SNS_ID) {
+									sortByRepSnsProperty(contact,snses);
+								}
+							}
+
+							for (var i = 0; i < snses.length; i++) {
+								if (!snses[i]) {
+									continue;
+								}
+								var type = snses[i].type;
+						%>
+							<p class="info_user">
+								<% if (snses[i].rep == 'Y') { %>
+									<a class="rep on" href="#"><em><%= i18n.detailView.rep %></em></a>
+								<% } else { %>
+									<a class="rep" href="#"><em><%= i18n.detailView.rep %></em></a>
+								<% } %>
+								<span title="<%= messageMap[type]%>" class="item" style="width: 60px;"><%= messageMap[type]%></span>
+								<%- snses[i].value %>
+							</p>
+							<% } %>
+						</li>
+						<li>
+							<span class="tit"><%=i18n.detailView.memo%></span>
+							<p class="info_user"><%- contact.ADDRESS_MEMO %></p>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="etc_txt">
+			<p class="lc_txt"><span class="rep"></span> <%=i18n.detailView.repInfoPhrases%> </p>
+<%
+		if (location.hash.indexOf('shared-groups') == -1 && contact.ORG_EMAIL) {
+%>
+			<p class="lc_txt"><span class="rep"></span> <%= i18n.organizationNotBeModified %> </p>
+<%
+		} else if (location.hash.indexOf('shared-groups') == -1 && contact.SHARE_ADDRESS_IDX) {
+%>
+			<p class="lc_txt"><span class="rep"></span> <%= i18n.sharedContactsNotBeModified %> </p>
+<%
+		}
+%>
+		</div>
+		<div class="btn_area">
+<%
+		if (location.hash.indexOf('shared-groups') == -1 && (!contact.ORG_EMAIL && !contact.SHARE_ADDRESS_IDX)) {
+%>
+			<div class="btn_leftset">
+				<button type="button" class="b contact-detail-delete">
+					<span class="ic_ext buDel"></span><%=i18n.detailView.Delete%>
+				</button>
+			</div>
+			<button type="button" class="b modify-contact"><%=i18n.detailView.modify%></button>
+<%
+		}
+%>
+			<button type="button" class="c"><%=i18n.detailView.cancel%></button>
+		</div>
+		<a href="#" class="lay_close">close</a>
+	</div>
+</script>
+<script type="text/template" id="contact-modify-template">
+<%
+	var expansionList = [];
+
+	//	ADDRESS_EXPANSION_LIST 에서 값을 추출하여 각각의 배열에 저장
+	var assignPropertyByExpansionList = function (contact,callBack) {
+		if (contact.hasOwnProperty('ADDRESS_EXPANSION_LIST')
+			&& contact['ADDRESS_EXPANSION_LIST']) {
+			for (var k = 0; k < contact['ADDRESS_EXPANSION_LIST'].length; k++) {
+				callBack(k);
+			}
+		}
+	}
+%>
+	<div class="layer_pd">
+		<div class="ipt_area">
+<%
+	if (headTitle) {
+%>
+		<h3><%= headTitle %></h3>
+<%
+	 } else {
+%>
+		<h3><%= i18n.addAddress.headTitle %></h3>
+<%
+	}
+%>
+			<div class="profile_edite">
+				<div class="pic_a">
+					<!--<img src="images/test_img.jpg" width="60" height="60">-->
+				</div>
+				<!-- [D] 이미지 없을시 <div class="pic_a"></div>==>이미지 지움-->
+				<div class="upload_file">
+					<div class="art_grp file_input">
+						<input type="text" class="itxt contact-modify-photo-name" readonly style="width: 202px" placeholder="<%=i18n.addAddress.placeholder.photoEdit%>">
+						<div class="file_input_box">
+							<button type="button" value="<%=i18n.addAddress.findImg%>" class="button_s find-photo" style="position: absolute; top: 0; width:65px;"><%=i18n.addAddress.findImg%></button>
+						</div>
+						<button type="button" class="button_s b  contact-modify-upload-photo"><%=i18n.addAddress.registerImg%></button>
+					</div>
+					<p class="tip"><%=i18n.addAddress.ImageTipsPhrase%></p>
+				</div>
+			</div>
+			<%
+				var lastName;
+				var firstName;
+				var id;
+				var nickName;
+				var contact = addressCollection[0] ? addressCollection[0] : [{}];
+					//	성
+					if (contact.ADDRESS_LASTNAME) {
+							lastName = contact.ADDRESS_LASTNAME;
+					}
+					//	이름
+					if (contact.ADDRESS_FIRSTNAME) {
+							firstName = contact.ADDRESS_FIRSTNAME;
+					}
+
+					//	아이디
+					if (contact.ADDRESS_ID) {
+							id = contact.ADDRESS_ID;
+					}
+					//	닉네임
+					if (contact.ADDRESS_NICKNAME) {
+							nickName = contact.ADDRESS_NICKNAME;
+					}
+			%>
+			<dl class="ipt_grp article_top">
+				<dd class="basic_info">
+					<a href="#" class="contact-modify-important a_key <%= contact.ADDRESS_IMPORTANT == 'Y' ? 'a_key_on' : '' %> "><em><%=i18n.addAddress.priorityPhrase%></em></a>
+					<!-- [D] 중요도 활성화 시 a_key_on 클래스 추가 & 대체텍스트 (중요연락처를 해제하기)로 변경 -->
+					<ul class="lc_list">
+						<li>
+							<div class="art_grp">
+								<input name="lastName" type="text" class="itxt" style="width: 47px" value="<%-lastName%>" placeholder="<%=i18n.addAddress.placeholder.lastName%>" onfocus="this.style.color='#666'" onblur="this.style.color='#999'">
+								<input name="firstName" type="text" class="itxt" style="width: 81px" value="<%-firstName || contact.ADDRESS_NAME %>" placeholder="<%=i18n.addAddress.placeholder.firstName%>"
+									   onfocus="this.style.color='#666'" onblur="this.style.color='#999'">
+								<!-- onfocus="this.style.color='#666'" onblur="this.style.color='#999'}" / .focus_blur style="width:176px" value="이름" onfocus="if(this.value=='이름'){this.value=''};this.style.color='#666'" onblur="if(this.value==''){this.value='이름'};this.style.color='#999'"-->
+							</div>
+						</li>
+						<li>
+							<div class="art_grp">
+								<!--<input name="identity" type="text" class="itxt" style="width: 140px" placeholder="<%=i18n.addAddress.placeholder.id%>" value="<%- id %>">-->
+								<input name="nickname" type="text" class="itxt" style="width: 148px" placeholder="<%=i18n.addAddress.placeholder.nickname%>" value="<%- nickName %>">
+							</div>
+						</li>
+					</ul>
+				</dd>
+			</dl>
+			<div class="art_scroll">
+				<div class="art_zoom">
+					<div class="basic_info">
+						<dl class="ipt_grp">
+							<dt><%=i18n.addAddress.phoneTitle%></dt>
+							<dd>
+								<ul class="lc_list">
+									<%
+										var phones = [];
+										var phoneEnum = [ 'ADDRESS_TEL','ADDRESS_CELLTEL', 'ADDRESS_OFFICETEL','ADDRESS_OFFICEFAX',
+																	'ADDRESS_ETCTEL','ADDRESS_CUSTOMTEL'];
+
+										_.each(addressCollection, function(contact,index) {
+											//	전화번호
+											for (var i = 0; i < phoneEnum.length; i++) {
+												if (contact[phoneEnum[i]]) {
+													if (phoneEnum[i] == 'ADDRESS_CUSTOMTEL') {
+														//	직접입력시 직접입력 이름 추가
+														phones.push({
+															rep : contact['ADDRESS_TEL_REP'],
+															type : phoneEnum[i],
+															number : contact[phoneEnum[i]],
+															customName : contact['ADDRESS_CUSTOMTELNAME'],
+														});
+													} else {
+														phones.push({
+															rep : contact['ADDRESS_TEL_REP'],
+															type : phoneEnum[i],
+															number : contact[phoneEnum[i]]
+														});
+													}
+												}
+											}
+											//	전화번호 Expansion 추출
+											assignPropertyByExpansionList(contact, function(callBackIndex) {
+												for (var i = 0; i < phoneEnum.length; i++) {
+													var expContact = contact['ADDRESS_EXPANSION_LIST'][callBackIndex];
+													if (expContact[phoneEnum[i]]) {
+														phones.push({
+															idx : expContact['EXPANSION_IDX'],
+															rep : expContact['ADDRESS_TEL_REP'],
+															type : phoneEnum[i],
+															number : expContact[phoneEnum[i]],
+															customName : expContact['ADDRESS_CUSTOMTELNAME'],
+														});
+													}
+												}
+											});
+										});
+
+										phones = (phones.length == 0 ? [{}] : phones);
+
+										for (var i = 0; i < phones.length; i++) {
+											var customName = phones[i].customName ? phones[i].customName : '';
+											var customInputDisplay = phones[i].type == 'ADDRESS_CUSTOMTEL' ? 'inline;' : 'none;';
+											var phoneInputWidth = phones[i].type == 'ADDRESS_CUSTOMTEL' ? '127px;' : '210px;';
+									%>
+									<% if (phones[i].idx) { %>
+										<li data-expansion-idx="<%- phones[i].idx %>">
+									<% } else { %>
+										<li>
+									<% } %>
+										<% if ((addressCollection && addressCollection.length == 1) && phones[i].rep == 'Y') { %>
+											<a href="#" class="rep on" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<% } else if ((addressCollection && addressCollection.length > 1) && (phones.length > 1 && i == 0)) {%>
+											<a href="#" class="rep on" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<%} else {%>
+											<a href="#" class="rep" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<%}%>
+										<div class="art_grp">
+											<select name="phoneType" style="width: 86px">
+												<option value="cell" <%-phones[i].type == 'ADDRESS_CELLTEL' ? 'selected' : ''%> ><%=i18n.addAddress.phoneType.cellTel%></option>
+												<option value="office" <%-phones[i].type == 'ADDRESS_OFFICETEL' ? 'selected' : ''%> ><%=i18n.addAddress.phoneType.officeTel%></option>
+												<option value="tel" <%-phones[i].type == 'ADDRESS_TEL' ? 'selected' : ''%> ><%=i18n.addAddress.phoneType.tel%></option>
+												<option value="fax" <%-phones[i].type == 'ADDRESS_OFFICEFAX' ? 'selected' : ''%> ><%=i18n.addAddress.phoneType.officeFax%></option>
+												<option value="other" <%-phones[i].type == 'ADDRESS_ETCTEL' ? 'selected' : ''%> ><%=i18n.addAddress.phoneType.etc%></option>
+												<option value="custom" <%-phones[i].type == 'ADDRESS_CUSTOMTEL' ? 'selected' : ''%> ><%=i18n.addAddress.phoneType.custom%></option>
+											</select>
+											<input name="customPhone" type="text" class="itxt" style="width: 71px;display: <%-customInputDisplay%>"
+												  value="<%-phones[i].customName%>" placeholder="<%=i18n.addAddress.placeholder.phoneType%>">
+											<input name="phone" type="text" class="itxt" style="width: <%-phoneInputWidth%>" value="<%-phones[i].number%>" placeholder="<%=i18n.addAddress.placeholder.phoneNumber%>">
+										</div>
+										<% if (phones.length == 1 || _.isEmpty(phones[0]) || i == phones.length-1) {%>
+											<a href="#" class="a_del" style="display: none;"><em><%=i18n.addAddress.Delete%></em></a>
+										<%} else {%>
+											<a href="#" class="a_del"><em><%=i18n.addAddress.Delete%></em></a>
+										<%}%>
+										<% if (i == phones.length-1) {%>
+											<a href="#" class="a_add"><em><%=i18n.addAddress.add%></em></a>
+										<% }%>
+									</li>
+									<%}%>
+								</ul>
+							</dd>
+						</dl>
+						<dl class="ipt_grp">
+							<dt><%=i18n.addAddress.emailTitle%></dt>
+							<dd>
+								<ul class="lc_list">
+									<%
+										var emails = [];
+										_.each(addressCollection, function(contact,index) {
+											//	이메일
+											if (contact['ADDRESS_EMAIL']) {
+													emails.push({
+														rep : contact['ADDRESS_EMAIL_REP'],
+														email : contact['ADDRESS_EMAIL']
+													});
+											}
+											//	이메일 Expansion 추출
+											assignPropertyByExpansionList(contact, function(callBackIndex) {
+												var emailField = contact['ADDRESS_EXPANSION_LIST'][callBackIndex];
+												if (emailField['ADDRESS_EMAIL']) {
+														emails.push({
+															idx : emailField['EXPANSION_IDX'],
+															rep : emailField['ADDRESS_EMAIL_REP'],
+															email : emailField['ADDRESS_EMAIL']
+														});
+													}
+												});
+											});
+
+										emails = (emails.length == 0 ? [{}] : emails);
+
+										for (var i = 0; i < emails.length; i++) {
+									%>
+									<% if (emails[i].idx) { %>
+										<li data-expansion-idx="<%- emails[i].idx %>">
+									<% } else { %>
+										<li>
+									<% } %>
+										<% if ((addressCollection && addressCollection.length == 1) && emails[i].rep == 'Y') { %>
+											<a href="#" class="rep on" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<% } else if ((addressCollection && addressCollection.length > 1) && (emails.length > 1 && i == 0)) {%>
+											<a href="#" class="rep on" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<%} else {%>
+											<a href="#" class="rep" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<%}%>
+										<div class="art_grp">
+											<input name="email" type="text" class="itxt" style="width: 300px" value="<%-emails[i].email%>" placeholder="<%=i18n.addAddress.placeholder.email%>">
+										</div>
+										<% if (emails.length == 1 || _.isEmpty(emails[0]) || i == emails.length-1) {%>
+											<a href="#" class="a_del" style="display: none;"><em><%=i18n.addAddress.Delete%></em></a>
+										<%} else {%>
+											<a href="#" class="a_del"><em><%=i18n.addAddress.Delete%></em></a>
+										<%}%>
+										<% if (i == emails.length-1) {%>
+											<a href="#" class="a_add"><em><%=i18n.addAddress.add%></em></a>
+										<% }%>
+									</li>
+									<%}%>
+								</ul>
+							</dd>
+						</dl>
+						<dl class="ipt_grp group_settings">
+							<dt><%=i18n.addAddress.groupTitle%></dt>
+							<dd>
+<%
+	var selectedGroups = groups.filter(function(group) {
+		if (addressCollection) {
+			for (var i = 0; i < addressCollection.length; i++) {
+				var selectedGroupIdx = addressCollection[i].GROUP_IDX;
+				if (group.get('GROUP_IDX') == selectedGroupIdx) {
+					return true;
+				}
+			}
+		}
+	});
+	if (selectedGroups && selectedGroups.length > 0) {
+		var groupNames = [];
+		for (var i = 0; i < selectedGroups.length; i++) {
+			var group = selectedGroups[i];
+			if (group && group.get) {
+				groupNames.push(group.get('GROUP_NM'));
+			}
+		}
+%>
+								<span class="grpname"><%- groupNames.join(',') %></span>
+<%
+	} else {
+%>
+								<span class="grpname" style="display: none"></span>
+<%
+	}
+%>
+								<button type="button" class="button_s" id="toggleGroup"><%=i18n.addAddress.groupSetting%></button>
+								<span class="tip"><%=i18n.addAddress.groupTipsPhrase%></span>
+							</dd>
+						</dl>
+					</div>
+					<div class="foldwrap contact-modify-detail-input-container" <%= contact && contact.ADDRESS_IDX ? '' : 'style="display: none;"' %> >
+						<dl class="ipt_grp">
+							<dt><%=i18n.addAddress.birthTitle%></dt>
+							<dd>
+								<ul class="lc_list">
+									<%
+											var births = [];
+
+											_.each(addressCollection, function(contact,index) {
+												//	생일,기념일
+												if (contact['ADDRESS_BIRTH']) {
+													births.push({
+														rep : contact['ADDRESS_BIRTH_REP'],
+														type : contact['ADDRESS_BIRTH_TYPE'],
+														date : contact['ADDRESS_BIRTH'],
+														isSolar : contact['ADDRESS_ISSOLAR'],
+													});
+												}
+												//	생일,기념일 Expansion 추출
+												assignPropertyByExpansionList(contact, function(callBackIndex) {
+													var dateField = contact['ADDRESS_EXPANSION_LIST'][callBackIndex];
+													if (dateField['ADDRESS_BIRTH']) {
+														births.push({
+															idx : dateField['EXPANSION_IDX'],
+															rep : dateField['ADDRESS_BIRTH_REP'],
+															type : dateField['ADDRESS_BIRTH_TYPE'],
+															date : dateField['ADDRESS_BIRTH'],
+															isSolar : dateField['ADDRESS_ISSOLAR'],
+														});
+													}
+												});
+											});
+
+										births = (births.length == 0 ? [{}] : births);
+
+										for (var i = 0; i < births.length; i++) {
+									%>
+									<% if (births[i].idx) { %>
+										<li data-expansion-idx="<%- births[i].idx %>">
+									<% } else { %>
+										<li>
+									<% } %>
+										<% if ((addressCollection && addressCollection.length == 1) && births[i].rep == 'Y') { %>
+											<a href="#" class="rep on" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<% } else if ((addressCollection && addressCollection.length > 1) && (births.length > 1 && i == 0)) {%>
+											<a href="#" class="rep on" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<%} else {%>
+											<a href="#" class="rep" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<%}%>
+										<div class="art_grp">
+											<select name="birthType" style="width: 85px">
+												<option value="BIRTH" <%-births[i].type == 'BIRTH' ? 'selected' : ''%> ><%=i18n.addAddress.birthType.birth%></option>
+												<option value="ANNIVERSARY" <%-births[i].type == 'ANNIVERSARY' ? 'selected' : ''%> ><%=i18n.addAddress.birthType.anniversary%></option>
+												<option value="ETC" <%-births[i].type == 'ETC' ? 'selected' : ''%> ><%=i18n.addAddress.birthType.etc%></option>
+											</select>
+											<span class="date_con">
+												<input name="birthDay" type="text" class="itxt" value="<%-births[i].date%>" style="width: 125px" placeholder="yyyymmdd">
+											</span>
+											<div class="ipt_rdo sm">
+												<input name="isSolar<%-i  == 0 ? '' : i%>" id="gregorian<%- i == 0 ? '' : i%>" type="radio" value="S" class="slt_rdo"  checked <%-births[i].isSolar == 'S' ? 'checked' : ''%>>
+												<label for="gregorian<%-i  == 0 ? '' : i%>" class="lab_tx"><%=i18n.addAddress.gregorian%></label>
+												<input name="isSolar<%-i  == 0 ? '' : i%>" id="lunar<%-i  == 0 ? '' : i%>" type="radio" value="L" class="slt_rdo" <%-births[i].isSolar == 'L' ? 'checked' : ''%>>
+												<label for="lunar<%-i  == 0 ? '' : i%>" class="lab_tx"><%=i18n.addAddress.lunar%></label>
+											</div>
+										</div>
+										<% if (births.length == 1 || _.isEmpty(births[0]) || i == births.length-1) {%>
+											<a href="#" class="a_del" style="display: none;"><em><%=i18n.addAddress.Delete%></em></a>
+										<%} else {%>
+											<a href="#" class="a_del"><em><%=i18n.addAddress.Delete%></em></a>
+										<%}%>
+										<% if (i == births.length-1) {%>
+											<a href="#" class="a_add"><em><%=i18n.addAddress.add%></em></a>
+										<% }%>
+									</li>
+									<%}%>
+								</ul>
+							</dd>
+						</dl>
+						<dl class="ipt_grp">
+							<dt><%=i18n.addAddress.officeTitle%></dt>
+							<dd>
+								<ul class="lc_list">
+									<%
+										var offices = [];
+										_.each(addressCollection, function(contact,index) {
+											//	회사·소속
+											if (contact['ADDRESS_OFFICE'] || contact['ADDRESS_DEPT']
+												|| contact['ADDRESS_DUTY']) {
+													offices.push({
+														rep : contact['ADDRESS_OFFICE_REP'],
+														office : contact['ADDRESS_OFFICE'],
+														dept : contact['ADDRESS_DEPT'],
+														duty : contact['ADDRESS_DUTY'],
+													});
+												}
+
+											//	회사·소속 Expansion 추출
+											assignPropertyByExpansionList(contact, function(callBackIndex) {
+												var officeField = contact['ADDRESS_EXPANSION_LIST'][callBackIndex];
+													if (officeField['ADDRESS_OFFICE'] || officeField['ADDRESS_DEPT']
+														|| officeField['ADDRESS_DUTY']) {
+															offices.push({
+																idx : officeField['EXPANSION_IDX'],
+																rep : officeField['ADDRESS_OFFICE_REP'],
+																office : officeField['ADDRESS_OFFICE'],
+																dept : officeField['ADDRESS_DEPT'],
+																duty : officeField['ADDRESS_DUTY'],
+															});
+													}
+											});
+										});
+
+										offices = (offices.length == 0 ? [{}] : offices);
+										for (var i = 0; i < offices.length; i++) {
+									%>
+									<% if (offices[i].idx) { %>
+										<li data-expansion-idx="<%- offices[i].idx %>">
+									<% } else { %>
+										<li>
+									<% } %>
+										<% if ((addressCollection && addressCollection.length == 1) && offices[i].rep == 'Y') { %>
+											<a href="#" class="rep on" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<% } else if ((addressCollection && addressCollection.length > 1) && (offices.length > 1 && i == 0)) {%>
+											<a href="#" class="rep on" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<%} else {%>
+											<a href="#" class="rep" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<%}%>
+										<div class="art_grp">
+											<input name="office" type="text" class="itxt" style="width: 77px" value="<%-offices[i].office%>" placeholder="<%=i18n.addAddress.placeholder.office%>">
+											<input name="department" type="text" class="itxt" style="width: 94px" value="<%-offices[i].dept%>" placeholder="<%=i18n.addAddress.placeholder.dept%>">
+											<input name="duty" type="text" class="itxt" style="width: 105px" value="<%-offices[i].duty%>" placeholder="<%=i18n.addAddress.placeholder.duty%>">
+										</div>
+										<% if (offices.length == 1 || _.isEmpty(offices[0]) || i == offices.length-1) {%>
+											<a href="#" class="a_del" style="display: none;"><em><%=i18n.addAddress.Delete%></em></a>
+										<%} else {%>
+											<a href="#" class="a_del"><em><%=i18n.addAddress.Delete%></em></a>
+										<%}%>
+										<% if (i == offices.length-1) {%>
+											<a href="#" class="a_add"><em><%=i18n.addAddress.add%></em></a>
+										<% }%>
+									</li>
+									<%}%>
+								</ul>
+							</dd>
+						</dl>
+						<dl class="ipt_grp">
+							<dt><%=i18n.addAddress.zipTitle%></dt>
+							<dd>
+								<ul class="lc_list">
+									<%
+										var addrs = [];
+										var addressEnum = ['ADDRESS_OFFICEADDR','ADDRESS_HOMEADDR','ADDRESS_ETCADDR'];
+
+										_.each(addressCollection, function(contact,index) {
+											//	주소
+											for (var i = 0; i < addressEnum.length; i++) {
+												if (contact[addressEnum[i]]) {
+														addrs.push({
+															rep : contact['ADDRESS_ZIP_REP'],
+															type : addressEnum[i],
+															addr : contact[addressEnum[i]],
+															zipcode : function() {
+																if (contact['ADDRESS_OFFICEZIP'])
+																	return contact['ADDRESS_OFFICEZIP'];
+																else if (contact['ADDRESS_HOMEZIP'])
+																	return contact['ADDRESS_HOMEZIP'];
+																else if (contact['ADDRESS_ETCZIP'])
+																	return contact['ADDRESS_ETCZIP'];
+															}
+														});
+												}
+											}
+											//	주소 Expansion 추출
+											assignPropertyByExpansionList(contact, function(callBackIndex) {
+												for (var i = 0; i < addressEnum.length; i++) {
+													var addrField = contact['ADDRESS_EXPANSION_LIST'][callBackIndex];
+													if (addrField[addressEnum[i]]) {
+															addrs.push({
+																idx : addrField['EXPANSION_IDX'],
+																rep : addrField['ADDRESS_ZIP_REP'],
+																type : addressEnum[i],
+																addr : addrField[addressEnum[i]],
+																zipcode : function() {
+																	if (addrField['ADDRESS_OFFICEZIP'])
+																		return addrField['ADDRESS_OFFICEZIP'];
+																	else if (addrField['ADDRESS_HOMEZIP'])
+																		return addrField['ADDRESS_HOMEZIP'];
+																	else if (addrField['ADDRESS_ETCZIP'])
+																		return addrField['ADDRESS_ETCZIP'];
+																	}
+															});
+													}
+												}
+											});
+
+										});
+
+										addrs = (addrs.length == 0 ? [{}] : addrs);
+
+										for (var i = 0; i < addrs.length; i++) {
+											var zipcodePrefix;
+											var zipcodeSuffix;
+
+											if (addrs[i].zipcode) {
+												var zipcodeArray = addrs[i].zipcode().split('-');
+												zipcodePrefix = zipcodeArray[0];
+												zipcodeSuffix = zipcodeArray[1];
+											}
+									%>
+									<% if (addrs[i].idx) { %>
+										<li data-expansion-idx="<%- addrs[i].idx %>">
+									<% } else { %>
+										<li>
+									<% } %>
+										<% if ((addressCollection && addressCollection.length == 1) && addrs[i].rep == 'Y') { %>
+											<a href="#" class="rep on" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<% } else if ((addressCollection && addressCollection.length > 1) && (addrs.length > 1 && i == 0)) {%>
+											<a href="#" class="rep on" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<%} else {%>
+											<a href="#" class="rep" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<%}%>
+										<div class="art_grp">
+											<select name="addressType" style="width: 85px" multipl>
+												<option value="office" <%-addrs[i].type == 'ADDRESS_OFFICEADDR' ? 'selected' : ''%> ><%=i18n.addAddress.zipType.office%></option>
+												<option value="home" <%-addrs[i].type == 'ADDRESS_HOMEADDR' ? 'selected' : ''%> ><%=i18n.addAddress.zipType.home%></option>
+												<option value="other" <%-addrs[i].type == 'ADDRESS_ETCADDR' ? 'selected' : ''%> ><%=i18n.addAddress.zipType.etc%></option>
+											</select>
+											<input name="addressFirstZip" id="_zip1_index_1" type="text" value="<%-zipcodePrefix%>" class="itxt" style="width: 100px">
+											<!--<span class="hipen">-</span>-->
+											<!--<input name="addressSecondZip" id="_zip2_index_1" type="text" value="<%-zipcodeSuffix%>" class="itxt" style="width: 40px">-->
+											<button data-post-code="_zip1_index_1" data-post-addr="_adr_index_1" name="zipBtn" type="button" class="button_s contact-modify-find-post"><%=i18n.addAddress.zipPopup%></button>
+										</div>
+										<div class="art_grp mt5">
+											<textarea name="address" id="_adr_index_1" cols="" rows="" style="width: 296px;"
+													  title="<%=i18n.addAddress.placeholder.address%>" placeholder="<%=i18n.addAddress.placeholder.address%>"><%-addrs[i].addr%></textarea>
+										</div>
+										<% if (addrs.length == 1 || _.isEmpty(addrs[0]) || i == addrs.length-1) {%>
+											<a href="#" class="a_del" style="display: none;"><em><%=i18n.addAddress.Delete%></em></a>
+										<%} else {%>
+											<a href="#" class="a_del"><em><%=i18n.addAddress.Delete%></em></a>
+										<%}%>
+										<% if (i == addrs.length-1) {%>
+											<a href="#" class="a_add"><em><%=i18n.addAddress.add%></em></a>
+										<% }%>
+									</li>
+									<%}%>
+								</ul>
+							</dd>
+						</dl>
+						<dl class="ipt_grp">
+							<dt><%=i18n.addAddress.homepageTitle%></dt>
+							<dd>
+								<ul class="lc_list">
+									<%
+										var homepages = [];
+										_.each(addressCollection, function(contact,index) {
+
+											//	홈페이지
+											if (contact['ADDRESS_HOMEURL']) {
+													homepages.push({
+														rep : contact['ADDRESS_HOMEURL_REP'],
+														url : contact['ADDRESS_HOMEURL'],
+													});
+											}
+											//	홈페이지 Expansion 추출
+											assignPropertyByExpansionList(contact, function(callBackIndex) {
+												var homepageField = contact['ADDRESS_EXPANSION_LIST'][callBackIndex];
+												if (homepageField['ADDRESS_HOMEURL']) {
+														homepages.push({
+															idx : homepageField['EXPANSION_IDX'],
+															rep : homepageField['ADDRESS_HOMEURL_REP'],
+															url : homepageField['ADDRESS_HOMEURL'],
+														});
+												}
+											});
+										});
+
+										homepages = (homepages.length == 0 ? [{}] : homepages);
+
+										for (var  i = 0; i < homepages.length; i++) {
+									%>
+									<% if (homepages[i].idx) { %>
+										<li data-expansion-idx="<%- homepages[i].idx %>">
+									<% } else { %>
+										<li>
+									<% } %>
+										<% if ((addressCollection && addressCollection.length == 1) && homepages[i].rep == 'Y') { %>
+											<a href="#" class="rep on" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<% } else if ((addressCollection && addressCollection.length > 1) && (homepages.length > 1 && i == 0)) {%>
+											<a href="#" class="rep on" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<%} else {%>
+											<a href="#" class="rep" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<%}%>
+										<div class="art_grp">
+											<input name="homepage" type="text" class="itxt" value="<%-homepages[i].url%>" style="width: 300px" placeholder="ex) http://nara.co.kr">
+										</div>
+										<% if (homepages.length == 1 ||  _.isEmpty(homepages[0]) || i == homepages.length-1) {%>
+											<a href="#" class="a_del" style="display: none;"><em><%=i18n.addAddress.Delete%></em></a>
+										<%} else {%>
+											<a href="#" class="a_del"><em><%=i18n.addAddress.Delete%></em></a>
+										<%}%>
+										<% if (i == homepages.length-1) {%>
+											<a href="#" class="a_add"><em><%=i18n.addAddress.add%></em></a>
+										<% }%>
+									</li>
+									<%}%>
+								</ul>
+							</dd>
+						</dl>
+						<dl class="ipt_grp">
+							<dt><%=i18n.addAddress.snsTitle%></dt>
+							<dd>
+								<ul class="lc_list">
+									<%
+										var snses = [];
+										_.each(addressCollection, function(contact,index) {
+
+											//	메신저·SNS
+											if (contact['ADDRESS_SNS_ID']) {
+												snses.push({
+													rep : contact['ADDRESS_SNS_REP'],
+													id : contact['ADDRESS_SNS_ID'],
+													type : contact['ADDRESS_SNS_TYPE']
+												});
+											}
+											//	메신저·SNS Expansion 추출
+											assignPropertyByExpansionList(contact, function(callBackIndex) {
+												var snsField = contact['ADDRESS_EXPANSION_LIST'][callBackIndex];
+												if (snsField['ADDRESS_SNS_ID']) {
+													snses.push({
+														idx : snsField['EXPANSION_IDX'],
+														rep : snsField['ADDRESS_SNS_REP'],
+														id : snsField['ADDRESS_SNS_ID'],
+														type : snsField['ADDRESS_SNS_TYPE']
+													});
+												}
+											});
+										});
+
+										snses = (snses.length == 0 ? [{}] : snses);
+
+										for (var i = 0; i < snses.length; i++) {
+									%>
+									<% if (snses[i].idx) { %>
+										<li data-expansion-idx="<%- snses[i].idx %>">
+									<% } else { %>
+										<li>
+									<% } %>
+										<% if ((addressCollection && addressCollection.length == 1) && snses[i].rep == 'Y') { %>
+											<a href="#" class="rep on" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<% } else if ((addressCollection && addressCollection.length > 1) && (snses.length > 1 && i == 0)) {%>
+											<a href="#" class="rep on" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<%} else {%>
+											<a href="#" class="rep" style="display: block"><em><%=i18n.addAddress.repPhrase%></em></a>
+										<%}%>
+										<div class="art_grp">
+											<select name="snsType" style="width: 85px">
+												<option value="KEBI_MESSENGER" <%-snses[i].type == 'KEBI_MESSENGER' ? 'selected' : '' %> ><%=i18n.addAddress.snsType.ayersrock%></option>
+												<option value="KAKAO_TALK" <%-snses[i].type == 'KAKAO_TALK' ? 'selected' : '' %> ><%=i18n.addAddress.snsType.kakaoTalk%></option>
+												<option value="NATE_ON" <%-snses[i].type == 'NATE_ON' ? 'selected' : '' %> ><%=i18n.addAddress.snsType.nateon%></option>
+												<option value="FACEBOOK" <%-snses[i].type == 'FACEBOOK' ? 'selected' : '' %> ><%=i18n.addAddress.snsType.facebook%></option>
+												<option value="TWITTER" <%-snses[i].type == 'TWITTER' ? 'selected' : '' %> ><%=i18n.addAddress.snsType.twitter%></option>
+												<option value="ETC" <%-snses[i].type == 'ETC' ? 'selected' : '' %> ><%=i18n.addAddress.snsType.etc%></option>
+											</select>
+											<input name="sns" type="text" class="itxt" value="<%-snses[i].id%>" style="width: 211px">
+										</div>
+										<% if (snses.length == 1 ||  _.isEmpty(snses[0]) || i == snses.length-1) {%>
+											<a href="#" class="a_del" style="display: none;"><em><%=i18n.addAddress.Delete%></em></a>
+										<%} else {%>
+											<a href="#" class="a_del"><em><%=i18n.addAddress.Delete%></em></a>
+										<%}%>
+										<% if (i == snses.length-1) {%>
+											<a href="#" class="a_add"><em><%=i18n.addAddress.add%></em></a>
+										<% }%>
+									</li>
+									<%}%>
+								</ul>
+							</dd>
+						</dl>
+						<%
+							var memo;
+							var contact =  addressCollection[0] ? addressCollection[0] : [{}];
+							//	메모
+							if (contact['ADDRESS_MEMO']) {
+									memo = contact['ADDRESS_MEMO'];
+							}
+						%>
+						<dl class="ipt_grp">
+							<dt><%=i18n.addAddress.memoTitle%></dt>
+							<dd>
+								<textarea name="memo" cols="" rows="" style="width: 296px;" placeholder="<%=i18n.addAddress.placeholder.memo%>"><%-memo%></textarea>
+							</dd>
+						</dl>
+					</div>
+
+				</div>
+			</div>
+
+		</div>
+		<div class="cont_extend">
+			<a href="#" class="expender close contact-modify-detail-tab"><%=i18n.addAddress.detailInputPhrase%><em><%=i18n.addAddress.closePhrase%></em></a>
+			<!-- D: 펼침 .open / 닫힘 .close -->
+		</div>
+		<div class="etc_txt" style="display:">
+			<!-- [D] 주.부가 없을시 display:none / 항목추가 시 display:block -->
+			<span class="rep"></span>
+			<span class="lc_txt"><%=i18n.addAddress.repTipsPhrase%></span>
+		</div>
+		<div class="btn_area">
+			<button type="button" class="b"><%=i18n.addAddress.save%></button>
+			<button type="button"><%=i18n.addAddress.cancel%></button>
+<%
+	if (!addressCollection || addressCollection.length == 0) {
+%>
+			<div class="btn_rightset">
+				<button type="button" class="contact-modify-save-keep">
+					<%=i18n.addAddress.continueSave%> <span class="bu bu_add"></span>
+				</button>
+			</div>
+<%
+	}
+%>
+		</div>
+		<a href="#" class="lay_close">close</a>
+
+		<!-- 그룹선택 -->
+		<div class="add_layertbl" id="groupSettingId" style="top: 54px; left: 128px; display: none;">
+			<!-- contact-modify-group-template -->
+		</div>
+		<!-- // 그룹선택 -->
+	</div>
+</script>
+<script type="text/template" id="contact-modify-group-template">
+	<div class="grp_mv" style="min-width: 193px">
+		<ul class="mailBoxList mailBoxList_input" id="inputGroupListUL" style="max-height: 92px;">
+			<!-- [D] 해상도에 따라 개수가 다르게 노출이 되는데 높이값은 노출개수 * 23 으로 계산하면 됨 -->
+			<!-- #contact-modify-group-item-template -->
+		</ul>
+		<div class="add_area">
+			<span class="add_text">
+				<em>
+					<label for="contactNewGroupName" class="mc-blind">새 그룹명 입력</label>
+					<input id="contactNewGroupName" type="text" placeholder="새 그룹">
+				</em>
+			</span>
+			<span class="add_btn">
+				<button type="button" class="button_s">추가</button>
+			</span>
+		</div>
+		<div class="add_layer_btn">
+			<button type="button" class="b" id="saveContactModifyGroup" onClick="groupSettingId.style.display='none'">저장</button>
+			<button type="button" id="cancleContactModifyGroup" onClick="groupSettingId.style.display='none'">취소</button>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="contact-modify-group-item-template">
+	<input id="moveLayer-<%- group.GROUP_IDX %>" type="checkbox"  value="<%- group.GROUP_IDX %>">
+	<label for="moveLayer-<%- group.GROUP_IDX %>" class="group-name"><%- group.GROUP_NM %></label>
+</script>
+<script type="text/template" id="contact-settings-layout-template">
+	<!-- Settings Layout -->
+	<div class="mc-content_header sub">
+		<div class="mc-headFolder">
+			<strong class="mc-folderName"><%= i18n.settings.text %><span class="back_in"><em class="bar">│</em><a href="#contacts"><%= i18n.settings.backToContact %></a></span></strong>
+		</div>
+	</div>
+	<div class="set_tab_area">
+		<ul class="top_tab">
+			<li class="select" id="generalSeting" rel="genmenu">
+				<span class="ico"></span><a href="#contacts/settings/general"><%= i18n.settings.general.text %></a>
+			</li>
+			<li id="groupManage" rel="groupmenu">
+				<span class="ico"></span><a href="#contacts/settings/group"><%= i18n.settings.groupMng.text %></a>
+			</li>
+			<!--<li id="importanceSetting" rel="favmenu">-->
+				<!--<span class="ico"></span><a href="#contacts/settings/important"><%= i18n.settings.important.text %></a>-->
+			<!--</li>-->
+			<!--<li rel="restoremenu" id="restoreContact">
+				<span class="ico"></span><a class="" href="#contacts/settings/restore"><%= i18n.settings.restore.text %></a>
+			</li>-->
+		</ul>
+	</div>
+	<div class="scroll_frame">
+		<div class="scroll_zoom">
+			<div class="content_original">
+				<div class="env_contentArea">
+					<!-- Settings Views -->
+					<div class="address_pd ttab" id="" style="display: block;">
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="contact-general-settings-template">
+	<!-- 일반설정 #contact-general-settings-template -->
+	<h4 class="h4_tit h4top">
+		<%= i18n.settings.general.displaySet %>&nbsp;<span class="hipen">|</span>&nbsp;<span class="h4_txt2"><%= i18n.settings.general.displaySetMsg %></span>
+	</h4>
+	<div class="box_tbl">
+		<table class="set_tbl" summary="<%= i18n.settings.general.summary %>">
+			<colgroup>
+				<col class="sw1"/>
+				<col class="sw2"/>
+			</colgroup>
+			<tbody>
+			<tr class="f">
+				<th><%= i18n.settings.general.setHome %></th>
+				<td>
+					<span class="inp_half">
+						<input name="setHome" class="input_radio" id="set_1" type="radio" <% if (user.HOME_TYPE == "ALL") print("checked"); %> value="ALL"/>
+						<label for="set_1"><%= i18n.settings.general.myContact %></label>
+					</span>
+					<span class="inp_half">
+						<input name="setHome" class="input_radio" id="set_2" type="radio" <% if (user.HOME_TYPE == "IMPORTANT") print("checked"); %> value="IMPORTANT"/>
+						<label for="set_2"><%= i18n.settings.general.important %></label>
+					</span>
+				</td>
+			</tr>
+			<tr>
+				<th><%= i18n.settings.general.listSort %></th>
+				<td>
+					<span class="inp_half">
+						<input name="listSort" class="input_radio" id="set2_1" type="radio" <% if (user.SORT_TYPE == "ADDRESS_NAME") print("checked"); %> value="ADDRESS_NAME"/>
+						<label for="set2_1"><%= i18n.settings.general.byName %></label>
+					</span>
+				<!--<span class="inp_half">-->
+					<!--<input name="listSort" class="input_radio" id="set2_2" type="radio" <% if (user.SORT_TYPE == "RECENT_DIALOG_DATE") print("checked"); %> value="RECENT_DIALOG_DATE"/>
+					<!--<label for="set2_2"><%= i18n.settings.general.recentContact %></label>-->
+				<!--</span>-->
+					<span class="inp_half"><input name="listSort" class="input_radio" id="set2_3" type="radio" <% if (user.SORT_TYPE == "LAST_REGIST_DATE") print("checked"); %> value="LAST_REGIST_DATE"/>
+						<label for="set2_3"><%= i18n.settings.general.recentReg %></label>
+					</span>
+				</td>
+			</tr>
+			<tr>
+				<th><%= i18n.settings.general.listSizeNumber %></th>
+				<td>
+					<select name="contact_list_num" id="list_num">
+						<option value="5" <%- user.EXPOSE_COUNT == 5 ? 'selected' : '' %>>5 <%= i18n.settings.general.quantitySign %></option>
+						<option value="10" <%- user.EXPOSE_COUNT == 10 ? 'selected' : '' %>>10 <%= i18n.settings.general.quantitySign %></option>
+						<option value="15" <%- user.EXPOSE_COUNT == 15 ? 'selected' : '' %>>15 <%= i18n.settings.general.quantitySign %></option>
+						<option value="20" <%- user.EXPOSE_COUNT == 20 ? 'selected' : '' %>>20 <%= i18n.settings.general.quantitySign %></option>
+						<option value="25" <%- user.EXPOSE_COUNT == 25 ? 'selected' : '' %>>25 <%= i18n.settings.general.quantitySign %></option>
+						<option value="30" <%- user.EXPOSE_COUNT == 30 ? 'selected' : '' %>>30 <%= i18n.settings.general.quantitySign %></option>
+						<option value="35" <%- user.EXPOSE_COUNT == 35 ? 'selected' : '' %>>35 <%= i18n.settings.general.quantitySign %></option>
+						<option value="40" <%- user.EXPOSE_COUNT == 40 ? 'selected' : '' %>>40 <%= i18n.settings.general.quantitySign %></option>
+						<option value="45" <%- user.EXPOSE_COUNT == 45 ? 'selected' : '' %>>45 <%= i18n.settings.general.quantitySign %></option>
+						<option value="50" <%- user.EXPOSE_COUNT == 50 ? 'selected' : '' %>>50 <%= i18n.settings.general.quantitySign %></option>
+						<option value="60" <%- user.EXPOSE_COUNT == 60 ? 'selected' : '' %>>60 <%= i18n.settings.general.quantitySign %></option>
+						<option value="70" <%- user.EXPOSE_COUNT == 70 ? 'selected' : '' %>>70 <%= i18n.settings.general.quantitySign %></option>
+						<option value="80" <%- user.EXPOSE_COUNT == 80 ? 'selected' : '' %>>80 <%= i18n.settings.general.quantitySign %></option>
+					</select>
+				</td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
+	<div class="btn_c">
+		<button type="button" class="ab_l"><%= i18n.settings.defaultSet %></button>
+		<button type="button" class="b contact-general-settings-save"><%= i18n.settings.confirm %></button>
+		<button type="button" class="c"><%= i18n.settings.cancel %></button>
+	</div>
+	<!-- // 일반설정 -->
+</script>
+<script type="text/template" id="contact-group-settings-template">
+	<!-- 그룹관리 #contact-group-settings-template -->
+	<div class="group_add_area">
+		<strong class="group_tit"><%= i18n.settings.groupMng.add %></strong>
+		<div class="group_r">
+			<div class="group_inp">
+			<!-- input text 클릭시 nodata 지움 -->
+				<input name="groupName" class="input_text it_s1 nodata" id="groupNameInput" type="text" placeholder="<%= i18n.settings.groupMng.groupName %>" value="" />
+				<input name="groupDescription" class="input_text it_s2 nodata" id="groupDescInput" type="text" placeholder="<%= i18n.settings.groupMng.groupDesc %>" value="" />
+				<button type="button"><%= i18n.settings.groupMng.add %></button>
+			</div>
+			<div class="group_etc">
+				※ <span class="f11"><%= i18n.settings.groupMng.groupManagementDesc %></span>
+			</div>
+		</div>
+	</div>
+	<div class="bd_tline">
+		<div class="ft_btn">
+			<button type="button" class="all"><%= i18n.settings.groupMng.SelectAll %></button>
+			<button type="button" class="delete"><span class="ic_ext buDel"></span><%= i18n.settings.Delete %></button>
+		</div>
+	</div>
+	<div class="frame_area">
+		<div class="frame_zoom">
+			<table class="address_call_tbl">
+				<colgroup>
+					<col width="48"/>
+					<col width="167"/>
+					<col/>
+					<col width="92"/>
+				</colgroup>
+				<thead>
+				<tr>
+					<th class="check" scope="col"><input class="input_check" type="checkbox"/></th>
+					<th scope="col">
+						<div class="inpd_div"><span class="ib"><%= i18n.settings.groupMng.groupName %></span></div>
+					</th>
+					<th scope="col">
+						<div class="inpd_div"><span class="ib"><%= i18n.settings.groupMng.groupDesc %></span></div>
+					</th>
+					<th class="m_d" scope="col">
+						<div class="inpd_div"><span class="ib"><%= i18n.settings.modify %> <span class="hipen">|</span> <%= i18n.settings.Delete %></span></div>
+					</th>
+				</tr>
+				</thead>
+				<tbody>
+				<!-- #contact-group-settings-item-template -->
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="btn_rela">
+		<div class="btn_c">
+			<button class="b" type="button"><%= i18n.settings.confirm %></button>
+			<button class="c" type="button"><%= i18n.settings.cancel %></button>
+		</div>
+		<div class="btn_l ico_btn">
+			<button title="<%= i18n.settings.groupMng.top %>" type="button" class="mv_top"><span class="ic"></span><%= i18n.settings.groupMng.top %></button>
+			<button title="<%= i18n.settings.groupMng.up %>" type="button" class="mv_up"><span class="ic"></span><%= i18n.settings.groupMng.up %></button>
+			<button title="<%= i18n.settings.groupMng.down %>" type="button" class="mv_dw"><span class="ic"></span><%= i18n.settings.groupMng.down %></button>
+			<button title="<%= i18n.settings.groupMng.bottom %>" type="button" class="mv_btm"><span class="ic"></span><%= i18n.settings.groupMng.bottom %></button>
+		</div>
+	</div>
+	<!-- // 그룹관리 -->
+</script>
+<script type="text/template" id="contact-group-settings-item-template">
+	<td class="check"><input class="input_check" type="checkbox" value="<%= group.GROUP_IDX %>"/></td>
+	<td>
+		<div class="inpd_div_name">
+			<span class="inpd"><span class="inpd_a group-name"><%- group.GROUP_NM %></span></span>
+		</div>
+	</td>
+	<td>
+		<div class="inpd_div_stmt">
+			<span class="inpd"><span class="inpd_a"><%- group.GROUP_STMT %></span></span>
+		</div>
+	</td>
+	<td class="m_d">
+		<div class="inpd_div">
+			<a href="#" class="modifyBtn"><%= i18n.settings.modify %></a><span class="hipen">&nbsp;&nbsp;|&nbsp;&nbsp;</span><a href="#" class="deleteBtn"><%= i18n.settings.Delete %></a>
+		</div>
+	</td>
+</script>
+<script type="text/template" id="contact-important-settings-template">
+	<!-- 중요 연락처 자동 설정 #contact-important-settings-template -->
+	<ul class="mid_list">
+		<li><span class="bul"></span><%= i18n.settings.important.importtantSaveDesc %></li>
+		<li><span class="bul"></span><%= i18n.settings.important.importantTerminationDesc %></li>
+	</ul>
+	<div class="box_tbl mt10">
+		<table class="set_tbl" summary="<%= i18n.settings.important.screenSettingsTable %>">
+			<colgroup>
+				<col width="200"/>
+				<col/>
+			</colgroup>
+			<tbody>
+			<tr>
+				<th rowspan="4"> <%= i18n.settings.important.importantcontactAutoSettings %></th>
+				<td>
+					<div class="auto_div">
+						<span class="auto_tit"><input name="" class="input_check" id="auto_type1" type="checkbox" <% if (user.IMPORTANT_EMAIL_AUTO == "Y") print("checked"); %> />
+						<label for="auto_type1"><%= i18n.settings.important.mail %></label></span>&nbsp;<span class="hipen">|</span>&nbsp;
+						<span class="auto_sel"><%= i18n.settings.important.importantContactMail %>
+							<select name="impAutoEmailCnt">
+						<%
+							var options = [3, 5, 10];
+							for (var i = 0; i < options.length; i++) {
+						%>
+								<option value="<%- options[i] %>" <%- options[i] == user.IMPORTANT_EMAIL_AUTO_CNT ? 'selected' : '' %> ><%- options[i] %><%= i18n.settings.important.times %></option>
+						<% } %>
+							</select>
+						<%= i18n.settings.important.importantContactMailDesc %>
+						</span>
+					</div>
+				</td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
+	<div class="btn_c">
+		<button type="button" class="ab_l"><%= i18n.settings.defaultSet %></button>
+		<button type="button" class="b"><%= i18n.settings.confirm %></button>
+		<button type="button" class="c" ><%= i18n.settings.cancel %></button>
+	</div>
+	<!-- // 중요 연락처 자동 설정 -->
+</script>
+<script type="text/template" id="contact-restore-settings-template">
+	<!-- 연락처 복원 -->
+		<ul class="mid_list">
+			<li>
+				<span class="bul"></span>주소록 복원은 <strong class="fc">30일 이내</strong>의 특정일을 선택하시면 그 날 사용하셨던 기능 실행 이전 상태로
+				복원됩니다.
+			</li>
+			<li>
+				<span class="bul"></span>실수로 삭제한 주소록을 복구하거나, 주소록 백업 앱 내보내기/ 외부 연락처 불러오기/ 주소 중복 정리 등의 기능 실행 후 다시 취소하고 싶을
+				때 유용합니다.
+			</li>
+		</ul>
+		<div class="set_re_area">
+			<dl>
+				<dt>복원 기능 설정</dt>
+				<dd><!-- input radio 선택시 label에 .ch 추가 -->
+					<input name="" class="input_radio" id="use_1" type="radio" checked="checked"/> <label class="ch"
+																										  for="use_1">사용함</label>
+					<input name="" class="input_radio" id="use_2" type="radio"/> <label for="use_2">사용안함</label>
+				</dd>
+			</dl>
+		</div>
+		<div class="box_tbl mt25">
+			<!-- 휴지통에서 30일 이내 영구삭제 내용이 있을 경우 복원시 나옴 -->
+			<div class="back_time">
+				마지막 복원시간<span class="time"> 2015년 02월 13일 12:09</span>
+			</div>
+			<table class="set_tbl row_tbl" summary="연락처 복원 테이블입니다.">
+				<colgroup>
+					<col/>
+				</colgroup>
+				<thead>
+				<tr>
+					<th>
+						복원 시점&nbsp;<span class="hipen">|</span>&nbsp;<span class="txt">취소되는 액션 (해당 기능 실행 이전으로 연락처가 복원됩니다)</span>
+					</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+					<td>
+						<div class="no_back" style="display:none">
+							<strong class="tit">최근 30일 이내에 복원 가능한 연락처 변동사항이 없습니다.</strong><span class="txt">연락처 추가, 삭제 및 백업앱 연동 등의 액션이 있으면 이전 상태로 복원이 가능합니다.<br/>단, 주소록앱 설치 및 동기화 이전의 복원 시점은 제공되지 않습니다.</span>
+						</div>
+						<ul class="back_list">
+							<li>
+								<input name="" class="input_radio" id="act_1" type="radio" time="10분 전"/><label
+									for="act_1"><strong class="back_tit">10분 전</strong>&nbsp;<span class="hipen">|</span>&nbsp;<span
+									class="back_txt">주소록 복원 </span></label>
+							</li>
+							<li>
+								<input name="" class="input_radio" id="act_0" type="radio" time="4시간 전"/><label
+									for="act_0"><strong class="back_tit">4시간 전</strong>&nbsp;<span class="hipen">|</span>&nbsp;<span
+									class="back_txt">휴지통 비우기·영구삭제, 연락처 삭제, 휴지통 복원 </span></label>
+							</li>
+						</ul>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<div class="btn_c">
+			<button type="button" class="ab_l">기본설정으로</button>
+			<button type="button" class="b">확인</button>
+			<button class="" type="button">취소</button>
+		</div>
+	<!-- // 연락처 복원 -->
+</script>
+<script type="text/template" id="contact-gruop-item-template">
+	<!-- 그룹관리 -->
+	<tr>
+		<td class="check"><input class="input_check" type="checkbox"/></td>
+		<td>
+			<div class="inpd_div"><span class="inpd"><span class="inpd_a">테스트1</span></span></div>
+		</td>
+		<td>
+			<div class="inpd_div"><span class="inpd"><span class="inpd_a">그룹설명 테스트입니다.</span></span>
+			</div>
+		</td>
+		<td class="m_d">
+			<div class="inpd_div"><a href="#">수정</a><span class="hipen">&nbsp;&nbsp;|&nbsp;&nbsp;</span><a
+					href="#">삭제</a></div>
+		</td>
+	</tr>
+	<!-- // 그룹관리 -->
+</script>
+<script type="text/template" id="contact-import-layout-template">
+	<div class="mc-content_header sub">
+		<div class="mc-headFolder">
+			<strong class="mc-folderName"><%= i18n.importExternal %><span class="back_in"><em class="bar">│</em><a href="#contacts"><%= i18n.backToContact %></a></span></strong>
+		</div>
+	</div>
+	<!-- ContactImport Views -->
+	<div class="address_pd ttab" id="" style="display: block;">
+        <ul class="tab_cm">
+            <!-- li 선택시 select -->
+            <li rel="adrsImportTab1" class="select" id="import-from-file">
+                <span class="bs"><a href="#contacts/import"><%= i18n.importFromFile %></a></span>
+            </li>
+            <!-- 선택된 탭에 select 클래스 사용-->
+            <li rel="adrsImportTab2" id="import-from-mail">
+                <span class="bs"><a href="#"><%= i18n.importFromMail %></a></span>
+            </li>
+        </ul>
+        <!-- 파일에서 불러오기-->
+        <div class="tab_cont" id="adrsImportTab1" style="display: block;">
+            <!-- #contact-import-layout-template -->
+        </div>
+        <!-- // 파일에서 불러오기-->
+        <!-- 메일에서 불러오기-->
+        <div class="tab_cont" id="adrsImportTab2" style="display: none;">
+            <!-- #contact-import-from-mail-template -->
+        </div>
+        <!-- // 메일에서 불러오기-->
+	</div>
+	<!-- TXX 샘플 보기 -->
+	<div class="dh_layer sample-upload-text-layer" style="left:273px; top:159px; display:none;">
+		<div class="type_c txt_sample">
+			<div class="layout">
+				<h3><%= i18n.importCheck %></h3>
+				<a href="#" id="txt_pop_close"><span class="lay_close"><%= i18n.close %></span></a>
+				<ul>
+					<li><%= i18n.importTxTSample1 %></li>
+					<li><%= i18n.importTxTSample2 %></li>
+					<li><%= i18n.importTxTSample3 %></li>
+					<li><%= i18n.importTxTSample4 %></li>
+					<li><%= i18n.importTxTSample5 %></li>
+					<li><%= i18n.importTxTSample6 %></li>
+					<li><%= i18n.importTxTSample7 %></li>
+				</ul>
+				<div class="sample_code">
+					01023456789, 이나라, nara@nara.co.kr<br />
+					010-3456-7890, 오나라, nara@email.com<br />
+					, 김나라, kim@email.com<br />
+					,,hello@email.com
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- // e: TXX 샘플 보기 -->
+</script>
+<script type="text/template" id="contact-import-list-template">
+<form method="post" name="contactsImportForm" enctype="multipart/form-data">
+    <ul class="tip_list">
+        <li><span class="bul"></span><%= i18n.importDescription1 %></li>
+        <li><span class="bul"></span><%= i18n.importDescription2 %></li>
+        <li><span class="bul"></span><%= i18n.importDescription3 %></li>
+    </ul>
+    <div class="adrs_art">
+        <div class="btn_file">
+            <button type="button" class="button_s" onclick="location.href='contacts/sample-contact';"><%= i18n.excelSampleDownload %></button>
+            <button type="button" class="button_s" name="sample-upload-text"><%= i18n.showTXTSample %></button>
+        </div>
+        <div class="inp_box_area">
+            <input class="file_d" type="file" name="upload-contacts">
+        </div>
+        <div class="btn_c">
+            <button type="button" class="b add-file"><%= i18n.importing %></button>
+        </div>
+    </div>
+    <div class="adrs_art bd_tline">
+        <div class="ft_btn">
+            <button type="button" class="button_s check-all"><%= i18n.selectAll %></button>
+            <button type="button" class="button_s remove-duplicate"><%= i18n.removeDuplicateContacts %></button>
+            <button type="button" class="button_s contains-duplicate"><%= i18n.duplicatesIncluded %></button>
+            <select name="groups">
+            </select>
+            <input class="input_text input-groupname" type="text" placeholder="<%= i18n.newGroupName %>"/>
+        </div>
+
+        <div class="data_area">
+            <table class="address_call_tbl">
+                <colgroup>
+                    <col width="48"/>
+                    <col width="58"/>
+                    <col/>
+                    <col/>
+                    <col/>
+                    <col/>
+                </colgroup>
+                <thead>
+                <tr>
+                    <th scope="col" class="check"><input class="input_check toggle-contacts" type="checkbox"/>
+                        <label class="mc-blind"><%= i18n.contactListSelectAll %></label></th>
+                    <th scope="col">
+                        <div class="inpd_div"><%= i18n.assortment %></div>
+                    </th>
+                    <th scope="col">
+                        <div class="inpd_div"><%= i18n.nameSortPrefix %></div>
+                    </th>
+                    <th scope="col">
+                        <div class="inpd_div"><%= i18n.phone %></div>
+                    </th>
+                    <th scope="col">
+                        <div class="inpd_div"><%= i18n.email %></div>
+                    </th>
+                    <th scope="col">
+                        <div class="inpd_div"><%= i18n.group %></div>
+                    </th>
+                </tr>
+                </thead>
+			</table>
+			<div class="address_call_lst">
+				<table class="address_call_tbl">
+					<colgroup>
+						<col width="48"/>
+							<col width="58"/>
+							<col/>
+							<col/>
+							<col/>
+							<col/>
+					</colgroup>
+					<tbody class="contact-import-list">
+						<!-- #contact-import-item-template -->
+					</tbody>
+				</table>
+			</div>
+		</div>
+        <div class="btn_c">
+            <button type="button" class="b save-contacts"><%= i18n.save %></button>
+        </div>
+        <ul class="tip_list">
+            <li>
+                <span class="bul"></span><%= i18n.importCaution1 %>
+            </li>
+            <li>
+                <span class="bul"></span><%= i18n.importCaution2 %>
+            </li>
+            <li>
+                <span class="bul"></span><%= i18n.importCaution3 %>
+            </li>
+        </ul>
+    </div>
+</form>
+</script>
+<script type="text/template" id="contact-import-item-template">
+<%
+	if (!contact.ADDRESS_NAME) {
+%>
+		<td class="check"><input class="input_check" type="checkbox" disabled title="<%= i18n.noNameNotSaved %>"/></td>
+<%
+	} else {
+%>
+		<td class="check"><input class="input_check" type="checkbox" data-contact-dupliacted="<%- contact.contactDuplicated %>"/></td>
+<%
+	}
+%>
+		<td>
+			<div class="inpd_div">
+								<span class="inpd">
+									<span class="inpd_a">
+<%
+	if (contact.contactDuplicated) {
+%>
+										<em class="fc"><%= i18n.duplicate %></em>
+<%
+	} else {
+%>
+										<em><%= i18n.New %></em>
+<%
+	}
+%>
+									</span>
+								</span>
+			</div>
+		</td>
+		<td>
+			<div class="inpd_div">
+<%
+	if (contact.ADDRESS_NAME && contact.ADDRESS_NAME.length > 0) {
+%>
+				<span class="inpd_a"><%- contact.ADDRESS_NAME %></span>
+<%
+	} else {
+%>
+				<span class="inp_border"><input name="contact-name" type="text" placeholder="<%= i18n.blank %>"></span>
+<%
+	}
+%>
+			</div>
+		</td>
+		<td>
+			<div class="inpd_div">
+<%
+	var telKinds = [ 'ADDRESS_TEL','ADDRESS_CELLTEL', 'ADDRESS_OFFICETEL' ];
+	var telnumbers = '';
+	for ( var i = 0; i < telKinds.length; i++ ) {
+		if (telnumbers && contact[telKinds[i]])
+			telnumbers += '<br/>';
+		telnumbers += _.escape(contact[telKinds[i]]);
+	} 
+	if (contact.ADDRESS_EMAIL || telnumbers) {
+%>
+				<span class="inpd"><span class="inpd_a"><%= telnumbers %></span></span>
+<%
+	} else {
+%>
+				<span class="inp_border"><input name="contact-tel" type="text" placeholder="<%= i18n.blank %>"></span>
+<%
+	}
+%>
+			</div>
+		</td>
+		<td>
+			<div class="inpd_div">
+<%
+	if (telnumbers || contact.ADDRESS_EMAIL && contact.ADDRESS_EMAIL.length > 0) {
+%>
+				<span class="inpd"><span class="inpd_a"><%- contact.ADDRESS_EMAIL %></span></span>
+<%
+	} else {
+%>
+				<span class="inp_border"><input name="contact-email" type="text" placeholder="<%= i18n.blank %>"></span>
+<%
+	}
+%>
+			</div>
+		</td>
+<%
+	var groupname = '';
+	for (var k = 0; k < groups.length; k++) {
+		var group = groups[k];
+		if (group.GROUP_IDX == contact.GROUP_IDX) {
+			groupname = group.GROUP_NM;
+			break;
+		}
+	}
+%>
+		<td>
+			<div class="inpd_div"><span class="inpd"><span
+				class="inpd_a"><%- groupname %></span></span></div>
+		</td>
+</script>
+<script type="text/template" id="contact-import-from-mail-template">
+    <div class="adrs_art">
+        <div class="conf_area">
+            <div class="service_art mt0">
+                <strong class="sart_tit"><%= i18n.selectMailBox %></strong>
+
+                <div class="sart_check">
+                    <strong class="scheck_all mt0"><input name="" class="input_check toggle-mbox" id="mail_all" type="checkbox"/>
+                        <label for="mail_all"><%= i18n.allAddress %></label></strong>
+                    <ul class="scheck_list">
+<%
+    for (var i = 0 ; i < mboxes.length; i++) {
+        var mbox = mboxes[i];
+        if (mbox && mbox.MBOX_PUBLIC == 'S') {
+            continue;
+        }
+		if (mbox && (mbox.MBOX_TYPE == 1 || mbox.MBOX_TYPE == 6)) {
+%>
+                        <li>
+                            <input name="" class="input_check" id="mbox-<%- mbox.MBOX_IDX %>" type="checkbox"
+                                   value="<%- mbox.MBOX_IDX %>"/><label for="mbox-<%- mbox.MBOX_IDX %>"><%- mbox.MBOX_IDX == 1 ? i18n.inbox : mbox.MBOX_NAME %></label>
+                        </li>
+<%
+		}
+    }
+%>
+                    </ul>
+                </div>
+            </div>
+            <div class="service_art">
+                <strong class="sart_tit"><%= i18n.conditionsSettings %></strong>
+
+                <div class="sart_r">
+                    <%= i18n.recentlySelected %>&nbsp;
+                    <select name="received-period" style="width: 79px;" size="1">
+                        <option value="1M"><%= i18n.month1 %></option>
+                        <option value="3M"><%= i18n.month3 %></option>
+                        <option selected="selected" value="6M"><%= i18n.month6 %></option>
+                        <option value="1Y"><%= i18n.year1 %></option>
+                        <option value="0"><%= i18n.unlimited %></option>
+                    </select>
+                    <%= i18n.within %>&nbsp;
+                    <select name="received-count" style="width: 52px;" size="1">
+                        <option value="1"><%= i18n.round1 %></option>
+                        <option selected="selected" value="2"><%= i18n.round2 %></option>
+                        <option value="3"><%= i18n.round3 %></option>
+                        <option value="5"><%= i18n.round5 %></option>
+                        <option value="10"><%= i18n.round10 %></option>
+                    </select>
+                    <%= i18n.moreReceived %>
+                </div>
+            </div>
+        </div>
+        <div class="btn_c">
+            <button type="button" class="b load-contacts"><%= i18n.importing %></button>
+        </div>
+    </div>
+
+    <div class="adrs_art bd_tline">
+        <!--<h4 class="h4_tit ht_top">-->
+            <!--불러온 연락처&nbsp;<em class="fc">4건</em>&nbsp;<span class="h4_txt">(신규연락처&nbsp;<em-->
+                <!--class="fc">2건</em>&nbsp;/&nbsp;중복 연락처&nbsp;<em class="fc">2건</em>)</span>중 저장 가능한-->
+            <!--연락처는 <em class="fc">4</em>건 입니다.-->
+        <!--</h4>-->
+
+        <div class="ft_btn">
+	        <button type="button" class="button_s check-all"><%= i18n.selectAll %></button>
+	        <button type="button" class="button_s remove-duplicate"><%= i18n.removeDuplicateContacts %></button>
+	        <button type="button" class="button_s contains-duplicate"><%= i18n.duplicatesIncluded %></button>
+            <select name="groups">
+            </select>
+            <input class="input_text input-groupname" type="text" placeholder="<%= i18n.newGroupName %>"/>
+        </div>
+        <div class="data_area">
+            <table class="address_call_tbl">
+                <colgroup>
+                    <col width="48"/>
+                    <col width="58"/>
+                    <col/>
+                    <col/>
+                    <col/>
+                </colgroup>
+                <thead>
+                <tr>
+                    <th scope="col" class="check"><input class="input_check toggle-contacts" type="checkbox"/><label
+                            class="mc-blind"><%= i18n.contactListSelectAll %></label></th>
+                    <th scope="col">
+                        <div class="inpd_div"><%= i18n.assortment %></div>
+                    </th>
+                    <th scope="col">
+                        <div class="inpd_div"><%= i18n.nameSortPrefix %></div>
+                    </th>
+                    <th scope="col">
+                        <div class="inpd_div"><%= i18n.email %></div>
+                    </th>
+                    <th scope="col">
+                        <div class="inpd_div"><%= i18n.phone %></div>
+                    </th>
+                </tr>
+                </thead>
+            </table>
+			<div class="address_call_lst">
+				<table class="address_call_tbl">
+					<colgroup>
+						<col width="48"/>
+							<col width="58"/>
+							<col/>
+							<col/>
+							<col/>
+							<col/>
+					</colgroup>
+					<tbody class="contact-import-list">
+						<!-- #contact-import-from-mail-item-template -->
+					</tbody>
+				</table>
+			</div>
+        </div>
+        <div class="btn_c">
+            <button type="button" class="b save-contacts"><%= i18n.save %></button>
+        </div>
+        <ul class="tip_list">
+            <li>
+                <span class="bul"></span><%= i18n.importCaution1 %>
+            </li>
+            <li>
+                <span class="bul"></span><%= i18n.importCaution2 %>
+            </li>
+            <li>
+                <span class="bul"></span><%= i18n.importCaution4 %>
+            </li>
+        </ul>
+    </div>
+</script>
+<script type="text/template" id="contact-import-from-mail-item-template">
+<%
+	if ((contact.ADDRESS_NAME && contact.ADDRESS_EMAIL) || (contact.ADDRESS_NAME && contact.ADDRESS_TEL)) {
+%>
+	<td class="check"><input class="input_check" type="checkbox" data-contact-dupliacted="<%- contact.contactDuplicated %>"/></td>
+<%
+	} else {
+%>
+	<td class="check"><input class="input_check" type="checkbox" disabled title="<%= i18n.noNameNotSaved %>"/></td>
+<%
+	}
+%>
+    <td>
+        <div class="inpd_div"><span class="inpd"><span class="inpd_a">
+<%
+	if (contact.contactDuplicated) {
+%>
+										<em class="fc"><%= i18n.duplicate %></em>
+<%
+	} else {
+%>
+										<em><%= i18n.New %></em>
+<%
+	}
+%>
+        </span></span></div>
+    </td>
+    <td class="alon_inp">
+        <div class="inpd_div">
+            <span class="inp_border">
+                <input class="input_txt" name="contact-name" type="text" maxlength="100" data-type="NAME" data-default="<%= i18n.blank %>" value="<%- contact.ADDRESS_NAME %>"/>
+            </span>
+        </div>
+    </td>
+    <td class="alon_inp">
+        <div class="inpd_div">
+            <span class="inp_border">
+                <input class="input_txt" name="contact-email" style="ime-mode:disabled;" type="text" maxlength="100" data-type="EMAIL" data-default="<%= i18n.blank %>" value="<%- contact.ADDRESS_EMAIL %>"/>
+            </span>
+        </div>
+    </td>
+    <td class="alon_inp">
+        <div class="inpd_div">
+            <span class="inp_border">
+                <input class="input_txt fail" name="contact-tel" style="ime-mode:disabled;" type="text" maxlength="100" data-type="TELEPHONE" data-default="<%= i18n.blank %>" value="<%- contact.ADDRESS_TEL %>"/></span>
+        </div>
+    </td>
+</script>
+<script type="text/template" id="contact-fileexport-layout-template">
+	<div class="mc-content_header sub">
+		<div class="mc-headFolder">
+			<strong class="mc-folderName"><%= i18n.exportContacts.headTitle %><span class="back_in"><em class="bar">│</em><a href="#contacts"><%= i18n.backToContact %></a></span></strong>
+		</div>
+	</div>
+	<!-- FileExport Views -->
+	<div class="address_pd ttab" id="" style="display: block;">
+	</div>
+</script>
+<script type="text/template" id="contact-fileexport-list-template">
+	<div class="service_art_box">
+		<div class="service_art mt0">
+			<strong class="sart_tit"><%= i18n.exportContacts.fileType %></strong>
+			<ul class="ftype_list">
+				<li class="top csv">
+					<input name="fileType" class="input_radio" id="file_csv" type="radio" checked="" value="csv"/><label
+						for="file_csv"><span class="ico">&nbsp;</span><strong class="tit">CSV</strong>&nbsp;<span
+						class="hipen">|</span>&nbsp;<span class="txt"><%= i18n.exportContacts.tip.csv %></span></label>
+				</li>
+				<li class="xls">
+					<input name="fileType" class="input_radio" id="file_excel" type="radio" value="xls"/><label
+						for="file_excel"><span class="ico">&nbsp;</span><strong class="tit">XLS</strong>&nbsp;<span
+						class="hipen">|</span>&nbsp;<span class="txt"><%= i18n.exportContacts.tip.excel %></span></label>
+				</li>
+				<li class="vcard">
+					<input name="fileType" class="input_radio" id="file_vcard" type="radio" value="vcard"/><label
+						for="file_vcard"><span class="ico">&nbsp;</span><strong class="tit">Vcard</strong>&nbsp;<span
+						class="hipen">|</span>&nbsp;<span class="txt"><%= i18n.exportContacts.tip.vcard %></span></label>
+				</li>
+			</ul>
+		</div>
+		<div class="service_art">
+			<strong class="sart_tit"><%= i18n.exportContacts.columnType %></strong>
+
+			<div class="sart_check">
+				<strong class="scheck_all mt0"><input class="input_check check_on" id="item_all" type="checkbox"/><label
+						for="item_all"><%= i18n.exportContacts.checkAll %></label></strong>
+				<ul class="scheck_list export-target-columns">
+					<li>
+						<input disabled="disabled" class="input_check" id="item_name" type="checkbox" checked="checked"
+							   value="name"/><label for="item_name"><%= i18n.exportContacts.columns.name %></label>
+					</li>
+					<li>
+						<input class="input_check" id="item_nickName" type="checkbox" value="nickName"/><label
+							for="item_nickName"><%= i18n.exportContacts.columns.nickname %></label>
+					</li>
+					<li>
+						<input class="input_check" id="item_tel" type="checkbox" checked="checked"
+							   value="telephone"/><label for="item_tel"><%= i18n.exportContacts.columns.phoneNumber %></label>
+					</li>
+					<li>
+						<input class="input_check" id="item_mail" type="checkbox" checked="checked"
+							   value="email"/><label for="item_mail"><%= i18n.exportContacts.columns.email %></label>
+					</li>
+					<li>
+						<input class="input_check" id="item_group" type="checkbox" value="groupName"/><label
+							for="item_group"><%= i18n.exportContacts.columns.groupName %></label>
+					</li>
+					<li>
+						<input class="input_check" id="item_birth" type="checkbox" value="birthday"/><label
+							for="item_birth"><%= i18n.exportContacts.columns.birthday %></label>
+					</li>
+					<li>
+						<input class="input_check" id="item_offic" type="checkbox" checked="checked"
+							   value="companyName"/><label for="item_offic"><%= i18n.exportContacts.columns.company %></label>
+					</li>
+					<li>
+						<input class="input_check" id="item_department" type="checkbox" value="departmentName"/><label
+							for="item_department"><%= i18n.exportContacts.columns.department %></label>
+					</li>
+					<li>
+						<input class="input_check" id="item_jobName" type="checkbox" value="jobName"/><label
+							for="item_jobName"><%= i18n.exportContacts.columns.jobTitle %></label>
+					</li>
+					<li>
+						<input class="input_check" id="item_addr" type="checkbox" value="address"/><label
+							for="item_addr"><%= i18n.exportContacts.columns.address %></label>
+					</li>
+					<li>
+						<input class="input_check" id="item_blog" type="checkbox" value="blog"/>
+						<label for="item_blog"><%= i18n.exportContacts.columns.homepage %></label>
+					</li>
+					<li>
+						<input class="input_check" id="item_msn" type="checkbox" value="messenger"/><label
+							for="item_msn"><%= i18n.exportContacts.columns.messenger %></label>
+					</li>
+					<li>
+						<input class="input_check" id="item_memo" type="checkbox" value="memo"/>
+						<label for="item_memo"><%= i18n.exportContacts.columns.note %></label>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<div class="service_art">
+			<strong class="sart_tit"><%= i18n.exportContacts.targetType %></strong>
+
+			<div class="sart_check">
+				<strong class="scheck_all mt0">
+					<input name="groupType" class="input_radio" id="groupType" type="radio" checked=""
+						   value="group"/><label for="groupType"><%= i18n.exportContacts.groupType %></label><span class="hipen">|</span>
+					<input class="input_check _selectAll _fileExportGroupAll" id="exportGroupCheckAll" type="checkbox"
+						   value="5400027297"/><label for="exportGroupCheckAll"><%= i18n.exportContacts.checkAll %></label>
+				</strong>
+				<ul class="scheck_list export-target-group-list">
+				</ul>
+				<strong class="scheck_all"><input name="groupType" disabled="disabled" class="input_radio"
+												  id="individualContacts" type="radio" value="contact"/><label
+						for="individualContacts"><%= i18n.exportContacts.individualContacts %></label>&nbsp;<span class="fc selected-export-contacts-count">(0<%= i18n.exportContacts.piece %>)</span></strong>
+
+				<div class="v_tip">
+					※ <span class="f11"><%= i18n.exportContacts.tip.individualContacts %></span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="btn_c">
+		<button type="button" id="exportContactsFile" class="b"><%= i18n.exportContacts.exportFile %></button>
+	</div>
+</script>
+<script type="text/template" id="export-layer-template">
+	<div class="layer_bd layer_mouseright">
+		<ul>
+			<li><a href="#" id="contactsExport"><%=i18n.Export%></a></li>
+			<li><a href="#" id="contactsMerge"><%=i18n.merge%></a></li>
+		</ul>
+	</div>
+</script>
+<script type="text/template" id="shared-group-template">
+	<!-- [D] 내연락처 선택시 .section_list에 fd_on 클래스 추가 -->
+	<h3 class="menu_tadd">
+		<span class="ml_t">
+			<a href="#shared-groups/all/contacts" class="ma">
+				<span class="myadrs"></span><%= i18n.shareGroup.sharedGroupItem %><!--<em class="0">36</em>-->
+			</a>
+		</span>
+		<a href="#shared-groups/settings" class="btn_group"><span><%= i18n.shareGroup.groupSettings %></span></a>
+	</h3>
+	<ul class="menu_add">
+		<!-- #shared-group-item-template -->
+	</ul>
+</script>
+<script type="text/template" id="shared-group-item-template">
+	<span class="ml_t">
+		<button type="button" class="btn_folder">
+			<span class="mc-blind">하위 메일함 열기/접기 토글</span>
+		</button>
+		<span class="ict folder"></span>
+		<span class="folder_name set_onp">
+			<a class="ma" href="#shared-groups/<%- sharedGroup.GROUP_IDX %>/contacts" value="<%- sharedGroup.GROUP_IDX %>"><%- sharedGroup.GROUP_NM %></a>
+			<em class="mc-cut"><%- sharedGroup.contactsCount == 0 ? '' : sharedGroup.contactsCount %></em>
+			<a href="#" class="more" id="editDisplay"><%= i18n.more %></a>
+		</span>
+	</span>
+	<ul style="display:none"><!-- group-item-template --></ul>
+</script>
+<script type="text/template" id="shared-content-header-template">
+	<div class="mc-headFolder" id="shareListHeadDiv" style="display:">
+		<strong class="mc-folderName">
+<%
+	if (!(paginator.params && paginator.params['search'])) {
+%>
+		<%- group.GROUP_NM %><span class="mc-newMail"><%- group.contactsCount %></span>
+<%
+	} else {
+		var search = decodeURIComponent(paginator.params['search']);
+%>
+			<%= i18n.results %><span class="mc-newMail"><%= i18n.resultsPrefix %><%- paginator.totalRecords %><%= i18n.resultsSuffix %></span> / <%- search %>
+<%
+	}
+%>
+		</strong>
+		<%
+			if (group.sharerName) {
+		%>
+			<strong class="mc-folderName">
+				(<%= i18n.shareGroup.sharer %> : <%- group.sharerName%>)
+			</strong>
+		<% } %>
+	</div>
+	<!-- SIMPLE SEARCH -->
+	<fieldset class="mc-msearch">
+		<legend><%= i18n.search.placeholder %></legend>
+		<input name="" type="text" class="mc-search" placeholder="<%= i18n.search.placeholder %>">
+		<input name="" type="button" class="mc-search_btn">
+	</fieldset>
+	<!-- //SIMPLE SEARCH -->
+</script>
+<script type="text/template" id="shared-group-contextmenu-template">
+	<ul>
+		<!--<li class="shared-compose-sms"><a href="#"><%= i18n.composeSms %></a></li>-->
+		<li class="shared-compose-mail"><a href="#"><%= i18n.composeMail %></a></li>
+		<li class="division">&nbsp;</li>
+		<li class="shared-add-contact-group"><a href="#"><%= i18n.shareGroup.menu.addContact %></a></li>
+		<li class="shared-hide-group"><a href="#"><%= i18n.shareGroup.menu.hide %></a></li>
+	</ul>
+</script>
+<script type="text/template" id="shared-contact-toolbar-template">
+	<div class="mc-buttonSet">
+		<button type="button" class="btn_selectAll"><%= i18n.shareGroup.selectAll %></button>
+		<button type="button" class="btn_addToContact" onClick="orgManagementLayer.style.left='275px'">
+			<%= i18n.shareGroup.menu.addContact %>
+			<span  class="ic_ext buExp"></span>
+		</button>
+	</div>
+	<div class="mc-buttonSet" id="servicePopup">
+		<button type="button" class="org_mail_btn"><span class="ic_ext ic_mail"></span><%= i18n.mail %></button>
+		<!--<button type="button"><span class="ic_ext ic_sms"></span><%= i18n.sms %></button>-->
+		<!--<button type="button"><span class="ic_ext ic_note"></span><%= i18n.note %></button>-->
+	</div>
+	<!--<div class="mc-rightTool">
+		<button type="button" class="ic"><span class="ic_ext ic_print"><%= i18n.print %></span></button>
+	</div>-->
+</script>
+<script type="text/template" id="shared-contact-filter-toolbar-template">
+	<h2 class="mc-blind"><%= i18n.contentTitle %></h2>
+	<h3 class="mc-blind"><%= i18n.categoryViewOption %></h3>
+	<ul class="word_box">
+		<li class="clk"><a href="#"><span><%= i18n.all %></span></a></li>
+		<li><a href="#"><span>ㄱ</span></a></li>
+		<li><a href="#"><span>ㄴ</span></a></li>
+		<li><a href="#"><span>ㄷ</span></a></li>
+		<li><a href="#"><span>ㄹ</span></a></li>
+		<li><a href="#"><span>ㅁ</span></a></li>
+		<li><a href="#"><span>ㅂ</span></a></li>
+		<li><a href="#"><span>ㅅ</span></a></li>
+		<li><a href="#"><span>ㅇ</span></a></li>
+		<li><a href="#"><span>ㅈ</span></a></li>
+		<li><a href="#"><span>ㅊ</span></a></li>
+		<li><a href="#"><span>ㅋ</span></a></li>
+		<li><a href="#"><span>ㅌ</span></a></li>
+		<li><a href="#"><span>ㅍ</span></a></li>
+		<li><a href="#"><span>ㅎ</span></a></li>
+		<li><a href="#"><span>A~Z</span></a></li>
+		<li><a href="#"><span>0~9</span></a></li>
+		<li><a href="#"><span><%= i18n.other %></span></a></li>
+		<li><a href="#"><span><%= i18n.noname %></span></a></li>
+	</ul>
+	<ul class="view_box">
+		<li><span class="rin"><a href="#" onClick="$('#sharedGroupTypeFilterLayer').toggle().attr('hidable',false)"><%= i18n.categoryView %></a></span><span class="bul"></span></li>
+		<li><span class="rin"><a href="#" onClick="$('#contactCustomFieldLayer').toggle().attr('hidable',false)"><%= i18n.exposureList %></a></span><span class="bul"></span></li>
+	</ul>
+</script>
+<script type="text/template" id="shared-add-contact-template">
+	<div class="add_layertbl" id="orgAddLayer" style="left: 73px; top: 82px;">
+		<div class="shared_ad" style="min-width: 277px;">
+			<!-- [D] 선택시 li에 클래스 selected 추가 -->
+			<ul class="mailBoxList b_scroll" style="max-height: 230px;"><!-- [D] 해상도에 따라 개수가 다르게 노출이 되는데 높이값은 노출개수 * 23 으로 계산하면 됨 -->
+				<!-- #shared-add-contact-item-template -->
+			</ul>
+			<div class="add_area">
+				<!-- #shared-add-contact-new-group-template -->
+			</div>
+			<div class="add_layer_btn">
+				<button class="add" type="button"><%= i18n.shareGroup.menu.addContact %></button><!-- [D] 조직도(tree구조) 일때 display:none -->
+			</div>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="shared-add-contact-item-template">
+	<input id="addLayer_<%- group.GROUP_IDX %>" type="checkbox" value="<%- group.GROUP_IDX %>">
+	<label for=addLayer_<%- group.GROUP_IDX %>" class="group-name"><%- group.GROUP_NM %></label>
+</script>
+<script type="text/template" id="shared-add-contact-add-area-template">
+	<span class="add_text">
+		<em>
+			<label class="mc-blind" for="newGroupAdd"><%= i18n.newGroupName %></label>
+			<input id="newGroupAdd" onfocus="" onblur="" type="text" value="" placeholder="<%= i18n.importGroupName %>">
+		</em>
+	</span>
+	<span class="add_btn"><button class="addrGroup_add" type="button"><%= i18n.shareGroup.add %></button></span>
+</script>
+<script type="text/template" id="shared-contact-item-template">
+<%
+	var identity = contact.ADDRESS_EMAIL ? contact.ADDRESS_EMAIL : '';
+	if ( identity.indexOf('@') > -1) {
+		identity = identity.substring(0,identity.indexOf('@'));
+	}
+	var isToday = function(date) {
+		if (!date) {
+			return false;
+		}
+		var now = new Date();
+		var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		if (today.getTime() == date.getTime()) {
+			return true;
+		}
+		return false;
+	};
+
+	var formatDate = function(M_TIME) {
+		var date, parsedDate = $.format.parseDate(M_TIME);
+		date = parsedDate && parsedDate.date;
+		if (isToday(date)) {
+			date = $.format.date(M_TIME, 'HH:mm:ss');
+		} else {
+			date = $.format.date(M_TIME, 'yy.MM.dd');
+		}
+		return date;
+	};
+%>
+	<td class="check">
+		<input class="inp_ch" type="checkbox" id="list_<%- contact.ADDRESS_IDX %>" value="<%- contact.ADDRESS_IDX %>" />
+		<label for="list_<%- contact.ADDRESS_IDX %>"><%- contact.ADDRESS_NAME %> <span><%= i18n.selectAnContact %></span></label>
+	</td>
+	<td class="star">
+		<a title="<%= i18n.item.stared %>" href="#" class="<%= contact.ADDRESS_IMPORTANT == 'Y' ? 'on' : '' %>"><%= i18n.item.stared %></a>
+	</td>
+	<td class="name">
+		<div title="<%- contact.ADDRESS_NAME %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><a href="#"><%- contact.ADDRESS_NAME || i18n.noname %></a></span></span>
+		</div>
+	</td>
+	<% if (user.NICKNAME_FLAG) { %>
+	<td>
+		<div title="<%- contact.ADDRESS_NICKNAME %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- contact.ADDRESS_NICKNAME %></span></span>
+		</div>
+	</td>
+	<% } %>
+	<% if (user.PHONE_FLAG) { %>
+	<td>
+		<div title="<%- contact.ADDRESS_CELLTEL %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- contact.ADDRESS_CELLTEL %></span></span>
+		</div>
+	</td>
+	<% } %>
+	<% if (user.EMAIL_FLAG) { %>
+	<td>
+		<div title="<%- contact.ADDRESS_EMAIL %>" class="inpd_div">
+			<span class="inpd">
+				<span class="inpd_a">
+					<a href="#compose?to=<%- contact.ADDRESS_EMAIL %>"><%- contact.ADDRESS_EMAIL %></a>
+				</span>
+			</span>
+		</div>
+	</td>
+	<% } %>
+	<% if (user.COMPANY_FLAG) { %>
+	<td>
+		<div title="<%- contact.ADDRESS_OFFICE %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- contact.ADDRESS_OFFICE %></span></span>
+		</div>
+	</td>
+	<% } %>
+	<% if (user.DEPARTMENT_FLAG) { %>
+	<td>
+		<div title="<%- contact.ADDRESS_DEPT %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- contact.ADDRESS_DEPT %></span></span>
+		</div>
+	</td>
+	<% } %>
+	<% if (user.DUTY_FLAG) { %>
+	<td>
+		<div title="<%- contact.ADDRESS_DUTY %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- contact.ADDRESS_DUTY %></span></span>
+		</div>
+	</td>
+	<% } %>
+	<% if (user.HOMEPAGE_FLAG) { %>
+	<td>
+		<div title="<%- contact.ADDRESS_HOMEURL %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- contact.ADDRESS_HOMEURL %></span></span>
+		</div>
+	</td>
+	<% } %>
+	<% if (user.GROUP_FLAG) { %>
+	<%
+		var GROUP_NM;
+		if (contact.GROUP_IDX !== 0) {
+			var groupModel = groupCollection.getGroupModel('GROUP_IDX',contact.GROUP_IDX);
+			if (groupModel) {
+				GROUP_NM = groupModel.get('GROUP_NM');
+			}
+		}
+	%>
+	<td>
+		<div title="<%- GROUP_NM %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- GROUP_NM || '' %></span></span>
+		</div>
+	</td>
+	<% } %>
+	<!--<% if (user.RECENT_FLAG) { %>-->
+	<!--<td>-->
+		<!--<div title="<%- contact.LAST_REGIST_DATE %>" class="inpd_div">-->
+			<!--<span class="inpd"><span class="inpd_a"><%- formatDate(contact.LAST_REGIST_DATE) %></span></span>-->
+		<!--</div>-->
+	<!--</td>-->
+	<!--<% } %>-->
+	<% if (user.MEMO_FLAG) { %>
+	<td>
+		<div title="<%- contact.LAST_REGIST_DATE %>" class="inpd_div">
+			<span class="inpd"><span class="inpd_a"><%- contact.ADDRESS_MEMO %></span></span>
+		</div>
+	</td>
+	<% } %>
+	<td class="modify">
+		<div class="inpd_div bdrnone">
+		</div>
+	</td>
+</script>
+<script type="text/template" id="shared-contact-list-template">
+	<div class="list_title">
+		<h3 class="mc-blind"><%= i18n.contactList %></h3>
+		<table id="listHead" style="display: table;">
+			<colgroup>
+				<col class="col_check" />
+				<col class="col_star" />
+				<col class="col_name" data-expose="none"/>
+				<% if (user.NICKNAME_FLAG) { %>
+				<col class="col_nickname"/>
+				<% } %>
+				<% if (user.PHONE_FLAG) { %>
+				<col class="col_phone" data-expose="none"/>
+				<% } %>
+				<% if (user.EMAIL_FLAG) { %>
+				<col class="col_mail" data-expose="none"/>
+				<% } %>
+				<% if (user.COMPANY_FLAG) { %>
+				<col class="col_company" data-expose="none"/>
+				<% } %>
+				<% if (user.DEPARTMENT_FLAG) { %>
+				<col class="col_department"/>
+				<% } %>
+				<% if (user.DUTY_FLAG) { %>
+				<col class="col_duty"/>
+				<% } %>
+				<% if (user.HOMEPAGE_FLAG) { %>
+				<col class="col_homepage"/>
+				<% } %>
+				<% if (user.GROUP_FLAG) { %>
+				<col class="col_group" data-expose="none"/>
+				<% } %>
+				<!--<% if (user.RECENT_FLAG) { %>-->
+				<!--<col class="col_recent"/>-->
+				<!--<% } %>-->
+				<% if (user.MEMO_FLAG) { %>
+				<col class="col_memo"/>
+				<% } %>
+				<col class="col_modify"/>
+			</colgroup>
+			<thead>
+			<tr>
+				<!-- 정렬 선택시 select 적용 -->
+				<!-- 오름차순일때 select_up 적용 -->
+				<th class="check" scope="col">
+					<input class="inp_ch" id="checkListAll" type="checkbox" />
+					<label for="checkListAll"><%= i18n.contactListSelectAll %></label>
+				</th>
+				<%
+				var url = function(sortField) {
+					var params = {
+						sortField : sortField,
+						sortOrder : paginator.sortOrder == 'ASC' ? 'DESC' : 'ASC',
+					};
+					return '#' + paginator.getURL(params);
+				};
+
+				var sortField = paginator.sortField;
+				var sortImportant,sortName,sortOffice,sortDept;
+
+				switch (sortField) {
+				case 'ADDRESS_IMPORTANT' :
+					sortImportant = paginator.sortOrder == 'ASC' ? 'select_up' : 'select';
+				break;
+				case 'ADDRESS_NAME' :
+					sortName = paginator.sortOrder == 'ASC' ? 'select_up' : 'select';
+				break;
+				case 'ADDRESS_OFFICE' :
+					sortOffice = paginator.sortOrder == 'ASC' ? 'select_up' : 'select';
+				break;
+				case 'ADDRESS_DEPT' :
+					sortDept = paginator.sortOrder == 'ASC' ? 'select_up' : 'select';
+				break;
+				}
+				%>
+				<th class="star <%- sortImportant %>" scope="col">
+					<a title="<%= i18n.staredContactSort%>" id="sortByImportant" class="on" href="<%- url('ADDRESS_IMPORTANT') %>"><%= i18n.staredContactSort %></a>
+				</th>
+				<th  class="<%- sortName %>"scope="col" id="selectName">
+					<div class="inpd_div">
+						<span class="ib"><a href="<%- url('ADDRESS_NAME') %>" id="sortByName"><%= i18n.nameSortPrefix %></a></span><span class="arrow"><%= i18n.nameSortSuffix %></span>
+					</div>
+				</th>
+				<% if (user.NICKNAME_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.nickname %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.PHONE_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.phone %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.EMAIL_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.email %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.COMPANY_FLAG) { %>
+				<th class="<%- sortOffice %>" scope="col" id="selectCompany">
+					<div class="inpd_div">
+						<span class="ib"><a href="<%- url('ADDRESS_OFFICE') %>" id="sortByCompany"><%= i18n.companySortPrefix %></a></span><span class="arrow"><%= i18n.companySortSuffix %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.DEPARTMENT_FLAG) { %>
+				<th class="<%- sortDept %>"  scope="col">
+					<div class="inpd_div">
+						<span class="ib"><a href="<%- url('ADDRESS_DEPT') %>" id="sortByDept"><%= i18n.departmentSortPrefix %></a></span><span class="arrow"><%= i18n.departmentSortSuffix %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.DUTY_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.duty %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.HOMEPAGE_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.homepage %></span>
+					</div>
+				</th>
+				<% } %>
+				<% if (user.GROUP_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.group %></span>
+					</div>
+				</th>
+				<% } %>
+				<!--<% if (user.RECENT_FLAG) { %>-->
+				<!--<th scope="col">-->
+					<!--<div class="inpd_div">-->
+						<!--<span class="ib"><%= i18n.recent %></span>-->
+					<!--</div>-->
+				<!--</th>-->
+				<!--<% } %>-->
+				<% if (user.MEMO_FLAG) { %>
+				<th scope="col">
+					<div class="inpd_div">
+						<span class="ib"><%= i18n.memo %></span>
+					</div>
+				</th>
+				<% } %>
+				<th scope="col"></th>
+			</tr>
+			</thead>
+		</table>
+	</div>
+	<div class="list_area" id="defaultArea" style="display:">
+		<div class="scroll_zoom">
+			<table>
+				<caption class="mc-blind"><%= i18n.title.caption %></caption>
+				<colgroup>
+					<col class="col_check" />
+					<col class="col_star" />
+					<col class="col_name" data-expose="none"/>
+					<% if (user.NICKNAME_FLAG) { %>
+					<col class="col_nickname"/>
+					<% } %>
+					<% if (user.PHONE_FLAG) { %>
+					<col class="col_phone" data-expose="none"/>
+					<% } %>
+					<% if (user.EMAIL_FLAG) { %>
+					<col class="col_mail" data-expose="none"/>
+					<% } %>
+					<% if (user.COMPANY_FLAG) { %>
+					<col class="col_company" data-expose="none"/>
+					<% } %>
+					<% if (user.DEPARTMENT_FLAG) { %>
+					<col class="col_department"/>
+					<% } %>
+					<% if (user.DUTY_FLAG) { %>
+					<col class="col_duty"/>
+					<% } %>
+					<% if (user.HOMEPAGE_FLAG) { %>
+					<col class="col_homepage"/>
+					<% } %>
+					<% if (user.GROUP_FLAG) { %>
+					<col class="col_group" data-expose="none"/>
+					<% } %>
+					<!--<% if (user.RECENT_FLAG) { %>-->
+					<!--<col class="col_recent"/>-->
+					<!--<% } %>-->
+					<% if (user.MEMO_FLAG) { %>
+					<col class="col_memo"/>
+					<% } %>
+					<col class="col_modify" style="width:36px;" />
+				</colgroup>
+				<thead class="mc-blind">
+				<tr>
+					<th scope="col"><%= i18n.title.select %></th>
+					<th scope="col"><%= i18n.title.stared %></th>
+					<th scope="col"><%= i18n.title.name %></th>
+					<% if (user.NICKNAME_FLAG) { %>
+						<th scope="col"><%= i18n.title.nickname %></th>
+					<% } %>
+					<% if (user.PHONE_FLAG) { %>
+						<th scope="col"><%= i18n.title.phone %></th>
+					<% } %>
+					<% if (user.EMAIL_FLAG) { %>
+						<th scope="col"><%= i18n.title.email %></th>
+					<% } %>
+					<% if (user.COMPANY_FLAG) { %>
+						<th scope="col"><%= i18n.title.company %></th>
+					<% } %>
+					<% if (user.DEPARTMENT_FLAG) { %>
+						<th scope="col"><%= i18n.title.department %></th>
+					<% } %>
+					<% if (user.DUTY_FLAG) { %>
+						<th scope="col"><%= i18n.title.duty %></th>
+					<% } %>
+					<% if (user.HOMEPAGE_FLAG) { %>
+						<th scope="col"><%= i18n.title.homepage %></th>
+					<% } %>
+					<% if (user.GROUP_FLAG) { %>
+						<th scope="col"><%= i18n.title.group %></th>
+					<% } %>
+					<!--<% if (user.RECENT_FLAG) { %>-->
+						<!--<th scope="col"><%= i18n.title.recent %></th>-->
+					<!--<% } %>-->
+					<% if (user.MEMO_FLAG) { %>
+						<th scope="col"><%= i18n.title.memo %></th>
+					<% } %>
+					<th scope="col"></th>
+				</tr>
+				</thead>
+				<tbody>
+				<!-- #contact-item-template -->
+				</tbody>
+			</table>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="shared-contact-pagination-template">
+<%
+var info = paginator.info();
+	var url = function(page) {
+	return '#' + paginator.getURL({page:page});
+};
+%>
+<% if (info.firstPage != info.currentPage) { %>
+	<a title="<%= i18n.firstPage %>" class="pre_end" href="<%= url(info.firstPage) %>">
+<% } else { %>
+	<a title="<%= i18n.firstPage %>" class="pre_end_n" href="<%= url(info.firstPage) %>">
+<% } %>
+<span class="mc-blind"><%= i18n.firstPage %></span>
+</a>
+
+<% if (info.currentPage > info.firstPage) { %>
+	<a title="<%= i18n.previousPage %>" class="pre" href="<%= url(info.previous) %>">
+<% } else { %>
+	<a title="<%= i18n.previousPage %>" class="pre_n" href="<%= url(info.currentPage) %>">
+<% } %>
+<span class="mc-blind"><%= i18n.previousPage %></span>
+</a>
+
+<span class="mc-paging_num">
+<% _.each(info.pageSet, function(page) { %>
+	<% if (info.currentPage == page) { %>
+		<strong><%= page %></strong>
+	<% } else { %>
+		<a href="<%= url(page) %>"><%= page %></a>
+	<% } %>
+<% }); %>
+</span>
+
+<% if (info.currentPage < info.totalPages) { %>
+	<a title="<%= i18n.nextPage %>" class="next" href="<%= url(info.next) %>">
+<% } else { %>
+	<a title="<%= i18n.nextPage %>" class="next_n" href="<%= url(info.currentPage) %>">
+<% } %>
+<span class="mc-blind"><%= i18n.nextPage %></span>
+</a>
+
+<% if (info.lastPage != info.currentPage) { %>
+	<a title="<%= i18n.lastPage %>" class="next_end" href="<%= url(info.lastPage) %>">
+<% } else { %>
+	<a title="<%= i18n.lastPage %>" class="next_end_n" href="<%= url(info.lastPage) %>">
+<% } %>
+	<span class="mc-blind"><%= i18n.lastPage %></span>
+	</a>
+</script>
+<script type="text/template"
+	id="shared-contact-category-filter-template">
+	<div class="layer_bd layer_mouseright">
+		<ul>
+			<li><a href="#" class="category-important" ><%= i18n.categoryType.important %></a></li>
+			<li><a href="#" class="category-tel"><%= i18n.categoryType.tel %></a></li>
+			<li><a href="#" class="category-mail"><%= i18n.categoryType.mail %></a></li>
+			<li><a href="#" class="category-corp"><%= i18n.categoryType.corp %></a></li>
+			<li><a href="#" class="category-homepage"><%= i18n.categoryType.homepage %></a></li>
+			<!--<li><a href="#">최근연락</a></li>-->
+			<li><a href="#" class="category-memo"><%= i18n.categoryType.memo %></a></li>
+		</ul>
+	</div>
+</script>
+<script type="text/template" id="shared-group-settings-layout-template">
+	<!-- CONTENT HEAD -->
+	<div class="mc-content_header">
+		<!-- HEAD LIST & VIEW -->
+		<!-- #shared-group-settings-header-template -->
+		<!-- //HEAD LIST & VIEW -->
+	</div>
+	<div class="scroll_frame">
+		<div class="scroll_zoom">
+			<div class="list_area group_set" id="share_group" style="display:">
+				<!-- #shared-group-settings-content-template -->
+			</div>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="shared-group-settings-header-template">
+	<div class="mc-headFolder" id="listHeadDiv" style="display:">
+		<strong class="mc-folderName"><%= i18n.shareGroup.settings.title %></strong>
+	</div>
+</script>
+<script type="text/template" id="shared-group-settings-content-template">
+	<div class="scroll_zoom">
+		<div class="m_share_group">
+			<div class="ft_btn">
+				<button type="button" class="shared-group-settiings-selectAll"><%= i18n.shareGroup.settings.selectAll %></button>
+				<button type="button" class="shared-group-settiings-hide"><%= i18n.shareGroup.settings.hide %></button>
+				<button type="button" class="shared-group-settiings-unhide"><%= i18n.shareGroup.settings.unhide %></button>
+			</div>
+			<table class="address_call_tbl">
+				<colgroup>
+					<col width="48"/>
+					<col width="167"/>
+					<col />
+					<col width="92"/>
+				</colgroup>
+				<thead>
+				<tr>
+					<th class="check" scope="col"><input class="input_check top_checkbox" type="checkbox" /></th>
+					<th scope="col"><div class="inpd_div"><span class="ib"><%= i18n.shareGroup.settings.colGroup %></span></div></th>
+					<th scope="col"><div class="inpd_div"><span class="ib"><%= i18n.shareGroup.settings.colDescription %></span></div></th>
+					<th class="m_d" scope="col"><div class="inpd_div"><span class="ib"><%= i18n.shareGroup.settings.hide %></span></div></th>
+				</tr>
+				</thead>
+				<tbody>
+				<!--
+				# 숨김 시 숨김해제 텍스트 활성
+				 -->
+				<!-- #shared-group-settings-item-template -->
+				</tbody>
+			</table>
+			<div class="btn_rela">
+				<div class="btn_c">
+					<button class="b share-group-settings-save" type="button"><%= i18n.shareGroup.settings.confirm %></button>
+					<button Class="share-group-settings-cancel" type="button"><%= i18n.shareGroup.settings.cancel %></button>
+				</div>
+				<div class="btn_l ico_btn">
+					<button title="<%= i18n.shareGroup.settings.top %>" type="button" class="mv_top"><span class="ic"></span><%= i18n.shareGroup.settings.top %></button>
+					<button title="<%= i18n.shareGroup.settings.up %>" type="button" class="mv_up"><span class="ic"></span><%= i18n.shareGroup.settings.up %></button>
+					<button title="<%= i18n.shareGroup.settings.down %>" type="button" class="mv_dw"><span class="ic"></span><%= i18n.shareGroup.settings.down %></button>
+					<button title="<%= i18n.shareGroup.settings.bottom %>" type="button" class="mv_btm"><span class="ic"></span><%= i18n.shareGroup.settings.bottom %></button>
+				</div>
+			</div>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="shared-group-settings-item-template">
+<%
+	var configModel = configCollection.getConfigModel('GROUP_IDX',group.GROUP_IDX);
+	var GROUP_VISIBLE = configModel && configModel.get('GROUP_VISIBLE');
+%>
+	<td class="check"><input class="input_check" type="checkbox" value="<%- group.GROUP_IDX %>"/></td>
+	<td><div class="inpd_div"><span class="inpd"><span class="inpd_a"><%- group.GROUP_NM %></span></span></div></td>
+	<td><div class="inpd_div"><span class="inpd"><span class="inpd_a"><%- group.GROUP_STMT %></span></span></div></td>
+	<td class="m_d">
+		<div class="inpd_div">
+<%
+	if (GROUP_VISIBLE === 1) {
+%>
+		<a href="#"><%= i18n.shareGroup.settings.hide %></a>
+<% } else { %>
+		<a href="#"><%= i18n.shareGroup.settings.unhide %></a>
+<% } %>
+		</div>
+	</td>
+</script>
+<script type="text/template" id="share-settings-layout-template">
+	<div id="shareGroupHeader" class="pop_header">
+		<!-- #share-settings-header-template -->
+	</div>
+	<div id="container" class="pop_content">
+		<!-- ADDRESS LIST FUNCTION -->
+		<div class="content_wrap">
+			<!-- 그룹+조직도 리스트 -->
+			<div class="scr_area">
+				<div class="tree_group">
+					<!-- ORG TREE -->
+					<fieldset class="mc-orgTree" style="height:100%">
+						<legend>조직도</legend>
+						<div id="groupOrgTreeWrapping" class="treeWrapping">
+							<!-- #share-group-org-root-template -->
+						</div>
+					</fieldset>
+					<!-- //ORG TREE -->
+				</div>
+			</div>
+			<!-- // 그룹+조직도 리스트 -->
+			<!-- 선택리스트 -->
+			<div class="list">
+				<div class="search_bar" id="shareGroupUserSearch">
+					<!-- share-settings-search-template -->
+					<!-- [D] 검색결과시 노출 -->
+				</div>
+				<div class="check_all_form">
+					<input type="checkbox" name="all_check" id="all_check"/>
+					<label for="all_check"><%= i18n.shareSettings.selectAll %></label>
+				</div>
+				<div class="addr_list" id="shareGroupUserList">
+					<!-- #share-group-org-user-list-template -->
+				</div>
+				<div class="page_ctrl">
+					<!-- #share-settings-pagination-template -->
+				</div>
+				<div class="btn_ctrl">
+					<button type="button" class="btn_add to"><span><%= i18n.shareSettings.addRecipients %></span></button>
+				</div>
+			</div>
+			<!-- // 선택리스트 -->
+			<!-- 받는이 리스트 -->
+			<div class="toitem">
+				<div class="field_to">
+					<h3><%= i18n.shareSettings.shareRecipients %> <em class="cnt share-group-recipients-count">0</em></h3>
+
+					<div class="addr_list" id="share_people">
+						<!-- share-settings-user-list-template  -->
+					</div>
+					<div class="btn_ctrl">
+						<button type="button" class="btn_remove"><span><%= i18n.shareSettings.removeRecipients %></span></button>
+					</div>
+				</div>
+			</div>
+			<!-- // 받는이 리스트 -->
+		</div>
+		<!-- // ADDRESS LIST FUNCTION -->
+	</div>
+	<div id="shareGroupFooter" class="pop_footer">
+		<!-- share-settings-footer-template -->
+	</div>
+</script>
+<script type="text/template" id="share-settings-header-template">
+	<h1><span><%- group.GROUP_NM %></span>
+<%
+	if (group.sharedCount > 0) {
+%>
+	 <span class="ic_ext sharing"><span><%= i18n.shareSettings.sharing %></span></span></h1>
+<%
+	}
+%>
+	<a href="#" id="txt_pop_close"><span class="lay_close"><%= i18n.shareSettings.close %></span></a>
+</script>
+<script type="text/template" id="share-settings-footer-template">
+	<div class="ft_in">
+		<div class="function_area">
+			<button type="button" class="b share-user-group-save"><%= i18n.shareSettings.save %></button>
+			<button type="button" class="share-user-group-cancel"><%= i18n.shareSettings.close %></button>
+		</div>
+	</div>
+</script>
+<script type="text/template" id="share-org-root-template">
+	<!-- D: 최상위 카테고리[회사] -->
+	<span class="orgCorp">
+		<!--<input name="" type="checkbox" value="" id="topParentNode">-->
+		<label for="topParentNode" id="topParentNode"><%- entry.attributes.cn[0]  %></label>
+	</span>
+	<!-- D:
+		# .orgNode_p 펼침 연결자 PLUS - .fld 폴더 아이콘 담힘
+		# .orgNode_m 닫힘 연결자 Minus - .fld 폴더 아이콘 열림
+		# .orgNode_pBott 최하단 펼침 연결자
+		# .orgNode_mBott 최하단 닫힘 연결자
+		# .orgNode_join 연결자 - .fld 닫힘폴더
+		# .orgNode_elbow 최하단 연결자 - .fld 닫힘폴더
+	-->
+	<!-- ORG DEPTH 1 START -->
+	<ul id="shareOrgContainer" class="orgDepth1"></ul>
+	<!-- ORG DEPTH 1 END -->
+</script>
+<script type="text/template" id="share-org-entry-template">
+<%
+	if (_.contains(entry.attributes.objectClass, 'groupOfNames')) {
+		// entry.urlRoot : 'domain.com/groups'
+		var id = 'share-org-group-' + entry.id;
+		var cn = entry.attributes.cn && entry.attributes.cn[0];
+%>
+		<a href="#" class="orgNode"><em>└</em></a>
+		<input name="" type="checkbox" class="tchk" id="<%- id %>">
+		<label for="<%- id %>" class="lbtxt"><%- cn %></label>
+		<span class="fld">folder</span>
+		<ul  class="org-entries" style="display:none"></ul>
+<% } %>
+</script>
+<script type="text/template" id="share-org-user-list-template">
+	<ul>
+		<!-- #share-group-org-user-item-template -->
+	</ul>
+</script>
+<script type="text/template" id="share-org-user-item-template">
+<%
+	if (_.contains(entry.attributes.objectClass, 'groupOfNames')) {
+		// entry.urlRoot : 'domain.com/groups'
+		var id = 'share-org-group-list-'  + entry.id;
+		var cn = entry.attributes.cn && entry.attributes.cn[0];
+%>
+	<input type="checkbox"
+		   value="<%- cn %>" id="<%- id %>"
+		   name="<%- id %>"/>
+	<label for="<%- id %>">
+		$<%- cn %>
+	</label>
+<%
+	} else {
+		// entry.urlRoot : 'domain.com/groups/123/users/uid'
+		var paths = entry.urlRoot.split('/');
+		var emailId = entry.attributes.mail[0].slice(0, entry.attributes.mail[0].indexOf('@'));
+		var id = 'share-org-person-list-' + emailId;
+		var cn = entry.attributes.cn && entry.attributes.cn[0];
+%>
+	<input type="checkbox"
+		   value="<%- cn %>" id="<%- id %>"
+		   name="<%- id %>"/>
+	<label for="<%- id %>">
+	"<%- cn %>"&lt;<%- entry.attributes.mail %>&gt;
+		</label>
+<% } %>
+</script>
+<script type="text/template" id="share-settings-search-template">
+	<div class="result_cnt" style="display:none"><span><%= i18n.shareSettings.searchResults %> <em
+		class="cnt">25</em></span></div>
+	<div class="search_form">
+		<span class="ipt_wrap">
+		<label for="addr_search_keyword" class="mc-blind"><%= i18n.shareSettings.searchMembers %></label>
+		<input type="text" onfocus="this.value='';" onblur="if(this.value == ''){this.value='<%= i18n.shareSettings.searchMembers %>'}"
+		   class="ipt" placeholder="<%= i18n.shareSettings.searchMembers %>"/>
+		<button type="submit" class="btn_submit"><span class="mc-blind"><%= i18n.shareSettings.search %></span></button>
+	</span>
+	</div>
+</script>
+<script type="text/template" id="share-settings-user-list-template">
+	<ul>
+		<!-- share-settings-user-item-template -->
+	</ul>
+</script>
+<script type="text/template" id="share-settings-user-item-template">
+<%
+	var id = entry.SHARE_EMAIL || entry.SHARE_NAME;
+	if (entry.type && entry.type == 'group' || !entry.SHARE_EMAIL) {
+		id = 'share-group-recipients-' + id.slice(id.indexOf('$') + 1);
+%>
+	<input type="checkbox" id="<%- id %>" class="share-recipient-item"/>
+	<label for="<%- id %>"><%- '$' + entry.SHARE_NAME %></label>
+<%
+	} else {
+		id = 'share-group-recipients-' + id.slice(0,id.indexOf('@'));
+%>
+	<input type="checkbox" id="<%- id %>" class="share-recipient-item"/>
+	<label for="<%- id %>"><%- '"' + entry.SHARE_NAME + '"' + '<' + entry.SHARE_EMAIL + '>' %></label>
+<%
+	}
+%>
+</script>
+<script type="text/template" id="share-settings-pagination-template">
+	<span class="page_dir">
+		<label for="current_page" class="mc-blind"><%= i18n.shareSettings.goToList%></label>
+		<span><%- info.currentPage %> / <%- info.totalPages %></span>
+	</span>
+	<a href="#" class="btn_first"><span class="mc-blind"><%= i18n.firstPage %></span></a>
+	<a href="#" class="btn_prev"><span class="mc-blind"><%= i18n.previousPage %></span></a>
+	<a href="#" class="btn_next"><span class="mc-blind"><%= i18n.nextPage %></span></a>
+	<a href="#" class="btn_last"><span class="mc-blind"><%= i18n.lastPage %></span></a>
+	<!-- # disabled #
+	  btn_first : btn_first_n
+	  btn_prev : btn_prev_n
+	  btn_next : btn_next_n
+	  btn_last : btn_last_n
+	-->
+</script>
+<script type="text/template" id="contact-overlay-template">
+	<div id="contacts-overlay" style="background: black; left: 0px; top: 0px; width: 100%; height: 100%; position: absolute; z-index: 2015; opacity: 0.5;">
+		<div class="contacts-loading-layer" style="text-align: center; position: absolute; z-index: 2016;">
+			<span style='background: url("img/loading_span_bg.png") no-repeat left top; padding-left: 2px; display: inline-block;'>
+				<span style='background: url("img/loading_span_bg.png") no-repeat right -49px; padding-right: 2px; display: inline-block;'>
+					<span style='background: url("img/loading_span_bg.png") repeat-x left -98px; padding: 0px 18px 0px 9px; color: white; line-height: 39px; display: inline-block;'>
+						<img style="margin-right: 10px; vertical-align: middle;" src="img/ico_ld_cm.gif">
+						<%= i18n.overlay.leadingLoading %>
+						<strong><%= i18n.overlay.contacts %></strong>
+						<%= i18n.overlay.trailingLoading %>
+					</span>
+				</span>
+			</span>
+		</div>
+		<div class="contacts-processing-layer" style="text-align: center; position: absolute; z-index: 2016;">
+			<span style='background: url("img/loading_span_bg.png") no-repeat left top; padding-left: 2px; display: inline-block;'>
+				<span style='background: url("img/loading_span_bg.png") no-repeat right -49px; padding-right: 2px; display: inline-block;'>
+					<span style='background: url("img/loading_span_bg.png") repeat-x left -98px; padding: 0px 18px 0px 9px; color: white; line-height: 39px; display: inline-block;'>
+						<img style="margin-right: 10px; vertical-align: middle;" src="img/ico_ld_cm.gif">
+						<%= i18n.overlay.leadingProcessing %>
+						<strong><%= i18n.overlay.contacts %></strong>
+						<%= i18n.overlay.trailingProcessing %>
+					</span>
+				</span>
+			</span>
+		</div>
+	</div>
+</script>��x�p      c�[c�[E6Mcc�U�   ~    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app/contact/contact-template.html?v=202301181454 necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"192339-1664418074000"
+Last-Modified: Thu, 29 Sep 2022 02:21:14 GMT
+Content-Type: text/html;charset=UTF-8
+Content-Length: 192339
+Date: Wed, 01 Feb 2023 07:57:14 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"192339-1664418074000"
+Last-Modified: Thu, 29 Sep 2022 02:21:14 GMT
+Content-Type: text/html;charset=UTF-8
+Content-Length: 192339
+Date: Wed, 01 Feb 2023 07:57:14 GMT
+ ctid 1 uncompressed-len 0 net-response-time-onstart 20 net-response-time-onstop 41  �S

@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+
+
+<launch>
+  
+
+  <!-- init ouster-->
+  <include file="$(find ouster_ros)/ouster.launch"/>
+  <!-- init ouster tf-->
+  <!--<node pkg="tf" type="static_transform_publisher" name="ouster_broadcaster" args="1 0 0 0 0 0 0 1 base_link os_sensor 100" />-->
+
+  <!-- init ntrip,gps,imu,gpstf-->
+  <include file="$(find ntrip_ros)/launch/imuntrip.launch"/>
+  
+  <!-- init ekf,navsat tf-->
+  <include file="$(find robot_localization)/launch/lote.launch"/>
+
+  
+
+ 
+  
+  <!-- Fake laser-->
+  <include file="$(find rover_2dnav)/launch/include/pointcloud_to_laserscan_mip.launch"/>
+
+  <!-- Run Google Carographer to create 2-D Occupancy Grid Map-->
+  <include file="$(find rover_2dnav)/cartographer_ros/launch/mipcarto_2d.launch"/>
+
+  
+
+  
+
+</launch>

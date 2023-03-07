@@ -1,0 +1,345 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+
+<meta name="google-site-verification" content="CjkdY6BqKWAVmQ78_iSq6J7ZZ9AoL7-CjFVBYGg9FU4" />
+<link rel="shortcut icon" href="/custom/favicon.ico" type="image/ico" />
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" />
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/custom/js/sorttable.js"></script>
+<script type="text/javascript" src="/custom/libraries/jquery.min.js"></script>                         
+<script type="text/javascript" src="/custom/js/seesaw.js"></script> 
+<script type="text/javascript" src="/custom/js/rosversion.js"></script> 
+<!--script type="text/javascript" src="/custom/libraries/RGraph.common.core.js" ></script Used for metrics only, should be conditional, not at the top-->
+<!--script type="text/javascript" src="/custom/libraries/RGraph.bar.js" ></script same as above -->
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17821189-2']);
+  _gaq.push(['_setDomainName', 'wiki.ros.org']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<meta name="robots" content="index,nofollow">
+
+<title>ros_canopen - ROS Wiki</title>
+<script type="text/javascript" src="/moin_static197/common/js/common.js"></script>
+
+<script type="text/javascript">
+<!--
+var search_hint = "Search";
+//-->
+</script>
+
+
+<link rel="stylesheet" type="text/css" charset="utf-8" media="all" href="/moin_static197/rostheme/css/common.css">
+<link rel="stylesheet" type="text/css" charset="utf-8" media="screen" href="/moin_static197/rostheme/css/screen.css">
+<link rel="stylesheet" type="text/css" charset="utf-8" media="print" href="/moin_static197/rostheme/css/print.css">
+<link rel="stylesheet" type="text/css" charset="utf-8" media="projection" href="/moin_static197/rostheme/css/projection.css">
+
+<!-- css only for MS IE6/IE7 browsers -->
+<!--[if lt IE 8]>
+   <link rel="stylesheet" type="text/css" charset="utf-8" media="all" href="/moin_static197/rostheme/css/msie.css">
+<![endif]-->
+
+
+
+
+<link rel="canonical" href="http://wiki.ros.org/ros_canopen" />
+
+<link rel="Start" href="/Documentation">
+<link rel="Alternate" title="Wiki Markup" href="/ros_canopen?action=raw">
+<link rel="Alternate" media="print" title="Print View" href="/ros_canopen?action=print">
+<link rel="Appendix" title="ros_canopen.png" href="/ros_canopen?action=AttachFile&amp;do=view&amp;target=ros_canopen.png">
+<link rel="Appendix" title="ros_canopen.svg" href="/ros_canopen?action=AttachFile&amp;do=view&amp;target=ros_canopen.svg">
+<link rel="Appendix" title="ros_canopen_arch.svg" href="/ros_canopen?action=AttachFile&amp;do=view&amp;target=ros_canopen_arch.svg">
+<link rel="Appendix" title="ros_canopen_structure.png" href="/ros_canopen?action=AttachFile&amp;do=view&amp;target=ros_canopen_structure.png">
+<link rel="Appendix" title="rqt_arm.png" href="/ros_canopen?action=AttachFile&amp;do=view&amp;target=rqt_arm.png">
+<link rel="Search" href="/FindPage">
+<link rel="Index" href="/TitleIndex">
+<link rel="Glossary" href="/WordIndex">
+<link rel="Help" href="/HelpOnFormatting">
+</head>
+
+<body  lang="en" dir="ltr">
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-5950817-2");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+
+<script type="text/javascript">
+<!--// Initialize search form
+var f = document.getElementById('searchform');
+if(f) f.getElementsByTagName('label')[0].style.display = 'none';
+var e = document.getElementById('searchinput');
+if(e) {
+  searchChange(e);
+  searchBlur(e);
+}
+
+function handleSubmit() {
+  var f = document.getElementById('searchform');
+  var t = document.getElementById('searchinput');
+  var r = document.getElementById('real_searchinput');
+
+  //alert("handleSubmit "+ t.value);
+  if(t.value.match(/review/)) {
+    r.value = t.value;
+  } else {
+    //r.value = t.value + " -PackageReviewCategory -StackReviewCategory -M3Review -DocReview -ApiReview -HelpOn -BadContent -LocalSpellingWords";
+    r.value = t.value + " -PackageReviewCategory -StackReviewCategory -DocReview -ApiReview";
+  }
+  //return validate(f);
+}
+//-->
+</script>
+
+<div id="dpage">
+  <div id="dpage-inner">
+    <div id="header"><div id="topnav">
+
+<!-- Alert box -->
+<!-- To enable/disable the alert box, uncomment/comment the block below and update the content below the button. -->
+<!--
+    <div class="alert alert-info alert-dismissable" style="text-align: center;">
+<script>
+jQuery(function( $ ){
+    alert_box_name = 'roswiki_roscon'
+    state = localStorage.getItem(alert_box_name);
+    if (!state) {
+      localStorage.setItem(alert_box_name, 'open');
+    }
+    state = localStorage.getItem(alert_box_name);
+    if (state == 'closed') {
+        $( '#topnav .alert' ).hide();
+    }
+    $( '.close' ).click(function () {
+	console.log('in .close.click');
+        localStorage.setItem(alert_box_name, 'closed');
+        $( '#topnav .alert' ).hide();
+  });
+});
+</script>
+      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+      <a href="http://roscon.ros.org">ROSCon 2017</a> will be in Vancouver, September 21-22! <br>
+      The last few years have sold out: register now and take advantage of discounted hotel rates</a>.
+    </div>
+-->
+<!-- End Alert box -->
+
+      <table id="topnav-table">
+        <tr>
+          <td width="300" valign="top"><a href="/"><img border="0" src="/custom/images/ros_org.png" alt="ros.org" width="238" height="51"/></a></td>
+          <td width="500" valign="middle">
+            <a href="http://www.ros.org/about-ros">About</a>
+            |
+            <a href="/Support">Support</a>
+            |
+            <a href="http://discourse.ros.org/">Discussion Forum</a>
+            |
+            <a href="http://index.ros.org/">Index</a>
+            |
+            <a href="http://status.ros.org/">Service Status</a>
+            |
+            <a href="http://answers.ros.org/">Q&A answers.ros.org</a>
+          </td>
+
+      </tr>
+      <tr>
+        <td colspan="3" height="53" width="1024"><nobr><img src="/custom/images/menu_left.png" width="17" height="53" alt=""/><a href="/"><img
+        border="0" src="/custom/images/menu_documentation.png" width="237" height="53" alt="Documentation" /></a><img
+        src="/custom/images/menu_spacer.png" width="69" height="53" /><a href="https://index.ros.org/packages"><img border="0"
+        src="/custom/images/menu_browse_software.png" width="268" height="53" alt="Browse Software" /></a><img
+        src="/custom/images/menu_spacer.png" width="69" height="53" /><a href="https://discourse.ros.org/c/general"><img border="0"
+        src="/custom/images/menu_news.png" width="84" height="53" alt="News" /></a><img
+        src="/custom/images/menu_spacer.png" width="69" height="53" /><a href="/ROS/Installation"><img border="0"
+        src="/custom/images/menu_download.png" width="151" height="53" alt="Download" /></a><img
+        src="/custom/images/menu_right.png" width="60" height="53" /></nobr></td>
+
+      </tr>
+    </table> <!-- topnav-table -->
+
+    </div> <!-- /#topav -->
+  </div> <!-- /#header -->
+
+
+<div id="header2">
+
+<ul id="pagelocation">
+<li><a class="backlink" href="/action/fullsearch/ros_canopen?action=fullsearch&amp;context=180&amp;value=linkto%3A%22ros_canopen%22" rel="nofollow" title="Click to do a full-text search for this title">ros_canopen</a></li>
+</ul>
+
+<div id="locationline">
+</div>
+</div>
+
+<div id="sidebar">
+<h4>ROS 2 Documentation</h4><p>The ROS Wiki is for ROS 1. Are you using ROS 2 (Dashing/Foxy/Rolling)? <a href="http://docs.ros.org/en/rolling/">Check out the ROS 2 Documentation</a></p>
+<div class="sidepanel">
+<h1>Wiki</h1>
+
+<ul id="navibar">
+<li class="wikilink"><a href="/Distributions">Distributions</a></li><li class="wikilink"><a href="/ROS/Installation">ROS/Installation</a></li><li class="wikilink"><a href="/ROS/Tutorials">ROS/Tutorials</a></li><li class="wikilink"><a href="/RecentChanges">RecentChanges</a></li><li class="current"><a href="/ros_canopen">ros_canopen</a></li>
+</ul>
+
+</div>
+<div class="sidepanel">
+<h1>Page</h1>
+<ul class="editbar"><li><span class="disabled">Immutable Page</span></li><li class="toggleCommentsButton" style="display:none;"><a href="#" class="nbcomment" onClick="toggleComments();return false;">Comments</a></li><li><a class="nbinfo" href="/action/info/ros_canopen?action=info" rel="nofollow">Info</a></li><li><a class="nbattachments" href="/action/AttachFile/ros_canopen?action=AttachFile" rel="nofollow">Attachments</a></li><li>
+<form class="actionsmenu" method="GET" action="/ros_canopen">
+<div>
+    <label>More Actions:</label>
+    <select name="action"
+        onchange="if ((this.selectedIndex != 0) &&
+                      (this.options[this.selectedIndex].disabled == false)) {
+                this.form.submit();
+            }
+            this.selectedIndex = 0;">
+        <option value="raw">Raw Text</option>
+<option value="print">Print View</option>
+<option value="RenderAsDocbook">Render as Docbook</option>
+<option value="show" disabled class="disabled">Delete Cache</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="SpellCheck">Check Spelling</option>
+<option value="LikePages">Like Pages</option>
+<option value="LocalSiteMap">Local Site Map</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="RenamePage" disabled class="disabled">Rename Page</option>
+<option value="CopyPage">Copy Page</option>
+<option value="DeletePage" disabled class="disabled">Delete Page</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="MyPages">My Pages</option>
+<option value="show" disabled class="disabled">Subscribe User</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="show" disabled class="disabled">Remove Spam</option>
+<option value="show" disabled class="disabled">Revert to this revision</option>
+<option value="PackagePages">Package Pages</option>
+<option value="SyncPages">Sync Pages</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="CreatePdfDocument">CreatePdfDocument</option>
+<option value="Load">Load</option>
+<option value="RawFile">RawFile</option>
+<option value="Save">Save</option>
+<option value="SlideShow">SlideShow</option>
+    </select>
+    <input type="submit" value="Do">
+    
+</div>
+<script type="text/javascript">
+<!--// Init menu
+actionsMenuInit('More Actions:');
+//-->
+</script>
+</form>
+</li></ul>
+
+</div>
+<div class="sidepanel">
+<h1>User</h1>
+<ul id="username"><li><a href="/action/login/ros_canopen?action=login" id="login" rel="nofollow">Login</a></li></ul>
+</div>
+</div>
+
+<div id="page" lang="en" dir="ltr">
+
+<div dir="ltr" id="content" lang="en"><span class="anchor" id="top"></span>
+<span class="anchor" id="line-1"></span><p class="line867"><span id="rosversion_selector" class="btn-group">
+<button id="melodic" class="btn btn-default" onClick="Version({show:['boxturtle_and_newer', 'cturtle_and_newer', 'diamondback_and_newer', 'electric_and_newer', 'fuerte_and_newer', 'groovy_and_newer', 'hydro_and_newer', 'indigo_and_newer', 'jade_and_newer', 'kinetic_and_newer', 'lunar_and_newer', 'melodic_and_newer', 'melodic_and_older', 'noetic_and_older', 'unstable_and_older', 'melodic'], hide:['melodic_and_newer', 'noetic_and_newer', 'unstable_and_newer', 'boxturtle_and_older', 'cturtle_and_older', 'diamondback_and_older', 'electric_and_older', 'fuerte_and_older', 'groovy_and_older', 'hydro_and_older', 'indigo_and_older', 'jade_and_older', 'kinetic_and_older', 'lunar_and_older', 'melodic_and_older', 'boxturtle', 'cturtle', 'diamondback', 'electric', 'fuerte', 'groovy', 'hydro', 'indigo', 'jade', 'kinetic', 'lunar', 'noetic', 'unstable'], target_ros_distro:'melodic'});this.style.color='#e6e6e6';this.style.background='#3e4f6e';var distro_button = document.getElementById('boxturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('cturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('diamondback');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('electric');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('fuerte');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('groovy');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('hydro');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('indigo');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('jade');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('kinetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('lunar');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('noetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('unstable');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}return false"> melodic </button>
+<button id="noetic" class="btn btn-default" onClick="Version({show:['boxturtle_and_newer', 'cturtle_and_newer', 'diamondback_and_newer', 'electric_and_newer', 'fuerte_and_newer', 'groovy_and_newer', 'hydro_and_newer', 'indigo_and_newer', 'jade_and_newer', 'kinetic_and_newer', 'lunar_and_newer', 'melodic_and_newer', 'noetic_and_newer', 'noetic_and_older', 'unstable_and_older', 'noetic'], hide:['noetic_and_newer', 'unstable_and_newer', 'boxturtle_and_older', 'cturtle_and_older', 'diamondback_and_older', 'electric_and_older', 'fuerte_and_older', 'groovy_and_older', 'hydro_and_older', 'indigo_and_older', 'jade_and_older', 'kinetic_and_older', 'lunar_and_older', 'melodic_and_older', 'noetic_and_older', 'boxturtle', 'cturtle', 'diamondback', 'electric', 'fuerte', 'groovy', 'hydro', 'indigo', 'jade', 'kinetic', 'lunar', 'melodic', 'unstable'], target_ros_distro:'noetic'});this.style.color='#e6e6e6';this.style.background='#3e4f6e';var distro_button = document.getElementById('boxturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('cturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('diamondback');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('electric');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('fuerte');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('groovy');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('hydro');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('indigo');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('jade');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('kinetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('lunar');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('melodic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('unstable');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}return false"> noetic </button>
+</span><span style="text-align:left">&nbsp;&nbsp;<i>Show EOL distros:</i>&nbsp;<input type="checkbox" id="rosversions_hidden_checkbox" onchange="showHiddenVersionSelector(this.checked)"></span><div id="rosversions_hidden" style="display:none"><span style="text-align:right"><i>EOL distros:</i>&nbsp;&nbsp;</span><span id="rosversion_selector_hidden" class="btn-group">
+<button id="indigo" class="btn btn-default" onClick="Version({show:['boxturtle_and_newer', 'cturtle_and_newer', 'diamondback_and_newer', 'electric_and_newer', 'fuerte_and_newer', 'groovy_and_newer', 'hydro_and_newer', 'indigo_and_newer', 'indigo_and_older', 'jade_and_older', 'kinetic_and_older', 'lunar_and_older', 'melodic_and_older', 'noetic_and_older', 'unstable_and_older', 'indigo'], hide:['indigo_and_newer', 'jade_and_newer', 'kinetic_and_newer', 'lunar_and_newer', 'melodic_and_newer', 'noetic_and_newer', 'unstable_and_newer', 'boxturtle_and_older', 'cturtle_and_older', 'diamondback_and_older', 'electric_and_older', 'fuerte_and_older', 'groovy_and_older', 'hydro_and_older', 'indigo_and_older', 'boxturtle', 'cturtle', 'diamondback', 'electric', 'fuerte', 'groovy', 'hydro', 'jade', 'kinetic', 'lunar', 'melodic', 'noetic', 'unstable'], target_ros_distro:'indigo'});this.style.color='#e6e6e6';this.style.background='#3e4f6e';var distro_button = document.getElementById('boxturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('cturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('diamondback');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('electric');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('fuerte');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('groovy');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('hydro');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('jade');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('kinetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('lunar');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('melodic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('noetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('unstable');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}return false"> indigo </button>
+<button id="jade" class="btn btn-default" onClick="Version({show:['boxturtle_and_newer', 'cturtle_and_newer', 'diamondback_and_newer', 'electric_and_newer', 'fuerte_and_newer', 'groovy_and_newer', 'hydro_and_newer', 'indigo_and_newer', 'jade_and_newer', 'jade_and_older', 'kinetic_and_older', 'lunar_and_older', 'melodic_and_older', 'noetic_and_older', 'unstable_and_older', 'jade'], hide:['jade_and_newer', 'kinetic_and_newer', 'lunar_and_newer', 'melodic_and_newer', 'noetic_and_newer', 'unstable_and_newer', 'boxturtle_and_older', 'cturtle_and_older', 'diamondback_and_older', 'electric_and_older', 'fuerte_and_older', 'groovy_and_older', 'hydro_and_older', 'indigo_and_older', 'jade_and_older', 'boxturtle', 'cturtle', 'diamondback', 'electric', 'fuerte', 'groovy', 'hydro', 'indigo', 'kinetic', 'lunar', 'melodic', 'noetic', 'unstable'], target_ros_distro:'jade'});this.style.color='#e6e6e6';this.style.background='#3e4f6e';var distro_button = document.getElementById('boxturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('cturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('diamondback');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('electric');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('fuerte');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('groovy');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('hydro');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('indigo');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('kinetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('lunar');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('melodic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('noetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('unstable');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}return false"> jade </button>
+<button id="kinetic" class="btn btn-default" onClick="Version({show:['boxturtle_and_newer', 'cturtle_and_newer', 'diamondback_and_newer', 'electric_and_newer', 'fuerte_and_newer', 'groovy_and_newer', 'hydro_and_newer', 'indigo_and_newer', 'jade_and_newer', 'kinetic_and_newer', 'kinetic_and_older', 'lunar_and_older', 'melodic_and_older', 'noetic_and_older', 'unstable_and_older', 'kinetic'], hide:['kinetic_and_newer', 'lunar_and_newer', 'melodic_and_newer', 'noetic_and_newer', 'unstable_and_newer', 'boxturtle_and_older', 'cturtle_and_older', 'diamondback_and_older', 'electric_and_older', 'fuerte_and_older', 'groovy_and_older', 'hydro_and_older', 'indigo_and_older', 'jade_and_older', 'kinetic_and_older', 'boxturtle', 'cturtle', 'diamondback', 'electric', 'fuerte', 'groovy', 'hydro', 'indigo', 'jade', 'lunar', 'melodic', 'noetic', 'unstable'], target_ros_distro:'kinetic'});this.style.color='#e6e6e6';this.style.background='#3e4f6e';var distro_button = document.getElementById('boxturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('cturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('diamondback');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('electric');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('fuerte');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('groovy');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('hydro');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('indigo');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('jade');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('lunar');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('melodic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('noetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('unstable');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}return false"> kinetic </button>
+<button id="lunar" class="btn btn-default" onClick="Version({show:['boxturtle_and_newer', 'cturtle_and_newer', 'diamondback_and_newer', 'electric_and_newer', 'fuerte_and_newer', 'groovy_and_newer', 'hydro_and_newer', 'indigo_and_newer', 'jade_and_newer', 'kinetic_and_newer', 'lunar_and_newer', 'lunar_and_older', 'melodic_and_older', 'noetic_and_older', 'unstable_and_older', 'lunar'], hide:['lunar_and_newer', 'melodic_and_newer', 'noetic_and_newer', 'unstable_and_newer', 'boxturtle_and_older', 'cturtle_and_older', 'diamondback_and_older', 'electric_and_older', 'fuerte_and_older', 'groovy_and_older', 'hydro_and_older', 'indigo_and_older', 'jade_and_older', 'kinetic_and_older', 'lunar_and_older', 'boxturtle', 'cturtle', 'diamondback', 'electric', 'fuerte', 'groovy', 'hydro', 'indigo', 'jade', 'kinetic', 'melodic', 'noetic', 'unstable'], target_ros_distro:'lunar'});this.style.color='#e6e6e6';this.style.background='#3e4f6e';var distro_button = document.getElementById('boxturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('cturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('diamondback');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('electric');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('fuerte');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('groovy');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('hydro');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('indigo');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('jade');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('kinetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('melodic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('noetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('unstable');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}return false"> lunar </button>
+</span>
+</div><div id="doc_status_link" style="margin-bottom:10px"><span style="text-align:left"><a href="javascript:toggleDocStatus()">Documentation Status</a></span></div><div id="doc_status" style="background:#CCCCCC;display:none;margin-top:0px;margin-bottom:0px;padding-top:0px"><ul style="padding-top:5px;margin-top:0px;margin-bottom:0px;padding-bottom:5px;"><li><b>indigo:</b> <i>Documentation generated on June 07, 2019 at 04:31 AM</i><span style="font-size:10px"> (<a href="http://build.ros.org/view/Idoc/job/Idoc__ros_canopen__ubuntu_trusty_amd64">doc job</a>).</span></li><br><li><b>jade:</b> <i>Documentation generated on September 03, 2017 at 11:02 AM</i><span style="font-size:10px"> (<a href="http://build.ros.org/view/Jdoc/job/Jdoc__ros_canopen__ubuntu_trusty_amd64">doc job</a>).</span></li><br><li><b>kinetic:</b> <i>Documentation generated on May 14, 2021 at 10:57 AM</i><span style="font-size:10px"> (<a href="https://build.ros.org/view/Kdoc/job/Kdoc__ros_canopen__ubuntu_xenial_amd64">doc job</a>).</span></li><br><li><b>lunar:</b> <i>Documentation generated on May 04, 2019 at 10:38 AM</i><span style="font-size:10px"> (<a href="http://build.ros.org/view/Ldoc/job/Ldoc__ros_canopen__ubuntu_xenial_amd64">doc job</a>).</span></li><br><li><b>melodic:</b> <i>Documentation generated on March 01, 2022 at 07:24 AM</i><span style="font-size:10px"> (<a href="https://build.ros.org/view/Mdoc/job/Mdoc__ros_canopen__ubuntu_bionic_amd64">doc job</a>).</span></li><br><li><b>noetic:</b> <i>Documentation generated on March 02, 2022 at 08:49 AM</i><span style="font-size:10px"> (<a href="https://build.ros.org/view/Ndoc/job/Ndoc__ros_canopen__ubuntu_focal_amd64">doc job</a>).</span></li><br></div><div class="version indigo"><em><strong>ros_canopen</strong>: <a href="/can_msgs?distro=indigo">can_msgs</a> | <a href="/canopen_402?distro=indigo">canopen_402</a> | <a href="/canopen_chain_node?distro=indigo">canopen_chain_node</a> | <a href="/canopen_master?distro=indigo">canopen_master</a> | <a href="/canopen_motor_node?distro=indigo">canopen_motor_node</a> | <a href="/socketcan_bridge?distro=indigo">socketcan_bridge</a> | <a href="/socketcan_interface?distro=indigo">socketcan_interface</a></em><br><div class="package-links"><strong>Package Links</strong><ul><li><a href="/ros_canopen/Tutorials">Tutorials</a></li><li><a href="http://answers.ros.org/questions/scope:all/sort:activity-desc/tags:ros_canopen/page:1/">FAQ</a></li><li><a href="http://docs.ros.org/en/indigo/changelogs/ros_canopen/changelog.html">Changelog</a></li><li><a class="nonexistent" href="/ros_canopen/ChangeList">Change List</a></li><li><a class="nonexistent" href="/ros_canopen/Reviews">Reviews</a></li></ul><script type="text/javascript" src="/custom/js/roswiki.js"></script><strong><a href="#" onClick="toggleExpandable('indigodependencies-list'); return false;">Dependencies</a> (8)</strong><br /><div id="indigodependencies-list" style="display:none"><ul><li><a href="/can_msgs?distro=indigo">can_msgs</a></li><li><a href="/canopen_402?distro=indigo">canopen_402</a></li><li><a href="/canopen_chain_node?distro=indigo">canopen_chain_node</a></li><li><a href="/canopen_master?distro=indigo">canopen_master</a></li><li><a href="/canopen_motor_node?distro=indigo">canopen_motor_node</a></li><li><a href="/catkin?distro=indigo">catkin</a></li><li><a href="/socketcan_bridge?distro=indigo">socketcan_bridge</a></li><li><a href="/socketcan_interface?distro=indigo">socketcan_interface</a></li></ul></div></div><h1>Package Summary</h1><p><div class="dropdown" style="display: inline-block; margin-bottom: 8px; margin-right: 4px;"><span class="badge" style="background-color: #5cb85c;"><span class="glyphicon glyphicon-ok" style="color: white;"></span> Released </span></div><div class="dropdown" style="display: inline-block; margin-bottom: 8px;"><button class="badge dropdown-toggle" style="background-color: #5cb85c; border: none;" data-toggle="dropdown" title="No test statistics available for this package."><span class="glyphicon glyphicon-ok" style="color: white;"></span> Continuous Integration</button>
+</div>
+<div class="dropdown" style="display: inline-block; margin-bottom: 8px; margin-right: 4px;"><span class="badge" style="background-color: #5cb85c;"><span class="glyphicon glyphicon-ok" style="color: white;"></span> Documented </span></div><p id="package-info">A generic canopen implementation for ROS<p id="package-info-1"><ul><li>Maintainer status: maintained</li><li>Maintainer: Mathias Lüdtke &lt;mathias.luedtke AT ipa.fraunhofer DOT de&gt;</li><li>Author: Florian Weisshardt &lt;fmw AT ipa.fhg DOT de&gt;</li><li>License: LGPL</li><li>Bug / feature tracker:  <a href="https://github.com/ros-industrial/ros_canopen/issues">https://github.com/ros-industrial/ros_canopen/issues</a></li><li>Source: git <a href="https://github.com/ros-industrial/ros_canopen">https://github.com/ros-industrial/ros_canopen.git</a> (branch: indigo)</li></ul></div>
+<div class="version jade"><em><strong>ros_canopen</strong>: <a href="/can_msgs?distro=jade">can_msgs</a> | <a href="/canopen_402?distro=jade">canopen_402</a> | <a href="/canopen_chain_node?distro=jade">canopen_chain_node</a> | <a href="/canopen_master?distro=jade">canopen_master</a> | <a href="/canopen_motor_node?distro=jade">canopen_motor_node</a> | <a href="/socketcan_bridge?distro=jade">socketcan_bridge</a> | <a href="/socketcan_interface?distro=jade">socketcan_interface</a></em><br><div class="package-links"><strong>Package Links</strong><ul><li><a href="/ros_canopen/Tutorials">Tutorials</a></li><li><a href="http://answers.ros.org/questions/scope:all/sort:activity-desc/tags:ros_canopen/page:1/">FAQ</a></li><li><a href="http://docs.ros.org/en/jade/changelogs/ros_canopen/changelog.html">Changelog</a></li><li><a class="nonexistent" href="/ros_canopen/ChangeList">Change List</a></li><li><a class="nonexistent" href="/ros_canopen/Reviews">Reviews</a></li></ul><script type="text/javascript" src="/custom/js/roswiki.js"></script><strong><a href="#" onClick="toggleExpandable('jadedependencies-list'); return false;">Dependencies</a> (8)</strong><br /><div id="jadedependencies-list" style="display:none"><ul><li><a href="/can_msgs?distro=jade">can_msgs</a></li><li><a href="/canopen_402?distro=jade">canopen_402</a></li><li><a href="/canopen_chain_node?distro=jade">canopen_chain_node</a></li><li><a href="/canopen_master?distro=jade">canopen_master</a></li><li><a href="/canopen_motor_node?distro=jade">canopen_motor_node</a></li><li><a href="/catkin?distro=jade">catkin</a></li><li><a href="/socketcan_bridge?distro=jade">socketcan_bridge</a></li><li><a href="/socketcan_interface?distro=jade">socketcan_interface</a></li></ul></div></div><h1>Package Summary</h1><p><div class="dropdown" style="display: inline-block; margin-bottom: 8px; margin-right: 4px;"><span class="badge" style="background-color: #5cb85c;"><span class="glyphicon glyphicon-ok" style="color: white;"></span> Released </span></div><div class="dropdown" style="display: inline-block; margin-bottom: 8px;"><button class="badge dropdown-toggle" style="background-color: #5cb85c; border: none;" data-toggle="dropdown" title="No test statistics available for this package."><span class="glyphicon glyphicon-ok" style="color: white;"></span> Continuous Integration</button>
+</div>
+<div class="dropdown" style="display: inline-block; margin-bottom: 8px; margin-right: 4px;"><span class="badge" style="background-color: #5cb85c;"><span class="glyphicon glyphicon-ok" style="color: white;"></span> Documented </span></div><p id="package-info-2">A generic canopen implementation for ROS<p id="package-info-3"><ul><li>Maintainer status: maintained</li><li>Maintainer: Mathias Lüdtke &lt;mathias.luedtke AT ipa.fraunhofer DOT de&gt;</li><li>Author: Florian Weisshardt &lt;fmw AT ipa.fhg DOT de&gt;</li><li>License: LGPL</li><li>Bug / feature tracker:  <a href="https://github.com/ros-industrial/ros_canopen/issues">https://github.com/ros-industrial/ros_canopen/issues</a></li><li>Source: git <a href="https://github.com/ros-industrial/ros_canopen">https://github.com/ros-industrial/ros_canopen.git</a> (branch: jade)</li></ul></div>
+<div class="version kinetic"><em><strong>ros_canopen</strong>: <a href="/can_msgs?distro=kinetic">can_msgs</a> | <a href="/canopen_402?distro=kinetic">canopen_402</a> | <a href="/canopen_chain_node?distro=kinetic">canopen_chain_node</a> | <a href="/canopen_master?distro=kinetic">canopen_master</a> | <a href="/canopen_motor_node?distro=kinetic">canopen_motor_node</a> | <a href="/socketcan_bridge?distro=kinetic">socketcan_bridge</a> | <a href="/socketcan_interface?distro=kinetic">socketcan_interface</a></em><br><div class="package-links"><strong>Package Links</strong><ul><li><a href="/ros_canopen/Tutorials">Tutorials</a></li><li><a href="http://answers.ros.org/questions/scope:all/sort:activity-desc/tags:ros_canopen/page:1/">FAQ</a></li><li><a href="http://docs.ros.org/en/kinetic/changelogs/ros_canopen/changelog.html">Changelog</a></li><li><a class="nonexistent" href="/ros_canopen/ChangeList">Change List</a></li><li><a class="nonexistent" href="/ros_canopen/Reviews">Reviews</a></li></ul><script type="text/javascript" src="/custom/js/roswiki.js"></script><strong><a href="#" onClick="toggleExpandable('kineticdependencies-list'); return false;">Dependencies</a> (8)</strong><br /><div id="kineticdependencies-list" style="display:none"><ul><li><a href="/can_msgs?distro=kinetic">can_msgs</a></li><li><a href="/canopen_402?distro=kinetic">canopen_402</a></li><li><a href="/canopen_chain_node?distro=kinetic">canopen_chain_node</a></li><li><a href="/canopen_master?distro=kinetic">canopen_master</a></li><li><a href="/canopen_motor_node?distro=kinetic">canopen_motor_node</a></li><li><a href="/catkin?distro=kinetic">catkin</a></li><li><a href="/socketcan_bridge?distro=kinetic">socketcan_bridge</a></li><li><a href="/socketcan_interface?distro=kinetic">socketcan_interface</a></li></ul></div></div><h1>Package Summary</h1><p><div class="dropdown" style="display: inline-block; margin-bottom: 8px; margin-right: 4px;"><span class="badge" style="background-color: #5cb85c;"><span class="glyphicon glyphicon-ok" style="color: white;"></span> Released </span></div><div class="dropdown" style="display: inline-block; margin-bottom: 8px;"><button class="badge dropdown-toggle" style="background-color: #5cb85c; border: none;" data-toggle="dropdown" title="No test statistics available for this package."><span class="glyphicon glyphicon-ok" style="color: white;"></span> Continuous Integration</button>
+</div>
+<div class="dropdown" style="display: inline-block; margin-bottom: 8px; margin-right: 4px;"><span class="badge" style="background-color: #5cb85c;"><span class="glyphicon glyphicon-ok" style="color: white;"></span> Documented </span></div><p id="package-info-4">A generic canopen implementation for ROS<p id="package-info-5"><ul><li>Maintainer status: maintained</li><li>Maintainer: Mathias Lüdtke &lt;mathias.luedtke AT ipa.fraunhofer DOT de&gt;</li><li>Author: Florian Weisshardt &lt;fmw AT ipa.fhg DOT de&gt;</li><li>License: LGPL</li><li>Bug / feature tracker:  <a href="https://github.com/ros-industrial/ros_canopen/issues">https://github.com/ros-industrial/ros_canopen/issues</a></li><li>Source: git <a href="https://github.com/ros-industrial/ros_canopen">https://github.com/ros-industrial/ros_canopen.git</a> (branch: kinetic)</li></ul></div>
+<div class="version lunar"><em><strong>ros_canopen</strong>: <a href="/can_msgs?distro=lunar">can_msgs</a> | <a href="/canopen_402?distro=lunar">canopen_402</a> | <a href="/canopen_chain_node?distro=lunar">canopen_chain_node</a> | <a href="/canopen_master?distro=lunar">canopen_master</a> | <a href="/canopen_motor_node?distro=lunar">canopen_motor_node</a> | <a href="/socketcan_bridge?distro=lunar">socketcan_bridge</a> | <a href="/socketcan_interface?distro=lunar">socketcan_interface</a></em><br><div class="package-links"><strong>Package Links</strong><ul><li><a href="/ros_canopen/Tutorials">Tutorials</a></li><li><a href="http://answers.ros.org/questions/scope:all/sort:activity-desc/tags:ros_canopen/page:1/">FAQ</a></li><li><a href="http://docs.ros.org/en/lunar/changelogs/ros_canopen/changelog.html">Changelog</a></li><li><a class="nonexistent" href="/ros_canopen/ChangeList">Change List</a></li><li><a class="nonexistent" href="/ros_canopen/Reviews">Reviews</a></li></ul><script type="text/javascript" src="/custom/js/roswiki.js"></script><strong><a href="#" onClick="toggleExpandable('lunardependencies-list'); return false;">Dependencies</a> (8)</strong><br /><div id="lunardependencies-list" style="display:none"><ul><li><a href="/can_msgs?distro=lunar">can_msgs</a></li><li><a href="/canopen_402?distro=lunar">canopen_402</a></li><li><a href="/canopen_chain_node?distro=lunar">canopen_chain_node</a></li><li><a href="/canopen_master?distro=lunar">canopen_master</a></li><li><a href="/canopen_motor_node?distro=lunar">canopen_motor_node</a></li><li><a href="/catkin?distro=lunar">catkin</a></li><li><a href="/socketcan_bridge?distro=lunar">socketcan_bridge</a></li><li><a href="/socketcan_interface?distro=lunar">socketcan_interface</a></li></ul></div></div><h1>Package Summary</h1><p><div class="dropdown" style="display: inline-block; margin-bottom: 8px; margin-right: 4px;"><span class="badge" style="background-color: #5cb85c;"><span class="glyphicon glyphicon-ok" style="color: white;"></span> Released </span></div><div class="dropdown" style="display: inline-block; margin-bottom: 8px;"><button class="badge dropdown-toggle" style="background-color: #5cb85c; border: none;" data-toggle="dropdown" title="No test statistics available for this package."><span class="glyphicon glyphicon-ok" style="color: white;"></span> Continuous Integration</button>
+</div>
+<div class="dropdown" style="display: inline-block; margin-bottom: 8px; margin-right: 4px;"><span class="badge" style="background-color: #5cb85c;"><span class="glyphicon glyphicon-ok" style="color: white;"></span> Documented </span></div><p id="package-info-6">A generic canopen implementation for ROS<p id="package-info-7"><ul><li>Maintainer status: maintained</li><li>Maintainer: Mathias Lüdtke &lt;mathias.luedtke AT ipa.fraunhofer DOT de&gt;</li><li>Author: Florian Weisshardt &lt;fmw AT ipa.fhg DOT de&gt;</li><li>License: LGPL</li><li>Bug / feature tracker:  <a href="https://github.com/ros-industrial/ros_canopen/issues">https://github.com/ros-industrial/ros_canopen/issues</a></li><li>Source: git <a href="https://github.com/ros-industrial/ros_canopen">https://github.com/ros-industrial/ros_canopen.git</a> (branch: kinetic)</li></ul></div>
+<div class="version melodic"><em><strong>ros_canopen</strong>: <a href="/can_msgs?distro=melodic">can_msgs</a> | <a href="/canopen_402?distro=melodic">canopen_402</a> | <a href="/canopen_chain_node?distro=melodic">canopen_chain_node</a> | <a href="/canopen_master?distro=melodic">canopen_master</a> | <a href="/canopen_motor_node?distro=melodic">canopen_motor_node</a> | <a href="/socketcan_bridge?distro=melodic">socketcan_bridge</a> | <a href="/socketcan_interface?distro=melodic">socketcan_interface</a></em><br><div class="package-links"><strong>Package Links</strong><ul><li><a href="/ros_canopen/Tutorials">Tutorials</a></li><li><a href="http://answers.ros.org/questions/scope:all/sort:activity-desc/tags:ros_canopen/page:1/">FAQ</a></li><li><a href="http://docs.ros.org/en/melodic/changelogs/ros_canopen/changelog.html">Changelog</a></li><li><a class="nonexistent" href="/ros_canopen/ChangeList">Change List</a></li><li><a class="nonexistent" href="/ros_canopen/Reviews">Reviews</a></li></ul><script type="text/javascript" src="/custom/js/roswiki.js"></script><strong><a href="#" onClick="toggleExpandable('melodicdependencies-list'); return false;">Dependencies</a> (8)</strong><br /><div id="melodicdependencies-list" style="display:none"><ul><li><a href="/can_msgs?distro=melodic">can_msgs</a></li><li><a href="/canopen_402?distro=melodic">canopen_402</a></li><li><a href="/canopen_chain_node?distro=melodic">canopen_chain_node</a></li><li><a href="/canopen_master?distro=melodic">canopen_master</a></li><li><a href="/canopen_motor_node?distro=melodic">canopen_motor_node</a></li><li><a href="/catkin?distro=melodic">catkin</a></li><li><a href="/socketcan_bridge?distro=melodic">socketcan_bridge</a></li><li><a href="/socketcan_interface?distro=melodic">socketcan_interface</a></li></ul></div><script type="text/javascript" src="/custom/js/roswiki.js"></script><strong><a href="#" onClick="toggleExpandableJenkins('stack-melodicjenkins-list'); return false;">Jenkins jobs</a> (6)</strong><br /><div id="stack-melodicjenkins-list" style="display:none"><ul><li><a href="https://build.ros.org/view/Msrc_uB/job/Msrc_uB__ros_canopen__ubuntu_bionic__source">source ubuntu bionic</a></li><li><a href="https://build.ros.org/view/Mbin_uB64/job/Mbin_uB64__ros_canopen__ubuntu_bionic_amd64__binary">binary ubuntu bionic amd64</a></li><li><a href="https://build.ros.org/view/Mbin_ubhf_uBhf/job/Mbin_ubhf_uBhf__ros_canopen__ubuntu_bionic_armhf__binary">binary ubuntu bionic armhf</a></li><li><a href="https://build.ros.org/view/Mbin_ubv8_uBv8/job/Mbin_ubv8_uBv8__ros_canopen__ubuntu_bionic_arm64__binary">binary ubuntu bionic arm64</a></li><li><a href="https://build.ros.org/view/Mdev/job/Mdev__ros_canopen__ubuntu_bionic_amd64">devel ubuntu bionic amd64</a></li><li><a href="https://build.ros.org/view/Mdoc/job/Mdoc__ros_canopen__ubuntu_bionic_amd64">doc</a></li></ul></div></div><h1>Package Summary</h1><p><div class="dropdown" style="display: inline-block; margin-bottom: 8px; margin-right: 4px;"><span class="badge" style="background-color: #5cb85c;"><span class="glyphicon glyphicon-ok" style="color: white;"></span> Released </span></div><div class="dropdown" style="display: inline-block; margin-bottom: 8px;"><button class="badge dropdown-toggle" style="background-color: #5cb85c; border: none;" data-toggle="dropdown" title="Last build:
+  Total tests: 82
+  Succeeded: 82
+  Skipped: 0
+  Failed: 0
+
+Click to show more build history."><span class="glyphicon glyphicon-ok" style="color: white;"></span> Continuous Integration: <span>82 / 82</span>
+<span class="caret" style="margin: 0 3px 0 5px;"></span></button><ul class="dropdown-menu"><li class="dropdown-header">Build history (last 5 of 11 builds):</li><li style="font-size: 12px"><a href="https://build.ros.org//job/Mdev__ros_canopen__ubuntu_bionic_amd64/39/" target="_blank">  <span class="glyphicon glyphicon-ok"></span>  <span style="font-weight: bold; padding-left: 10px;">#39</span>  <span style="color: #333; padding-left: 10px;">22-Nov-2022 07:41</span>  <span style="color: #333; padding-left: 10px;">82 / 82</span></a></li><li style="font-size: 12px"><a href="https://build.ros.org//job/Mdev__ros_canopen__ubuntu_bionic_amd64/38/" target="_blank">  <span class="glyphicon glyphicon-ok"></span>  <span style="font-weight: bold; padding-left: 10px;">#38</span>  <span style="color: #333; padding-left: 10px;">14-Nov-2022 10:41</span>  <span style="color: #333; padding-left: 10px;">82 / 82</span></a></li><li style="font-size: 12px"><a href="https://build.ros.org//job/Mdev__ros_canopen__ubuntu_bionic_amd64/37/" target="_blank">  <span class="glyphicon glyphicon-ok"></span>  <span style="font-weight: bold; padding-left: 10px;">#37</span>  <span style="color: #333; padding-left: 10px;">11-Nov-2021 21:41</span>  <span style="color: #333; padding-left: 10px;">82 / 82</span></a></li><li style="font-size: 12px"><a href="https://build.ros.org//job/Mdev__ros_canopen__ubuntu_bionic_amd64/36/" target="_blank">  <span class="glyphicon glyphicon-ok"></span>  <span style="font-weight: bold; padding-left: 10px;">#36</span>  <span style="color: #333; padding-left: 10px;">09-Jul-2021 16:41</span>  <span style="color: #333; padding-left: 10px;">82 / 82</span></a></li><li style="font-size: 12px"><a href="https://build.ros.org//job/Mdev__ros_canopen__ubuntu_bionic_amd64/35/" target="_blank">  <span class="glyphicon glyphicon-ok"></span>  <span style="font-weight: bold; padding-left: 10px;">#35</span>  <span style="color: #333; padding-left: 10px;">06-May-2021 23:42</span>  <span style="color: #333; padding-left: 10px;">82 / 82</span></a></li></ul>
+</div>
+<div class="dropdown" style="display: inline-block; margin-bottom: 8px; margin-right: 4px;"><span class="badge" style="background-color: #5cb85c;"><span class="glyphicon glyphicon-ok" style="color: white;"></span> Documented </span></div><p id="package-info-8">A generic canopen implementation for ROS<p id="package-info-9"><ul><li>Maintainer status: maintained</li><li>Maintainer: Mathias Lüdtke &lt;mathias.luedtke AT ipa.fraunhofer DOT de&gt;</li><li>Author: Florian Weisshardt &lt;fmw AT ipa.fhg DOT de&gt;</li><li>License: LGPL</li><li>Bug / feature tracker:  <a href="https://github.com/ros-industrial/ros_canopen/issues">https://github.com/ros-industrial/ros_canopen/issues</a></li><li>Source: git <a href="https://github.com/ros-industrial/ros_canopen">https://github.com/ros-industrial/ros_canopen.git</a> (branch: melodic)</li></ul></div>
+<div class="version noetic"><em><strong>ros_canopen</strong>: <a href="/can_msgs?distro=noetic">can_msgs</a> | <a href="/canopen_402?distro=noetic">canopen_402</a> | <a href="/canopen_chain_node?distro=noetic">canopen_chain_node</a> | <a href="/canopen_master?distro=noetic">canopen_master</a> | <a href="/canopen_motor_node?distro=noetic">canopen_motor_node</a> | <a href="/socketcan_bridge?distro=noetic">socketcan_bridge</a> | <a href="/socketcan_interface?distro=noetic">socketcan_interface</a></em><br><div class="package-links"><strong>Package Links</strong><ul><li><a href="/ros_canopen/Tutorials">Tutorials</a></li><li><a href="http://answers.ros.org/questions/scope:all/sort:activity-desc/tags:ros_canopen/page:1/">FAQ</a></li><li><a href="http://docs.ros.org/en/noetic/changelogs/ros_canopen/changelog.html">Changelog</a></li><li><a class="nonexistent" href="/ros_canopen/ChangeList">Change List</a></li><li><a class="nonexistent" href="/ros_canopen/Reviews">Reviews</a></li></ul><script type="text/javascript" src="/custom/js/roswiki.js"></script><strong><a href="#" onClick="toggleExpandable('noeticdependencies-list'); return false;">Dependencies</a> (8)</strong><br /><div id="noeticdependencies-list" style="display:none"><ul><li><a href="/can_msgs?distro=noetic">can_msgs</a></li><li><a href="/canopen_402?distro=noetic">canopen_402</a></li><li><a href="/canopen_chain_node?distro=noetic">canopen_chain_node</a></li><li><a href="/canopen_master?distro=noetic">canopen_master</a></li><li><a href="/canopen_motor_node?distro=noetic">canopen_motor_node</a></li><li><a href="/catkin?distro=noetic">catkin</a></li><li><a href="/socketcan_bridge?distro=noetic">socketcan_bridge</a></li><li><a href="/socketcan_interface?distro=noetic">socketcan_interface</a></li></ul></div><script type="text/javascript" src="/custom/js/roswiki.js"></script><strong><a href="#" onClick="toggleExpandableJenkins('stack-noeticjenkins-list'); return false;">Jenkins jobs</a> (10)</strong><br /><div id="stack-noeticjenkins-list" style="display:none"><ul><li><a href="https://build.ros.org/view/Nsrc_dB/job/Nsrc_dB__ros_canopen__debian_buster__source">source debian buster</a></li><li><a href="https://build.ros.org/view/Nsrc_uF/job/Nsrc_uF__ros_canopen__ubuntu_focal__source">source ubuntu focal</a></li><li><a href="https://build.ros.org/view/Nbin_db_dB64/job/Nbin_db_dB64__ros_canopen__debian_buster_amd64__binary">binary debian buster amd64</a></li><li><a href="https://build.ros.org/view/Nbin_dbv8_dBv8/job/Nbin_dbv8_dBv8__ros_canopen__debian_buster_arm64__binary">binary debian buster arm64</a></li><li><a href="https://build.ros.org/view/Nbin_uF64/job/Nbin_uF64__ros_canopen__ubuntu_focal_amd64__binary">binary ubuntu focal amd64</a></li><li><a href="https://build.ros.org/view/Nbin_ufhf_uFhf/job/Nbin_ufhf_uFhf__ros_canopen__ubuntu_focal_armhf__binary">binary ubuntu focal armhf</a></li><li><a href="https://build.ros.org/view/Nbin_ufv8_uFv8/job/Nbin_ufv8_uFv8__ros_canopen__ubuntu_focal_arm64__binary">binary ubuntu focal arm64</a></li><li><a href="https://build.ros.org/view/Ndev_db/job/Ndev_db__ros_canopen__debian_buster_amd64">devel debian buster amd64</a></li><li><a href="https://build.ros.org/view/Ndev/job/Ndev__ros_canopen__ubuntu_focal_amd64">devel ubuntu focal amd64</a></li><li><a href="https://build.ros.org/view/Ndoc/job/Ndoc__ros_canopen__ubuntu_focal_amd64">doc</a></li></ul></div></div><h1>Package Summary</h1><p><div class="dropdown" style="display: inline-block; margin-bottom: 8px; margin-right: 4px;"><span class="badge" style="background-color: #5cb85c;"><span class="glyphicon glyphicon-ok" style="color: white;"></span> Released </span></div><div class="dropdown" style="display: inline-block; margin-bottom: 8px;"><button class="badge dropdown-toggle" style="background-color: #5cb85c; border: none;" data-toggle="dropdown" title="Last build:
+  Total tests: 82
+  Succeeded: 82
+  Skipped: 0
+  Failed: 0
+
+Click to show more build history."><span class="glyphicon glyphicon-ok" style="color: white;"></span> Continuous Integration: <span>82 / 82</span>
+<span class="caret" style="margin: 0 3px 0 5px;"></span></button><ul class="dropdown-menu"><li class="dropdown-header">Build history (last 5 of 12 builds):</li><li style="font-size: 12px"><a href="https://build.ros.org//job/Ndev__ros_canopen__ubuntu_focal_amd64/19/" target="_blank">  <span class="glyphicon glyphicon-ok"></span>  <span style="font-weight: bold; padding-left: 10px;">#19</span>  <span style="color: #333; padding-left: 10px;">22-Nov-2022 08:08</span>  <span style="color: #333; padding-left: 10px;">82 / 82</span></a></li><li style="font-size: 12px"><a href="https://build.ros.org//job/Ndev__ros_canopen__ubuntu_focal_amd64/18/" target="_blank">  <span class="glyphicon glyphicon-minus"></span>  <span style="font-weight: bold; padding-left: 10px;">#18</span>  <span style="color: #333; padding-left: 10px;">14-Nov-2022 10:08</span>  <span style="color: #333; padding-left: 10px;">82 / 82</span></a></li><li style="font-size: 12px"><a href="https://build.ros.org//job/Ndev__ros_canopen__ubuntu_focal_amd64/17/" target="_blank">  <span class="glyphicon glyphicon-minus"></span>  <span style="font-weight: bold; padding-left: 10px;">#17</span>  <span style="color: #333; padding-left: 10px;">11-Nov-2021 22:08</span>  <span style="color: #333; padding-left: 10px;">82 / 82</span></a></li><li style="font-size: 12px"><a href="https://build.ros.org//job/Ndev__ros_canopen__ubuntu_focal_amd64/16/" target="_blank">  <span class="glyphicon glyphicon-minus"></span>  <span style="font-weight: bold; padding-left: 10px;">#16</span>  <span style="color: #333; padding-left: 10px;">09-Jul-2021 16:08</span>  <span style="color: #333; padding-left: 10px;">82 / 82</span></a></li><li style="font-size: 12px"><a href="https://build.ros.org//job/Ndev__ros_canopen__ubuntu_focal_amd64/15/" target="_blank">  <span class="glyphicon glyphicon-minus"></span>  <span style="font-weight: bold; padding-left: 10px;">#15</span>  <span style="color: #333; padding-left: 10px;">07-May-2021 00:10</span>  <span style="color: #333; padding-left: 10px;">82 / 82</span></a></li></ul>
+</div>
+<div class="dropdown" style="display: inline-block; margin-bottom: 8px; margin-right: 4px;"><span class="badge" style="background-color: #5cb85c;"><span class="glyphicon glyphicon-ok" style="color: white;"></span> Documented </span></div><p id="package-info-10">A generic canopen implementation for ROS<p id="package-info-11"><ul><li>Maintainer status: maintained</li><li>Maintainer: Mathias Lüdtke &lt;mathias.luedtke AT ipa.fraunhofer DOT de&gt;</li><li>Author: Florian Weisshardt &lt;fmw AT ipa.fhg DOT de&gt;</li><li>License: LGPL</li><li>Bug / feature tracker:  <a href="https://github.com/ros-industrial/ros_canopen/issues">https://github.com/ros-industrial/ros_canopen/issues</a></li><li>Source: git <a href="https://github.com/ros-industrial/ros_canopen">https://github.com/ros-industrial/ros_canopen.git</a> (branch: melodic)</li></ul></div><p class="line862"> <div class="table-of-contents"><p class="table-of-contents-heading">Contents<ol><li>
+<a href="#Overview">Overview</a></li></ol></li></ol></div><p class="line874"> <span class="anchor" id="line-2"></span><span class="anchor" id="line-3"></span><p class="line867"><span class="anchor" id="line-4"></span><span class="anchor" id="line-5"></span><div class="version indigo"><span class="anchor" id="line-1-1"></span><p class="line867"><div dir="ltr" id="Industrial.2FSoftware_Status.2FExperimental.content" lang="en"><span class="anchor" id="Industrial.2FSoftware_Status.2FExperimental.top"></span>
+<span class="anchor" id="Industrial.2FSoftware_Status.2FExperimental.line-1"></span><div><table><tbody><tr>  <td><p class="line891"><img alt="Experimental" class="attachment" src="/Industrial/Software_Status/Experimental?action=AttachFile&amp;do=get&amp;target=1Column.png" title="Experimental" /></td>
+  <td><p class="line891"><strong>EXPERIMENTAL</strong>: This status indicates that this software is experimental code at best.  There are known issues and missing functionality.  The APIs are completely unstable and likely to change.  Use in production systems is not recommended.  All code starts at this level.  For more information see the ROS-Industrial software status <a href="/Industrial/Software_Status">page</a>.</td>
+</tr>
+</tbody></table></div><span class="anchor" id="Industrial.2FSoftware_Status.2FExperimental.line-2"></span><span class="anchor" id="Industrial.2FSoftware_Status.2FExperimental.bottom"></span></div> </div><span class="anchor" id="line-6"></span><span class="anchor" id="line-7"></span><p class="line867"><span class="anchor" id="line-8"></span><p class="line867"><span class="anchor" id="line-9"></span><p class="line867">
+<h2 id="Overview">Overview</h2>
+<span class="anchor" id="line-10"></span><p class="line874">The packages provides support for CANopen devices within ROS. <span class="anchor" id="line-11"></span><span class="anchor" id="line-12"></span><p class="line874">It can be divided into different parts: <span class="anchor" id="line-13"></span><ul><li>CAN layer abstraction <span class="anchor" id="line-14"></span></li><li>CANopen master with device/object management <span class="anchor" id="line-15"></span></li><li>Profile-specific support, currently only for 402 profile (drives and motion control) <span class="anchor" id="line-16"></span></li><li>ROS interfaces, motion control through ros_control <span class="anchor" id="line-17"></span><span class="anchor" id="line-18"></span></li></ul><p class="line867"><img alt="ros canopen package structure" class="attachment" src="/ros_canopen?action=AttachFile&amp;do=get&amp;target=ros_canopen_structure.png" title="ros canopen package structure" width="100%" /> <span class="anchor" id="line-19"></span><span class="anchor" id="bottom"></span></div></div>
+<div id="pagebottom"></div>
+</div>
+
+<p id="pageinfo" class="info" lang="en" dir="ltr">Wiki: ros_canopen  (last edited 2015-05-18 14:26:10 by <span title="MathiasLuedtke @ client-252-1-233-129.ipa.fraunhofer.de[129.233.1.252]"><a class="nonexistent" href="/MathiasLuedtke" title="MathiasLuedtke @ client-252-1-233-129.ipa.fraunhofer.de[129.233.1.252]">MathiasLuedtke</a></span>)</p>
+
+
+
+
+<div style="margin-top: 9px;" class="footer">
+Except where otherwise noted, the ROS wiki is licensed under the <br /><a href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0</a>
+<hr style="margin-top: 10px;">
+<div class="row">
+  <div class="col-md-4 col-md-offset-4">
+<a href="https://www.openrobotics.org/"><img style="margin-top: -1px;" src="/custom/images/brought_by_horiz.png"></p></a>
+  </div>
+</div>
+</div>
+
+  </div></div> <!-- /#dpage-inner, /#dpage -->
+
+
+</body>
+</html>
+
+� �_           dEUs.d   D    O^partitionKey=%28http%2Cros.org%29,:http://wiki.ros.org/ros_canopen strongly-framed 1 request-method GET request-Cookie uYYW9oaFwdogZ2pX6+VLRheVXOY= request-User-Agent Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/110.0 request-Accept-Language en-US,en;q=0.5 response-head HTTP/1.1 200 OK
+Date: Tue, 07 Mar 2023 09:59:54 GMT
+Server: Apache
+Vary: Cookie,User-Agent,Accept-Language
+Content-Type: text/html; charset=utf-8
+ original-response-headers Date: Tue, 07 Mar 2023 09:59:54 GMT
+Server: Apache
+Vary: Cookie,User-Agent,Accept-Language
+Keep-Alive: timeout=5, max=100
+Connection: Keep-Alive
+Transfer-Encoding: chunked
+Content-Type: text/html; charset=utf-8
+ ctid 1 uncompressed-len 0   �

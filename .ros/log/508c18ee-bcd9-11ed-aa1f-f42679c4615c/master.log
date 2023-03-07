@@ -1,0 +1,58 @@
+[rosmaster.main][INFO] 2023-03-07 20:15:06,777: initialization complete, waiting for shutdown
+[rosmaster.main][INFO] 2023-03-07 20:15:06,777: Starting ROS Master Node
+[xmlrpc][INFO] 2023-03-07 20:15:06,778: XML-RPC server binding to 0.0.0.0:11311
+[xmlrpc][INFO] 2023-03-07 20:15:06,778: Started XML-RPC server [http://kangsuyeon:11311/]
+[xmlrpc][INFO] 2023-03-07 20:15:06,778: xml rpc node: starting XML-RPC server
+[rosmaster.master][INFO] 2023-03-07 20:15:06,778: Master initialized: port[11311], uri[http://kangsuyeon:11311/]
+[rosmaster.master][INFO] 2023-03-07 20:15:06,864: +PARAM [/run_id] by /roslaunch
+[rosmaster.master][INFO] 2023-03-07 20:15:06,867: +PARAM [/roslaunch/uris/host_kangsuyeon__36405] by /roslaunch
+[rosmaster.master][INFO] 2023-03-07 20:15:06,905: +PARAM [/rosversion] by /roslaunch
+[rosmaster.master][INFO] 2023-03-07 20:15:06,905: +PARAM [/rosdistro] by /roslaunch
+[rosmaster.master][INFO] 2023-03-07 20:15:06,914: +SERVICE [/rosout/get_loggers] /rosout http://kangsuyeon:35189/
+[rosmaster.master][INFO] 2023-03-07 20:15:06,915: +SERVICE [/rosout/set_logger_level] /rosout http://kangsuyeon:35189/
+[rosmaster.master][INFO] 2023-03-07 20:15:06,915: +PUB [/rosout_agg] /rosout http://kangsuyeon:35189/
+[rosmaster.master][INFO] 2023-03-07 20:15:06,917: +SUB [/rosout] /rosout http://kangsuyeon:35189/
+[rosmaster.master][INFO] 2023-03-07 20:21:29,486: +PUB [/rosout] /turtlesim http://kangsuyeon:46245/
+[rosmaster.master][INFO] 2023-03-07 20:21:29,486: +SERVICE [/turtlesim/get_loggers] /turtlesim http://kangsuyeon:46245/
+[rosmaster.master][INFO] 2023-03-07 20:21:29,486: +SERVICE [/turtlesim/set_logger_level] /turtlesim http://kangsuyeon:46245/
+[rosmaster.master][INFO] 2023-03-07 20:21:29,489: +PARAM [/turtlesim/background_r] by /turtlesim
+[rosmaster.master][INFO] 2023-03-07 20:21:29,489: +PARAM [/turtlesim/background_g] by /turtlesim
+[rosmaster.master][INFO] 2023-03-07 20:21:29,489: +PARAM [/turtlesim/background_b] by /turtlesim
+[rosmaster.master][INFO] 2023-03-07 20:21:29,505: +SERVICE [/clear] /turtlesim http://kangsuyeon:46245/
+[rosmaster.master][INFO] 2023-03-07 20:21:29,505: +SERVICE [/reset] /turtlesim http://kangsuyeon:46245/
+[rosmaster.master][INFO] 2023-03-07 20:21:29,505: +SERVICE [/spawn] /turtlesim http://kangsuyeon:46245/
+[rosmaster.master][INFO] 2023-03-07 20:21:29,506: +SERVICE [/kill] /turtlesim http://kangsuyeon:46245/
+[rosmaster.master][INFO] 2023-03-07 20:21:29,506: +CACHEDPARAM [/rosout_disable_topics_generation] by /turtlesim
+[rosmaster.master][INFO] 2023-03-07 20:21:29,506: +SUB [/turtle1/cmd_vel] /turtlesim http://kangsuyeon:46245/
+[rosmaster.master][INFO] 2023-03-07 20:21:29,507: +PUB [/turtle1/pose] /turtlesim http://kangsuyeon:46245/
+[rosmaster.master][INFO] 2023-03-07 20:21:29,507: +PUB [/turtle1/color_sensor] /turtlesim http://kangsuyeon:46245/
+[rosmaster.master][INFO] 2023-03-07 20:21:29,507: +SERVICE [/turtle1/set_pen] /turtlesim http://kangsuyeon:46245/
+[rosmaster.master][INFO] 2023-03-07 20:21:29,507: +SERVICE [/turtle1/teleport_relative] /turtlesim http://kangsuyeon:46245/
+[rosmaster.master][INFO] 2023-03-07 20:21:29,507: +SERVICE [/turtle1/teleport_absolute] /turtlesim http://kangsuyeon:46245/
+[rosmaster.master][INFO] 2023-03-07 20:21:29,562: publisherUpdate[/rosout] -> http://kangsuyeon:35189/ ['http://kangsuyeon:46245/']
+[rosmaster.master][INFO] 2023-03-07 20:21:29,563: publisherUpdate[/rosout] -> http://kangsuyeon:35189/ ['http://kangsuyeon:46245/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2023-03-07 20:21:29,766: +CACHEDPARAM [/rosout/omit_topics] by /rosout
+[rosmaster.master][INFO] 2023-03-07 20:21:43,617: -SERVICE [/turtle1/teleport_absolute] /turtlesim rosrpc://kangsuyeon:47931
+[rosmaster.master][INFO] 2023-03-07 20:21:43,618: -SERVICE [/turtle1/teleport_relative] /turtlesim rosrpc://kangsuyeon:47931
+[rosmaster.master][INFO] 2023-03-07 20:21:43,618: -SERVICE [/turtle1/set_pen] /turtlesim rosrpc://kangsuyeon:47931
+[rosmaster.master][INFO] 2023-03-07 20:21:43,618: -PUB [/turtle1/color_sensor] /turtlesim http://kangsuyeon:46245/
+[rosmaster.master][INFO] 2023-03-07 20:21:43,618: -PUB [/turtle1/pose] /turtlesim http://kangsuyeon:46245/
+[rosmaster.master][INFO] 2023-03-07 20:21:43,618: -SUB [/turtle1/cmd_vel] /turtlesim http://kangsuyeon:46245/
+[rosmaster.master][INFO] 2023-03-07 20:21:43,618: -SERVICE [/kill] /turtlesim rosrpc://kangsuyeon:47931
+[rosmaster.master][INFO] 2023-03-07 20:21:43,618: -SERVICE [/spawn] /turtlesim rosrpc://kangsuyeon:47931
+[rosmaster.master][INFO] 2023-03-07 20:21:43,618: -SERVICE [/reset] /turtlesim rosrpc://kangsuyeon:47931
+[rosmaster.master][INFO] 2023-03-07 20:21:43,619: -SERVICE [/clear] /turtlesim rosrpc://kangsuyeon:47931
+[rosmaster.master][INFO] 2023-03-07 20:21:43,892: -PUB [/rosout] /turtlesim http://kangsuyeon:46245/
+[rosmaster.master][INFO] 2023-03-07 20:21:43,892: publisherUpdate[/rosout] -> http://kangsuyeon:35189/ []
+[rosmaster.master][INFO] 2023-03-07 20:21:43,894: -SERVICE [/turtlesim/get_loggers] /turtlesim rosrpc://kangsuyeon:47931
+[rosmaster.master][INFO] 2023-03-07 20:21:43,896: -SERVICE [/turtlesim/set_logger_level] /turtlesim rosrpc://kangsuyeon:47931
+[rosmaster.master][INFO] 2023-03-07 20:21:43,896: publisherUpdate[/rosout] -> http://kangsuyeon:35189/ []: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2023-03-07 20:21:43,898: -CACHEDPARAM [/rosout_disable_topics_generation] by /turtlesim
+[rosmaster.master][INFO] 2023-03-07 20:27:04,851: -PUB [/rosout_agg] /rosout http://kangsuyeon:35189/
+[rosmaster.master][INFO] 2023-03-07 20:27:04,851: -SUB [/rosout] /rosout http://kangsuyeon:35189/
+[rosmaster.master][INFO] 2023-03-07 20:27:04,852: -SERVICE [/rosout/get_loggers] /rosout rosrpc://kangsuyeon:51333
+[rosmaster.master][INFO] 2023-03-07 20:27:04,852: -SERVICE [/rosout/set_logger_level] /rosout rosrpc://kangsuyeon:51333
+[rosmaster.master][INFO] 2023-03-07 20:27:04,852: -CACHEDPARAM [/rosout/omit_topics] by /rosout
+[rosmaster.main][INFO] 2023-03-07 20:27:04,914: keyboard interrupt, will exit
+[rosmaster.main][INFO] 2023-03-07 20:27:04,915: stopping master...
+[rospy.core][INFO] 2023-03-07 20:27:04,915: signal_shutdown [atexit]

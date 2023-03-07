@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+  <include file="$(find ublox_gps)/launch/ublox_device.launch"/>
+  <node pkg="tf" type="static_transform_publisher" name="gps_broadcaster" args="-0.055 0 0.2195 0 0 0 1 os_sensor gps 100" />
+  <node pkg="ntrip_ros" type="ntripclient.py" name="ntrip_ros" output="screen">
+ 	 <param name="rtcm_topic" value="/ublox_gps/rtcm"/> //rtcm 토픽
+ 	 <param name="ntrip_server" value="RTS1.ngii.go.kr:2101"/> //접속경로:포트
+ 	 <param name="ntrip_user" value="kjw16611"/> //개인별 아이디
+ 	 <param name="ntrip_pass" value="ngii"/> //비밀번호
+ 	 <param name="ntrip_stream" value="VRS-RTCM31"/> //마운트포인트
+ 	 <param name="nmea_gga" value="$GPGGA,132350.925,3551.588,N,12829.261,E,1,12,1.0,0.0,M,0.0,M,,*64"/>
+  </node>
+</launch>
+

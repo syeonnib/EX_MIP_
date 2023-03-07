@@ -1,0 +1,28 @@
+<launch>
+  <include file="$(find ouster_ros)/ouster.launch" >         
+   </include>
+  <group ns="/pcl_filters">
+
+    <!-- PCL Manager -->
+    <node pkg="nodelet" type="nodelet" name="cropbox_filter_pcl_manager" args="manager" output="screen"/>
+
+    <!-- A CropBox filter to avoid self-detection -->
+    <node pkg="nodelet" type="nodelet" name="self_removal" args="load pcl/CropBox cropbox_filter_pcl_manager" output="screen">
+      <remap from="~input" to="/os_cloud_node/points" />
+      <remap from="~output" to="/self_removed_points" />
+      <rosparam>
+        input_frame: os_sensor
+        output_frame: os_sensor
+        # true: no points in the box, false: no points outside the box
+        negative: true
+        min_x: -0.8
+        max_x: 1.9
+        min_y: -0.8
+        max_y: 0.8
+        min_z: -1.5
+        max_z: 1.5
+      </rosparam>
+    </node>
+
+  </group>
+</launch>

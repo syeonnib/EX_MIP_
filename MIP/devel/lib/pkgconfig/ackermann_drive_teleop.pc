@@ -1,0 +1,8 @@
+prefix=/home/kangsuyeon/MIP/devel
+
+Name: ackermann_drive_teleop
+Description: Description of ackermann_drive_teleop
+Version: 0.0.0
+Cflags: -I/home/kangsuyeon/MIP/src/mip_auton_2022_review/src/controller/ackermann-drive-teleop/scripts
+Libs: -L${prefix}/lib 
+Requires: rospy ackermann_msgs

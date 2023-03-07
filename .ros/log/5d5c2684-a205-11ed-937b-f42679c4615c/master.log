@@ -1,0 +1,86 @@
+[rosmaster.main][INFO] 2023-02-01 16:52:24,663: initialization complete, waiting for shutdown
+[rosmaster.main][INFO] 2023-02-01 16:52:24,663: Starting ROS Master Node
+[xmlrpc][INFO] 2023-02-01 16:52:24,664: XML-RPC server binding to 0.0.0.0:11311
+[xmlrpc][INFO] 2023-02-01 16:52:24,664: Started XML-RPC server [http://kangsuyeon:11311/]
+[xmlrpc][INFO] 2023-02-01 16:52:24,664: xml rpc node: starting XML-RPC server
+[rosmaster.master][INFO] 2023-02-01 16:52:24,664: Master initialized: port[11311], uri[http://kangsuyeon:11311/]
+[rosmaster.master][INFO] 2023-02-01 16:52:24,751: +PARAM [/run_id] by /roslaunch
+[rosmaster.master][INFO] 2023-02-01 16:52:24,752: +PARAM [/roslaunch/uris/host_kangsuyeon__33743] by /roslaunch
+[rosmaster.master][INFO] 2023-02-01 16:52:24,767: +PARAM [/rosversion] by /roslaunch
+[rosmaster.master][INFO] 2023-02-01 16:52:24,767: +PARAM [/rosdistro] by /roslaunch
+[rosmaster.master][INFO] 2023-02-01 16:52:24,769: +SERVICE [/rosout/get_loggers] /rosout http://kangsuyeon:46495/
+[rosmaster.master][INFO] 2023-02-01 16:52:24,770: +SERVICE [/rosout/set_logger_level] /rosout http://kangsuyeon:46495/
+[rosmaster.master][INFO] 2023-02-01 16:52:24,770: +PUB [/rosout_agg] /rosout http://kangsuyeon:46495/
+[rosmaster.master][INFO] 2023-02-01 16:52:24,771: +SUB [/rosout] /rosout http://kangsuyeon:46495/
+[rosmaster.master][INFO] 2023-02-01 16:53:02,288: +PUB [/rosout] /turtlesim http://kangsuyeon:34627/
+[rosmaster.master][INFO] 2023-02-01 16:53:02,288: +SERVICE [/turtlesim/get_loggers] /turtlesim http://kangsuyeon:34627/
+[rosmaster.master][INFO] 2023-02-01 16:53:02,289: +SERVICE [/turtlesim/set_logger_level] /turtlesim http://kangsuyeon:34627/
+[rosmaster.master][INFO] 2023-02-01 16:53:02,289: +PARAM [/turtlesim/background_r] by /turtlesim
+[rosmaster.master][INFO] 2023-02-01 16:53:02,289: +PARAM [/turtlesim/background_g] by /turtlesim
+[rosmaster.master][INFO] 2023-02-01 16:53:02,290: +PARAM [/turtlesim/background_b] by /turtlesim
+[rosmaster.master][INFO] 2023-02-01 16:53:02,297: +SERVICE [/clear] /turtlesim http://kangsuyeon:34627/
+[rosmaster.master][INFO] 2023-02-01 16:53:02,298: +SERVICE [/reset] /turtlesim http://kangsuyeon:34627/
+[rosmaster.master][INFO] 2023-02-01 16:53:02,298: +SERVICE [/spawn] /turtlesim http://kangsuyeon:34627/
+[rosmaster.master][INFO] 2023-02-01 16:53:02,298: +SERVICE [/kill] /turtlesim http://kangsuyeon:34627/
+[rosmaster.master][INFO] 2023-02-01 16:53:02,298: +CACHEDPARAM [/rosout_disable_topics_generation] by /turtlesim
+[rosmaster.master][INFO] 2023-02-01 16:53:02,299: +SUB [/turtle1/cmd_vel] /turtlesim http://kangsuyeon:34627/
+[rosmaster.master][INFO] 2023-02-01 16:53:02,299: +PUB [/turtle1/pose] /turtlesim http://kangsuyeon:34627/
+[rosmaster.master][INFO] 2023-02-01 16:53:02,299: +PUB [/turtle1/color_sensor] /turtlesim http://kangsuyeon:34627/
+[rosmaster.master][INFO] 2023-02-01 16:53:02,300: +SERVICE [/turtle1/set_pen] /turtlesim http://kangsuyeon:34627/
+[rosmaster.master][INFO] 2023-02-01 16:53:02,300: +SERVICE [/turtle1/teleport_relative] /turtlesim http://kangsuyeon:34627/
+[rosmaster.master][INFO] 2023-02-01 16:53:02,300: +SERVICE [/turtle1/teleport_absolute] /turtlesim http://kangsuyeon:34627/
+[rosmaster.master][INFO] 2023-02-01 16:53:02,324: publisherUpdate[/rosout] -> http://kangsuyeon:46495/ ['http://kangsuyeon:34627/']
+[rosmaster.master][INFO] 2023-02-01 16:53:02,326: publisherUpdate[/rosout] -> http://kangsuyeon:46495/ ['http://kangsuyeon:34627/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2023-02-01 16:53:02,527: +CACHEDPARAM [/rosout/omit_topics] by /rosout
+[rosmaster.master][INFO] 2023-02-01 16:53:19,626: +PUB [/rosout] /teleop_turtle http://kangsuyeon:36025/
+[rosmaster.master][INFO] 2023-02-01 16:53:19,627: +SERVICE [/teleop_turtle/get_loggers] /teleop_turtle http://kangsuyeon:36025/
+[rosmaster.master][INFO] 2023-02-01 16:53:19,627: +SERVICE [/teleop_turtle/set_logger_level] /teleop_turtle http://kangsuyeon:36025/
+[rosmaster.master][INFO] 2023-02-01 16:53:19,628: +PUB [/turtle1/cmd_vel] /teleop_turtle http://kangsuyeon:36025/
+[rosmaster.master][INFO] 2023-02-01 16:53:19,663: publisherUpdate[/rosout] -> http://kangsuyeon:46495/ ['http://kangsuyeon:34627/', 'http://kangsuyeon:36025/']
+[rosmaster.master][INFO] 2023-02-01 16:53:19,663: publisherUpdate[/turtle1/cmd_vel] -> http://kangsuyeon:34627/ ['http://kangsuyeon:36025/']
+[rosmaster.master][INFO] 2023-02-01 16:53:19,665: publisherUpdate[/rosout] -> http://kangsuyeon:46495/ ['http://kangsuyeon:34627/', 'http://kangsuyeon:36025/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2023-02-01 16:53:19,667: publisherUpdate[/turtle1/cmd_vel] -> http://kangsuyeon:34627/ ['http://kangsuyeon:36025/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2023-02-01 16:53:48,077: +PUB [/rosout] /rqt_gui_py_node_8171 http://kangsuyeon:34163/
+[rosmaster.master][INFO] 2023-02-01 16:53:48,078: +SERVICE [/rqt_gui_py_node_8171/get_loggers] /rqt_gui_py_node_8171 http://kangsuyeon:34163/
+[rosmaster.master][INFO] 2023-02-01 16:53:48,079: +SERVICE [/rqt_gui_py_node_8171/set_logger_level] /rqt_gui_py_node_8171 http://kangsuyeon:34163/
+[rosmaster.master][INFO] 2023-02-01 16:53:48,085: +SUB [/statistics] /rqt_gui_py_node_8171 http://kangsuyeon:34163/
+[rosmaster.master][INFO] 2023-02-01 16:53:48,117: publisherUpdate[/rosout] -> http://kangsuyeon:46495/ ['http://kangsuyeon:34627/', 'http://kangsuyeon:36025/', 'http://kangsuyeon:34163/']
+[rosmaster.master][INFO] 2023-02-01 16:53:48,117: publisherUpdate[/rosout] -> http://kangsuyeon:46495/ ['http://kangsuyeon:34627/', 'http://kangsuyeon:36025/', 'http://kangsuyeon:34163/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2023-02-01 16:54:46,543: -PUB [/rosout] /teleop_turtle http://kangsuyeon:36025/
+[rosmaster.master][INFO] 2023-02-01 16:54:46,544: -PUB [/turtle1/cmd_vel] /teleop_turtle http://kangsuyeon:36025/
+[rosmaster.master][INFO] 2023-02-01 16:54:46,544: -SERVICE [/teleop_turtle/get_loggers] /teleop_turtle rosrpc://kangsuyeon:37005
+[rosmaster.master][INFO] 2023-02-01 16:54:46,545: -SERVICE [/teleop_turtle/set_logger_level] /teleop_turtle rosrpc://kangsuyeon:37005
+[rosmaster.master][INFO] 2023-02-01 16:54:46,627: publisherUpdate[/rosout] -> http://kangsuyeon:46495/ ['http://kangsuyeon:34627/', 'http://kangsuyeon:34163/']
+[rosmaster.master][INFO] 2023-02-01 16:54:46,628: publisherUpdate[/rosout] -> http://kangsuyeon:46495/ ['http://kangsuyeon:34627/', 'http://kangsuyeon:34163/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2023-02-01 16:54:46,628: publisherUpdate[/turtle1/cmd_vel] -> http://kangsuyeon:34627/ []
+[rosmaster.master][INFO] 2023-02-01 16:54:46,628: publisherUpdate[/turtle1/cmd_vel] -> http://kangsuyeon:34627/ []: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2023-02-01 16:54:48,468: -SUB [/statistics] /rqt_gui_py_node_8171 http://kangsuyeon:34163/
+[rosmaster.master][INFO] 2023-02-01 16:54:48,468: -PUB [/rosout] /rqt_gui_py_node_8171 http://kangsuyeon:34163/
+[rosmaster.master][INFO] 2023-02-01 16:54:48,468: -SERVICE [/rqt_gui_py_node_8171/set_logger_level] /rqt_gui_py_node_8171 rosrpc://kangsuyeon:42879
+[rosmaster.master][INFO] 2023-02-01 16:54:48,468: -SERVICE [/rqt_gui_py_node_8171/get_loggers] /rqt_gui_py_node_8171 rosrpc://kangsuyeon:42879
+[rosmaster.master][INFO] 2023-02-01 16:54:48,531: publisherUpdate[/rosout] -> http://kangsuyeon:46495/ ['http://kangsuyeon:34627/']
+[rosmaster.master][INFO] 2023-02-01 16:54:48,532: publisherUpdate[/rosout] -> http://kangsuyeon:46495/ ['http://kangsuyeon:34627/']: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2023-02-01 16:54:49,385: -SERVICE [/turtle1/teleport_absolute] /turtlesim rosrpc://kangsuyeon:47741
+[rosmaster.master][INFO] 2023-02-01 16:54:49,385: -SERVICE [/turtle1/teleport_relative] /turtlesim rosrpc://kangsuyeon:47741
+[rosmaster.master][INFO] 2023-02-01 16:54:49,385: -SERVICE [/turtle1/set_pen] /turtlesim rosrpc://kangsuyeon:47741
+[rosmaster.master][INFO] 2023-02-01 16:54:49,386: -PUB [/turtle1/color_sensor] /turtlesim http://kangsuyeon:34627/
+[rosmaster.master][INFO] 2023-02-01 16:54:49,386: -PUB [/turtle1/pose] /turtlesim http://kangsuyeon:34627/
+[rosmaster.master][INFO] 2023-02-01 16:54:49,386: -SUB [/turtle1/cmd_vel] /turtlesim http://kangsuyeon:34627/
+[rosmaster.master][INFO] 2023-02-01 16:54:49,386: -SERVICE [/kill] /turtlesim rosrpc://kangsuyeon:47741
+[rosmaster.master][INFO] 2023-02-01 16:54:49,386: -SERVICE [/spawn] /turtlesim rosrpc://kangsuyeon:47741
+[rosmaster.master][INFO] 2023-02-01 16:54:49,386: -SERVICE [/reset] /turtlesim rosrpc://kangsuyeon:47741
+[rosmaster.master][INFO] 2023-02-01 16:54:49,387: -SERVICE [/clear] /turtlesim rosrpc://kangsuyeon:47741
+[rosmaster.master][INFO] 2023-02-01 16:54:49,533: -PUB [/rosout] /turtlesim http://kangsuyeon:34627/
+[rosmaster.master][INFO] 2023-02-01 16:54:49,534: -SERVICE [/turtlesim/get_loggers] /turtlesim rosrpc://kangsuyeon:47741
+[rosmaster.master][INFO] 2023-02-01 16:54:49,534: publisherUpdate[/rosout] -> http://kangsuyeon:46495/ []
+[rosmaster.master][INFO] 2023-02-01 16:54:49,534: publisherUpdate[/rosout] -> http://kangsuyeon:46495/ []: sec=0.00, result=[1, '', 0]
+[rosmaster.master][INFO] 2023-02-01 16:54:49,534: -SERVICE [/turtlesim/set_logger_level] /turtlesim rosrpc://kangsuyeon:47741
+[rosmaster.master][INFO] 2023-02-01 16:54:49,535: -CACHEDPARAM [/rosout_disable_topics_generation] by /turtlesim
+[rosmaster.master][INFO] 2023-02-01 16:54:55,745: -PUB [/rosout_agg] /rosout http://kangsuyeon:46495/
+[rosmaster.master][INFO] 2023-02-01 16:54:55,746: -SUB [/rosout] /rosout http://kangsuyeon:46495/
+[rosmaster.master][INFO] 2023-02-01 16:54:55,746: -SERVICE [/rosout/get_loggers] /rosout rosrpc://kangsuyeon:44149
+[rosmaster.master][INFO] 2023-02-01 16:54:55,746: -SERVICE [/rosout/set_logger_level] /rosout rosrpc://kangsuyeon:44149
+[rosmaster.master][INFO] 2023-02-01 16:54:55,746: -CACHEDPARAM [/rosout/omit_topics] by /rosout
+[rosmaster.main][INFO] 2023-02-01 16:54:55,777: keyboard interrupt, will exit
+[rosmaster.main][INFO] 2023-02-01 16:54:55,777: stopping master...
+[rospy.core][INFO] 2023-02-01 16:54:55,777: signal_shutdown [atexit]

@@ -1,0 +1,765 @@
+<script type="text/template" id="header-template">
+	<h1>
+		<a href="#" class="hd_logo"><img src="logo"></a>
+	</h1>
+	<div class="gnb_list_box">
+	</div>
+	<div class="mc-user_area">
+		<div class="mc-log">
+			<span class="mc-iam">
+<%
+	var lastDate = user.USERS_LASTDATE ? $.format.date(user.USERS_LASTDATE, 'yyyy/MM/dd HH:mm') : user.USERS_LASTDATE;
+%>
+				<em class="inaccess"><%= i18n.login.recent %> : <%= lastDate %> (<%- user.USERS_LASTHOST %>)</em>
+				<span class="user-name">
+					<%- user.USERS_NAME %>
+					<span class="ic_share_arrow"><span class="mc-blind"><%= i18n.downwardsArrow %></span></span>
+				</span>
+			</span>
+			<button title="<%= i18n.logout.text %>" class="mc-btn_logout" onclick="location.href='logout'; return false;">
+				<span><%= i18n.logout.text %></span>
+			</button>
+		</div>
+		<div class="mc-sett">
+			<a class="mc-lk_setup" href="<%= i18n.settings.url %>">
+				<span><%= i18n.settings.text %></span>
+			</a>
+			<% if (user.USERS_AUTH == 'A' || user.USERS_AUTH == 'S') { %> 
+			<a class="mc-lk_admin" target="_blank" href="<%= i18n.admin.url %>">
+				<span><%= i18n.admin.text %></span>
+			</a>
+			<% } %>
+		</div>
+	</div>
+	<div id="switch-user-list-display-popup" class="mc-dh_layer" style="right:230px; top:24px; display:">
+		<!-- #switch-user-template -->
+	</div>
+</script>
+
+<script type="text/template" id="gnb-template">
+<!--
+	<li class="mme">
+		<a title="<%= i18n.hello.text %>" href="<%= i18n.hello.url %>" name="hello"><%= i18n.hello.text %></a>
+	</li>
+-->
+	<li class="mmail" style="display:none;" data-service="mail">
+		<a title="<%= i18n.mail.text %>" href="<%= i18n.mail.url %>" name="mail"><%= i18n.mail.text %></a>
+	</li>
+	<li class="maddress" style="display:none;" data-service="contact">
+		<a href="<%= i18n.contact.url %>" title="<%= i18n.contact.text %>" name="contact"><%= i18n.contact.text %></a>
+	</li>
+	<li class="mwebhard" style="display:none;" data-service="disk">
+		<a title="<%= i18n.webhard.text %>" href="<%= i18n.webhard.url %>" name="disk"><%= i18n.webhard.text %></a>
+	</li>
+	<li class="mcalendar" style="display:none;" data-service="calendar">
+		<a title="<%= i18n.calendar.text %>" href="<%= i18n.calendar.url %>" name="calendar"><%= i18n.calendar.text %></a>
+	</li>
+	<li class="mbbs" style="display:none;" data-service="board">
+		<a title="<%= i18n.bbs.text %>" href="<%= i18n.bbs.url %>" name="bbs"><%= i18n.bbs.text %></a>
+	</li>
+	<li class="mmanual">
+		<a title="<%= i18n.manual.text %>" href="<%= i18n.manual.url %>" name="manual"><%= i18n.manual.text %></a>
+	</li>
+<!--
+	<li class="mcsmLeft">
+		<a title="<%= i18n.csm.text %>" href="<%= i18n.csm.url %>" name="csm"><%= i18n.csm.text %></a>
+	</li>
+	<li class="mproject">
+		<a title="<%= i18n.project.text %>" href="<%= i18n.project.url %>" name="project"><%= i18n.project.text %></a>
+	</li>
+	<li class="mrsv">
+		<a title="<%= i18n.schedule.text %>" href="<%= i18n.schedule.url %>" name="schedule"><%= i18n.schedule.text %></a>
+	</li>
+-->
+</script>
+
+<script type="text/template" id="footer-template">
+	<h3 class="mc-blind"><%= i18n.footer.text %></h3>
+	<div class="mc-capacity">
+		<span><%= i18n.capacity.text %></span>
+		<%
+			var usage = user.USERS_CUR_VOLUME * 1024 * 1024;
+			var capacity = user.USERS_MAX_VOLUME * 1024 * 1024;
+		%>
+		<div class="mc-cp_webmail <%= usage > (capacity * 0.9) ? 'fullDisk' : '' %>" title="<%= i18n.capacity.pleaseCheckMailSize %>">
+			<span class="mc-bar">|</span> <%= i18n.webmail.text %>
+			<span class="mc-graph">
+				<b style="width: <%= numeral(usage / capacity).format('0%') %>; max-width:100%">bar</b>
+			</span>
+			<span class="mc-dataSize">
+				<strong class="mc-useSize"><%= numeral(usage).format('0[.]0b') %></strong>
+				<span>/</span>
+				<em class="mc-totalSize"><b><%= numeral(capacity).format('0[.]0b') %></b></em>
+			</span>
+		<%
+			if (usage > (capacity * 0.9)) {
+		%>
+			<span class="ic_  icoCaution"></span>
+		<%
+			}
+		%>
+		</div>
+		<%
+			usage = diskUser.DISK_USAGE;
+			capacity = diskUser.DISK_QUOTA;
+		%>
+		<div class="mc-cp_data <%= usage > (capacity * 0.9) ? 'fullDisk' : '' %>" title="<%= i18n.capacity.pleaseCheckBlobSize %>">
+			<span class="mc-bar">|</span> <%= app.domainDetailsModel.get('diskServiceEnabled') ? i18n.disk : i18n.bigmail.text %>
+			<span class="mc-graph"><b style="width: <%= numeral(usage / capacity).format('0%') %>; max-width:100%">bar</b></span>
+			<span class="mc-dataSize">
+				<strong class="mc-useSize"><%= numeral(usage).format('0[.]0b') %></strong>
+				<span>/</span>
+				<em class="mc-totalSize"><b><%= numeral(capacity).format('0[.]0b') %></b></em>
+			</span>
+		<%
+			if (usage > (capacity * 0.9)) {
+		%>
+			<span class="ic_  icoCaution"></span>
+		<%
+			}
+		%>
+		</div>
+	</div>
+	<address><%= domain.DOMAIN_TXT_COPY %></address>
+</script>
+
+<script type="text/template" id="top-panel-template">
+	<!-- 조직도 -->
+	<div class="mc-orgContent">
+		<div class="mc-orgFixed">
+			<!-- ORG HEADER -->
+			<div class="mc-orgHeader">
+				<h2><%= i18n.header %></h2>
+				<span class="mc-orgHd_info">
+					<%= i18n.description %>
+				</span>
+			</div>
+			<!-- //ORG HEADER -->
+			<!-- ORG DATA -->
+			<table class="mc-orgData">
+				<tr>
+					<td class="mc-orgTabTree">
+						<!-- TREE TAB MENU -->
+						<table class="mc-orgTab">
+							<tr>
+								<td class="">
+									<a href="#" class="tree-tab-favorites">
+										<span><em><%= i18n.favorites %></em></span>
+									</a>
+								</td>
+								<td class="on">
+									<a href="#" class="tree-tab-organize">
+										<span><em><%= i18n.organization %></em></span>
+									</a>
+								</td>
+								<td class="">
+									<a href="#" class="tree-tab-share-contacts">
+										<span><em><%= i18n.sharedContacts %></em></span>
+									</a>
+								</td>
+								<td class="tabtail">
+									<a href="#" class="tree-tab-contacts">
+										<span><em><%= i18n.privateContacts %></em></span>
+									</a>
+								</td>
+							</tr>
+							<tr>
+								<td colspan="4" class="mc-orgTab_line"><p></p></td>
+							</tr>
+						</table>
+						<!-- //TREE TAB MENU -->
+						<fieldset class="mc-bookmark" style="display: none">
+							<div class="treeWrapping favorites-tree-container" style="display: none;"></div>
+						</fieldset>
+						<!-- TREE TAB PANELS -->
+						<fieldset class="mc-orgTree">
+							<div class="group_rfs_area">
+								<a href="#" class="group_rfs reload-tree"><span class="mc-blind"><%= i18n.reload %></span></a>
+							</div>
+							<legend><%= i18n.organization %></legend>
+							<div class="treeWrapping org-tree-container"></div>
+							<div class="treeWrapping share-group-tree-container" style="display:none;"></div>
+							<div class="treeWrapping contact-tree-container" style="display:none;"></div>
+						</fieldset>
+						<!-- //TREE TAB PANELS -->
+					</td>
+					<td class="mc-orgAction_area1">
+						<div class="mc-uiBtn">
+							<button class="mc-btn_list_in"><%= i18n.addRecipients %></button>
+							<button class="mc-btn_list_out"><%= i18n.removeRecipients %></button>
+						</div>
+					</td>
+					<td class="mc-orgSltList">
+						<!-- SEND BOX -->
+						<h3 class="mc-uiHead">
+							<span><em><%= i18n.sendBox %></em></span>
+						</h3>
+						<div class="mc-uiList">
+							<!-- SEND BOX ITEM -->
+							<table class="mc-orgList_head">
+								<tr>
+									<td class="name">
+										<input name="" type="checkbox">
+										<label for="adrsName"><%= i18n.name %></label>
+									</td>
+									<td class="adrs">
+										<span><%= i18n.address %><a href="#" name="col1" class="ccH"><%= i18n.showCcBcc %></a></span>
+									</td>
+									<td class="cc">
+										<input name="" type="checkbox" class="rcpt-header-cc">
+										<label for="cc"><%= i18n.cc %></label>
+										<input name="" type="checkbox" class="rcpt-header-bcc">
+										<label for="bcc"><%= i18n.bcc %></label>
+									</td>
+								</tr>
+							</table>
+							<!-- //SEND BOX ITEM -->
+							<!-- SEND BOX LIST (#recipient-template) -->
+							<div class="mc-orgList_body">
+							</div>
+							<!-- //SEND BOX LIST -->
+							<!-- SEND BOX ATTACH FILE (#attachments-template) -->
+							<div class="mc-uiFile">
+							</div>
+							<!-- //SEND BOX ATTACH FILE -->
+						</div>
+						
+						<!-- SEND BOX FOOTER -->
+						<div class="mc-uiBottom">
+							<div class="mc-uiBottom_fixed">
+								<div class="mc-uiBottom_cont">
+									<span class="mc-selectInfo"><%= i18n.toSelectedRecipients %></span>
+									<!-- SEND SELECT -->
+									<div class="mc-selectSet">
+										<div class="mc-selectBox">
+											<!-- <a href="#" class="mc-btn_arrow"> -->
+											<a href="#" class="mc-btn_arrow" onclick="return false;">
+												<span>dropDown</span>
+											</a>
+											<!-- SELECT OPTION VIEW -->
+											<ul>
+												<li><%= i18n.email %></li>
+												<li><%= i18n.kebiTalk %></li>
+												<li><%= i18n.note %></li>
+											</ul>
+											<!-- //SELECT OPTION VIEW -->
+										</div>
+										<!-- SELECT OPTION BOX -->
+										<ol class="mc-selectOption">
+											<li>
+												<a href="#">깨비톡</a>
+											</li>
+											<li>
+												<a href="#">쪽지</a>
+											</li>
+											<li>
+												<a href="#">메일</a>
+											</li>
+										</ol>
+										<!-- //SELECT OPTION DIV -->
+									</div>
+									<!-- //SEND SELECT -->
+									<a href="#" class="mc-btn_msgSend"><span><%= i18n.send %></span></a>
+									<a href="#" class="mc-btn_msgDel"><span><%= i18n.remove %></span></a>
+								</div>
+							</div>
+						</div>
+						<!-- //SEND BOX FOOTER -->
+						<!-- //SEND BOX -->
+					</td>
+					<td class="mc-orgAction_area2">
+						<div class="mc-uiBtn">
+							<button class="mc-btn_list_in"><%= i18n.addFiles %></button>
+						</div>
+					</td>
+					<td class="mc-orgWebHard wh_small">
+						<!-- WEBHARD -->
+						<h3 class="mc-uiHead">
+							<span><%= app.domainDetailsModel.get('diskServiceEnabled') ? i18n.disk : i18n.blobAttachments %></span>
+							<em class="mc-uiHead_open"><a href="#" class="wh_open"><%= i18n.showDetails %></a></em>
+							<em><a href="#"><%= i18n.reload %></a></em>
+						</h3>
+						<div class="mc-whTree">
+							<!-- <legend>클라우드</legend> -->
+							<div class="blob-attachments-wrapper nodeArrow_up">
+								<div class="mc-whTree_tit">
+									<a href="#"><em>▶▼</em><span class="ico_diskBig"><%= i18n.blobAttachments %></span></a>
+								</div>
+								<div class="whWrap">
+									<ul class="mc-whTree_header">
+										<li>
+											<span class="file_name wh_small_tit"><%= i18n.file.name %></span>
+											<div class="info">
+												<span class="file_size"><%= i18n.file.size %></span>
+												<span class="down_period"><%= i18n.file.validity %></span>
+												<span class="down_count"><%= i18n.file.downloads %></span>
+												<span class="file_del"><%= i18n.file.remove %></span>
+											</div>
+										</li>
+									</ul>
+									<ul class="mc-whTree_body">
+									</ul>
+								</div>
+							</div>
+							<span class="diskhr"></span>
+<%
+						if (app.domainDetailsModel.get('diskServiceEnabled')) {
+%>
+							<div class="my-disk-wrapper nodeArrow_up">
+								<div class="mc-whTree_tit">
+									<a href="#"><em>▶▼</em><span class="ico_diskMy"><%= i18n.myDisk %></span></a>
+								</div>
+								<div class="whWrap_mydisk">
+									<ul class="mc-whTree_header">
+										<li>
+											<span class="file_name wh_small_tit"><%= i18n.file.name %></span>
+											<div class="info">
+												<span class="file_size"><%= i18n.file.size %></span>
+												<span class="file_del"><%= i18n.file.remove %></span>
+											</div>
+										</li>
+									</ul>
+									<ul class="mc-whTree_body">
+									</ul>
+								</div>
+							</div>
+<%
+						}
+%>
+						</div>
+						<!-- //WEBHARD -->
+					</td>
+				</tr>
+			</table>
+			<!-- //ORG DATA -->
+		</div>
+	</div>
+	<!-- // 조직도 -->
+	
+	<!-- ORG FOOTER -->
+	<div class="mc-orgFooter">
+		<div class="mc-orgFt_lft"></div>
+		<div class="mc-orgFt_mid">
+			<span>
+				<a href="#" class="mc-btn_orgOpen"><%= i18n.slideDown %></a>
+			</span>
+		</div>
+		<div class="mc-orgFt_rgt"></div>
+	</div>
+	<!-- //ORG FOOTER -->
+</script>
+<script type="text/template" id="favorite-contacts-item-template">
+<!--
+	즐겨찾기 아이콘 가이드
+	# 조직도 : .ic_bookmark ic_addr_all
+	# 공유 주소록 : .ic_bookmark ic_addr_share
+	# 주소록 : .ic_bookmark ic_addr
+-->
+<%
+	var iconClass;
+	if (contact.ORG_EMAIL) {
+		iconClass = 'ic_addr_all';
+	} else if (contact.SHARE_ADDRESS_IDX) {
+		iconClass = 'ic_addr_share';
+	} else {
+		iconClass = 'ic_addr';
+	}
+%>
+		<input name="" type="checkbox"/>
+		<span class="ic_bookmark <%= iconClass %>"><span class="mc-blind">공용주소록</span></span>
+		<label class="lbtxt"><%- contact.ADDRESS_NAME %>
+<%
+	if (contact.ADDRESS_NAME) {
+%>
+			<span class="mem_mail">&lt;<%- contact.ADDRESS_EMAIL %>&gt;</span>
+<%
+	} else {
+%>
+			<span class="mem_mail"><%- contact.ADDRESS_EMAIL %></span>
+<%
+	}
+%>
+		</label>
+</script>
+<script type="text/template" id="org-root-template">
+	<!-- D: 최상위 카테고리[회사] -->
+	<span class="orgCorp">
+		<input name="" type="checkbox" value="" id="org-root-entry">
+		<label for="org-root-entry"><%- entry.attributes.cn[0] %></label>
+	</span>
+	<!-- D:
+		# .orgNode_p 펼침 연결자 PLUS - .fld 폴더 아이콘 담힘
+		# .orgNode_m 닫힘 연결자 Minus - .fld 폴더 아이콘 열림
+		# .orgNode_pBott 최하단 펼침 연결자
+		# .orgNode_mBott 최하단 닫힘 연결자
+		# .orgNode_join 연결자 - .fld 닫힘폴더
+		# .orgNode_elbow 최하단 연결자 - .fld 닫힘폴더
+	-->
+	<!-- ORG DEPTH 1 START -->
+	<ul class="orgDepth1"></ul>
+	<!-- ORG DEPTH 1 END -->
+</script>
+<script type="text/template" id="org-entry-template">
+	<a href="#" class="orgNode"><em>└</em></a>
+<%
+	if (_.contains(entry.attributes.objectClass, 'groupOfNames')) {
+		// entry.urlRoot : 'org/domain.com/groups'
+		var id = entry.id;
+		var cn = entry.attributes.cn && entry.attributes.cn[0];
+%>
+	<input name="" type="checkbox" class="tchk" id="<%- id %>">
+	<label for="<%- id %>" class="lbtxt"><%- cn %></label>
+	<span class="fld">group</span>
+<%
+	} else {
+		// entry.urlRoot : 'org/domain.com/groups/123/users'
+		var id = entry.id;
+		var cn = entry.attributes.cn && entry.attributes.cn[0];
+		var important = entry.important;
+		var importantClass = (important ? 'icoImportantOn' : 'icoImportantOff');
+%>
+	<input name="" type="checkbox" class="tchk" id="<%- id %>">
+	<label for="<%- id %>" class="lbtxt"><%- cn %></label>
+	<span class="man">member</span>
+	<strong class="<%= importantClass %>"><em>별</em></strong>
+<%
+	}
+%>
+	<ul class="org-entries" style="display:none"></ul>
+</script>
+<script type="text/template" id="share-contacts-root-template">
+	<!-- D: 최상위 카테고리[공유주소록] -->
+	<span class="orgCorp">
+		<input name="" type="checkbox" value="" id="share-contacts-root">
+		<label for="share-contacts-root"><%= i18n.sharedContacts %></label>
+	</span>
+	<!-- D:
+		# .orgNode_p 펼침 연결자 PLUS - .fld 폴더 아이콘 담힘
+		# .orgNode_m 닫힘 연결자 Minus - .fld 폴더 아이콘 열림
+		# .orgNode_pBott 최하단 펼침 연결자
+		# .orgNode_mBott 최하단 닫힘 연결자
+		# .orgNode_join 연결자 - .fld 닫힘폴더
+		# .orgNode_elbow 최하단 연결자 - .fld 닫힘폴더
+	-->
+	<!-- ORG DEPTH 1 START -->
+	<ul class="orgDepth1"></ul>
+	<!-- ORG DEPTH 1 END -->
+</script>
+<script type="text/template" id="share-contacts-entry-template">
+	<a href="#" class="orgNode"><em>└</em></a>
+<%
+	if (_.contains(entry.attributes.objectClass, 'groupOfNames')) {
+	var id = 'share-group-' + entry.id;
+	var cn = entry.attributes.cn && entry.attributes.cn[0];
+%>
+	<input name="" type="checkbox" class="tchk" id="<%- id %>">
+	<label for="<%- id %>" class="lbtxt"><%- cn %></label>
+	<span class="fld">folder</span>
+<%
+	} else {
+	var id = 'share-person-' + entry.id;
+	var cn = entry.attributes.cn && entry.attributes.cn[0];
+	var important = entry.important;
+	var importantClass = (important ? 'icoImportantOn' : 'icoImportantOff');
+%>
+	<input name="" type="checkbox" class="tchk" id="<%- id %>">
+	<label for="<%- id %>" class="lbtxt"><%- cn || entry.attributes.mail %></label>
+	<span class="man">member</span>
+	<strong class="<%= importantClass %>"><em>별</em></strong>
+<%
+	}
+%>
+	<ul class="org-entries" style="display:none"></ul>
+</script>
+<script type="text/template" id="contacts-root-template">
+	<!-- D: 최상위 카테고리[내주소록] -->
+	<span class="orgCorp">
+		<input name="" type="checkbox" value="" id="contacts-root-entry">
+		<label for="contacts-root-entry"><%= i18n.privateContacts %></label>
+	</span>
+	<!-- D:
+		# .orgNode_p 펼침 연결자 PLUS - .fld 폴더 아이콘 담힘
+		# .orgNode_m 닫힘 연결자 Minus - .fld 폴더 아이콘 열림
+		# .orgNode_pBott 최하단 펼침 연결자
+		# .orgNode_mBott 최하단 닫힘 연결자
+		# .orgNode_join 연결자 - .fld 닫힘폴더
+		# .orgNode_elbow 최하단 연결자 - .fld 닫힘폴더
+	-->
+	<!-- CONTACTS TREE DEPTH 1 START -->
+	<ul class="orgDepth1"></ul>
+	<!-- CONTACTS TREE DEPTH 1 END -->
+</script>
+<script type="text/template" id="contacts-entry-template">
+	<a href="#" class="orgNode"><em>└</em></a>
+<%
+	if (_.contains(entry.attributes.objectClass, 'groupOfNames')) {
+	var id = 'contact-group-' + entry.id;
+	var cn = entry.attributes.cn && entry.attributes.cn[0];
+%>
+	<input name="" type="checkbox" class="tchk" id="<%- id %>">
+	<label for="<%- id %>" class="lbtxt"><%- cn %></label>
+	<span class="fld">folder</span>
+<%
+	} else {
+		var id = 'contact-person-' + entry.id;
+		var cn = entry.attributes.cn && entry.attributes.cn[0];
+		var important = entry.important;
+		var importantClass = (important ? 'icoImportantOn' : 'icoImportantOff');
+%>
+	<input name="" type="checkbox" class="tchk" id="<%- id %>">
+	<label for="<%- id %>" class="lbtxt"><%- cn || entry.attributes.mail %></label>
+	<span class="man">member</span>
+	<strong class="<%= importantClass %>"><em><%= i18n.star %></em></strong>
+<%
+	}
+%>
+	<ul class="org-entries" style="display:none"></ul>
+</script>
+<script type="text/template" id="recipient-template">
+	<td class="name">
+		<input name="" type="checkbox" class="recipient-item">
+<%
+	if (recipient.type == 'user') {
+%>
+		<label for="an2"><em class="prs"><%= i18n.person %></em><%- recipient.personal %></label>
+<%
+	} else if (recipient.type == 'group') {
+		if (recipient.sharerId)
+			recipient.address += '@' + recipient.sharerId;
+%>
+		<label for="an1"><em class="grp"><%= i18n.group %></em><%- recipient.personal %></label>
+<%
+	}
+%>
+	</td>
+	<td class="adrs">
+		<span><%- recipient.address %></span>
+	</td>
+	<td class="cc">
+		<input name="" type="checkbox" class="recipient-cc" id="top-panel-rcpt-cc">
+		<label for="top-panel-rcpt-cc"><%= i18n.cc %></label>
+		<input name="" type="checkbox" class="recipient-bcc" id="top-panel-rcpt-bcc">
+		<label for="top-panel-rcpt-bcc"><%= i18n.bcc %></label>
+	</td>
+</script>
+<script type="text/template" id="attachments-template">
+	<h4>
+		<span class="mc-uiFile_tit"><%= i18n.attachments %></span>
+		<span class="mc-uiFile_find"><%= i18n.attachFilesFromPC %>
+			<a href="#" class="mc-btn_orgFF"><%= i18n.browse %></a>
+			<input type="file" multiple="true">
+		</span>
+	</h4>
+	<div class="mc-uiFile_list">
+		<ul></ul>
+	</div>
+</script>
+<script type="text/template" id="blob-attachment-template">
+<%
+	var extentionToClassName = {
+		"alz" : 'fic_alz', "zip" : 'fic_zip', "rar" : 'fic_rar', "7z" : 'fic_7z', "tar" : 'fic_tar',
+		"ico" : 'fic_ico', "icon" : 'fic_icon',
+		"doc" : 'fic_doc', "docx" : 'fic_docx', "ndoc" : 'fic_ndoc',
+		"exe" : 'fic_exe',
+		"fla" : 'fic_fla', "swf" : 'fic_swf',
+		"gul" : 'fic_gul', "rft" : 'fic_rtf', "one" : 'fic_one', "pub" : 'fic_pub',
+		"htm" : 'fic_htm', "html" : 'fic_html',
+		"hwp" : 'fic_hwp',
+		"bmp" : 'fic_bmp', "tif" : 'fic_tif', "tiff" : 'fic_tiff',
+		"png" : 'fic_png', "jpg" : 'fic_jpg', "jpeg" : 'fic_jpeg',
+		"gif" : 'fic_gif', "psd" : 'fic_psd',
+		"mid" : 'fic_mid', "wav" : 'fic_rafic_wav', "wma" : 'fic_wma',
+		"mp3" : 'fic_mp3',
+		"mp4" : 'fic_mp4', "mpeg" : 'fic_mpeg', "ftv" : 'fic_ftv', "k3g" : 'fic_k3g',
+		"wmv" : 'fic_wmv', "mov" : 'fic_mov',
+		"pdf" : 'fic_pdf',
+		"ppt" : 'fic_ppt', "pptx" : 'fic_pptx',
+		"xls" : 'fic_xls', "xlsx" : 'fic_xlsx', "xlsm" : 'fic_xlsm', "xlsb" : 'fic_xlsb',
+		"txt" : 'fic_txt',
+	};
+	function fileNameToClassName(fileName) {
+		if (!fileName || typeof fileName !== "string")
+			return "fic_bak";
+		var dotIndex = fileName.lastIndexOf('.');
+		if (dotIndex === -1)
+			return "fic_bak";
+		var ext = fileName.substring(dotIndex + 1).toLowerCase();
+		var className = extentionToClassName[ext];
+		if (!className)
+			return "fic_bak";
+		return className;
+	}
+	var className = fileNameToClassName(data.name);
+	var size = numeral(data.size).format('0b');
+	var validity = $.format.date(new Date(data.lastModified), 'yy.MM.dd');
+	var now = Date.now ? Date.now() : new Date().getTime();
+	var remaining = (data.lastModified - now) / 1000;
+	if (remaining < 3600) {
+		remaining = Math.floor(remaining / 60) + i18n.remainingMinutesSuffix;
+	} else if (remaining < 86400) {
+		remaining = Math.floor(remaining / 3600) + i18n.remainingHoursSuffix;
+	} else {
+		remaining = Math.floor(remaining / 86400) + i18n.remainingDaysSuffix;
+	}
+	var downloads = data.user;
+	var total = data.group;
+%>
+	<span class="file_name wh_small_tit" title="<%- data.name %>">
+		<span class="fic <%= className %>"></span>
+		<%- data.name %>
+		<a href="#" class="ico_cloud_down"></a>
+	</span>
+	<div class="info">
+		<span class="file_size"><%= size %></span>
+		<span class="down_period" title="~ <%- validity %>"><%= remaining %></span>
+		<span class="down_count"><%= downloads %>/<%= total %><%= i18n.downloadTimesSuffix %></span>
+		<span class="file_del"><a href="#"><%= i18n.file.remove %></a></span>
+	</div>
+</script>
+<script type="text/template" id="disk-file-item-template">
+<%
+	var extentionToClassName = {
+		"alz" : 'fic_alz', "zip" : 'fic_zip', "rar" : 'fic_rar', "7z" : 'fic_7z', "tar" : 'fic_tar',
+		"ico" : 'fic_ico', "icon" : 'fic_icon',
+		"doc" : 'fic_doc', "docx" : 'fic_docx', "ndoc" : 'fic_ndoc',
+		"exe" : 'fic_exe',
+		"fla" : 'fic_fla', "swf" : 'fic_swf',
+		"gul" : 'fic_gul', "rft" : 'fic_rtf', "one" : 'fic_one', "pub" : 'fic_pub',
+		"htm" : 'fic_htm', "html" : 'fic_html',
+		"hwp" : 'fic_hwp',
+		"bmp" : 'fic_bmp', "tif" : 'fic_tif', "tiff" : 'fic_tiff',
+		"png" : 'fic_png', "jpg" : 'fic_jpg', "jpeg" : 'fic_jpeg',
+		"gif" : 'fic_gif', "psd" : 'fic_psd',
+		"mid" : 'fic_mid', "wav" : 'fic_rafic_wav', "wma" : 'fic_wma',
+		"mp3" : 'fic_mp3',
+		"mp4" : 'fic_mp4', "mpeg" : 'fic_mpeg', "ftv" : 'fic_ftv', "k3g" : 'fic_k3g',
+		"wmv" : 'fic_wmv', "mov" : 'fic_mov',
+		"pdf" : 'fic_pdf',
+		"ppt" : 'fic_ppt', "pptx" : 'fic_pptx',
+		"xls" : 'fic_xls', "xlsx" : 'fic_xlsx', "xlsm" : 'fic_xlsm', "xlsb" : 'fic_xlsb',
+		"txt" : 'fic_txt',
+	};
+	function fileNameToClassName(fileName) {
+		if (!fileName || typeof fileName !== "string")
+			return "fic_bak";
+		var dotIndex = fileName.lastIndexOf('.');
+		if (dotIndex === -1)
+			return "fic_bak";
+		var ext = fileName.substring(dotIndex + 1).toLowerCase();
+		var className = extentionToClassName[ext];
+		if (!className)
+			return "fic_bak";
+		return className;
+	}
+	var className = fileNameToClassName(data.name);
+	var size = numeral(data.size).format('0b');
+%>
+<% if (data.directory) { %>
+	<span class="file_name wh_small_tit" title="<%- data.name %>">
+		<a href="#"><em>▶▼</em></a>
+		<span class="fic tree_folder"></span>
+		<%- data.name %>
+		<a href="#" class="ico_cloud_down" style="display: none"></a>
+	</span>
+<% } else { %>
+	<span class="file_name wh_small_tit" title="<%- data.name %>">
+		<span class="fic <%= className %>"></span>
+		<%- data.name %>
+		<a href="#" class="ico_cloud_down"></a>
+	</span>
+<% } %>
+	<div class="info">
+		<span class="file_size"><%= data.directory ? '&nbsp;' : size %></span>
+		<span class="file_del"><a href="#"><%= i18n.file.remove %></a></span>
+	</div>
+	<ul style="display: none"></ul>
+</script>
+<script type="text/template" id="switch-user-template">
+	<div class="type_a" style="width:220px;">
+<%
+	var text = i18n.switchUser.text;
+	if (user.switched) {
+		text = i18n.switchUser.useSwitchUser;
+	}
+%>
+		<h5><%= text %></h5>
+		<ul class="selector">
+<%
+	if (user.switched) {
+%>
+			<li id="checkAllBtn"><a href="j_spring_security_exit_user" class=""><%= i18n.switchUser.goToMyAccount %></a></li>
+<%
+	} else {
+		if (!switchUsers || switchUsers.length == 0) { 
+%>
+			<li id="checkAllBtn">
+				<a><%= i18n.switchUser.noSwitchUser %></a>
+			</li>
+<%
+		} else {
+			_.each(switchUsers, function(switchUser){
+%>
+				<li id="checkAllBtn">
+					<a href="j_spring_security_switch_user?j_username=<%- switchUser.switch_user %>" title="<%- switchUser.USERS_NAME %>"><%- switchUser.switch_user %></a>
+				</li>
+<%
+			});
+		}
+	}
+%>
+		</ul>
+	</div>
+</script>
+<script type="text/template" id="app-overlay-template">
+	<div id="app-overlay" style="background: transparent; left: 0px; top: 0px; width: 100%; height: 100%; position: absolute; z-index: 2015; opacity: 0.5;">
+		<div class="app-loading-layer" style="text-align: center; position: absolute; z-index: 2016;">
+			<span style='background: url("img/loading_span_bg.png") no-repeat left top; padding-left: 2px; display: inline-block;'>
+				<span style='background: url("img/loading_span_bg.png") no-repeat right -49px; padding-right: 2px; display: inline-block;'>
+					<span style='background: url("img/loading_span_bg.png") repeat-x left -98px; padding: 0px 18px 0px 9px; color: white; line-height: 39px; display: inline-block;'>
+						<img style="margin-right: 10px; vertical-align: middle;" src="img/ico_ld_cm.gif">
+						<%= i18n.overlay.leadingLoading %>
+						<strong><%= i18n.overlay.mail %></strong>
+						<%= i18n.overlay.trailingLoading %>
+					</span>
+				</span>
+			</span>
+		</div>
+		<div class="app-processing-layer" style="text-align: center; position: absolute; z-index: 2016;">
+			<span style='background: url("img/loading_span_bg.png") no-repeat left top; padding-left: 2px; display: inline-block;'>
+				<span style='background: url("img/loading_span_bg.png") no-repeat right -49px; padding-right: 2px; display: inline-block;'>
+					<span style='background: url("img/loading_span_bg.png") repeat-x left -98px; padding: 0px 18px 0px 9px; color: white; line-height: 39px; display: inline-block;'>
+						<img style="margin-right: 10px; vertical-align: middle;" src="img/ico_ld_cm.gif">
+						<%= i18n.overlay.leadingProcessing %>
+						<strong><%= i18n.overlay.mail %></strong>
+						<%= i18n.overlay.trailingProcessing %>
+					</span>
+				</span>
+			</span>
+		</div>
+		<div class="attachment-uploading-layer" style="text-align: center; position: absolute; z-index: 2016;">
+			<span style='background: url("img/loading_span_bg.png") no-repeat left top; padding-left: 2px; display: inline-block;'>
+				<span style='background: url("img/loading_span_bg.png") no-repeat right -49px; padding-right: 2px; display: inline-block;'>
+					<span style='background: url("img/loading_span_bg.png") repeat-x left -98px; padding: 0px 18px 0px 9px; color: white; line-height: 39px; display: inline-block;'>
+						<img style="margin-right: 10px; vertical-align: middle;" src="img/ico_ld_cm.gif">
+						<%= i18n.overlay.leadingUploadingAttachment %>
+						<strong><%= i18n.overlay.mail %></strong>
+						<%= i18n.overlay.trailingUploadingAttachment %>
+					</span>
+				</span>
+			</span>
+		</div>
+	</div>
+</script>��.hm      d߸d߸EUUd7   c    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app/app-template.html necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"28179-1659949282000"
+Last-Modified: Mon, 08 Aug 2022 09:01:22 GMT
+Content-Type: text/html;charset=UTF-8
+Content-Length: 28179
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"28179-1659949282000"
+Last-Modified: Mon, 08 Aug 2022 09:01:22 GMT
+Content-Type: text/html;charset=UTF-8
+Content-Length: 28179
+Date: Tue, 07 Mar 2023 06:54:47 GMT
+ ctid 1 uncompressed-len 0 net-response-time-onstart 12 net-response-time-onstop 12   n

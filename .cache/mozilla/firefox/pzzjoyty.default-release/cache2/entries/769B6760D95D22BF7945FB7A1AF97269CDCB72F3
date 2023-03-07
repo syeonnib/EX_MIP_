@@ -1,0 +1,548 @@
+//document.domain = "dit.ac.kr";
+
+if ( ! window.enview )
+    window.enview = new Object();
+	
+if ( ! window.enview.portal )
+    window.enview.portal = new Object();
+	
+if ( ! window.enview.util )
+    window.enview.util = new Object();
+	
+var portalPage = null;
+var quickMenu = null;
+var noticeManager = null;
+var myPageTabPane = null;
+var enviewMessageBox = null;
+
+var ie5=document.all&&document.getElementById
+var ns6=document.getElementById&&!document.all
+
+function portalPageInitialize(version, isEditing, userId, pageInfo, decorations, langKnd, actionString, domainId) {
+	var divElem = document.createElement('div');
+	var html = "";
+	html += "<div id=\"DebuggerDisplay\" style=\"width:100%; height:20px; display:none;\"></div>";
+	html += "<div id=\"EnviewMessageBox\" title=\"Notice\" class=\"massagebox\" style=\"height:200px;display: none;\"></div>";
+	//html += "<div id=\"Enview.Portal.PortletEditIconArea\" class=\"portlet-iconArea\" style=\"display:none;\"></div>";
+	html += "<div id=\"Enview.Portal.ContextMenu\" style=\"display:none;\"></div>";
+	html += "<div id=\"Enview.Portal.DialogBasePane\" style=\"display:none;\"></div>"; 
+	
+	divElem.innerHTML = html;
+	document.body.appendChild( divElem );
+
+	portalPage = new enview.portal.Page();
+	portalPage.init( version, isEditing, userId, pageInfo, decorations, document.body, langKnd, domainId );
+	document.body.scroll='auto';
+	
+	var iconArea = document.getElementById("Enview.Portal.IconArea");
+	//alert("servlet=" + portalPage.getServletPath())
+	/*
+	if( portalPage.getServletPath() == "/contentonly" ) {
+		//alert( portalPage.getTheme());
+		var decoration = portalPage.getDecoration(); 
+		html = portalPage.getMessageResource("ev.info.pageEditingPageTheme") + " : <select id='sitemanager.select_theme' name='layout' onchange='javascript:changeTheme(this);'>";
+		for(var ix=0; ix<decoration.pages.length; ix++) {
+			if( decoration.pages[ix].name == portalPage.getTheme() ) {
+				html += "<option value='" + decoration.pages[ix].value + "' selected>" + decoration.pages[ix].name + "";
+			}
+			else {
+				html += "<option value='" + decoration.pages[ix].value + "'>" + decoration.pages[ix].name + "";
+			}
+		}
+		html += "</select>";
+		
+		html += "<img src='" + portalPage.getContextPath() + "/decorations/layout/images/magnifier.jpg' hspace='2' align='absmiddle' border='0' style='cursor:hand' title='Maximize Screen' onclick='javascript:parent.aPageManager.toggleMaximize()'>";
+		//html += "<img src='" + portalPage.getContextPath() + "/decorations/layout/images/toggle.gif' hspace='2' align='absmiddle' border='0' style='cursor:hand' title='Minimize EditMode' onclick='javascript:portalPage.toggleDragMode()'>";
+		html += "<img src='" + portalPage.getContextPath() + "/decorations/layout/images/save.jpg' hspace='2' align='absmiddle' border='0' style='cursor:hand' title='Save Page' onclick='javascript:portalPage.checkModified()'>";
+		
+		iconArea.innerHTML = html + "&nbsp;" + iconArea.innerHTML;
+		document.getElementById("sitemanager.select_theme").value = pageInfo.evalTheme;
+		iconArea.style.display = "";
+	}
+	else {
+		iconArea.style.display = "none";
+	}
+	*/
+	
+	addMouseEvent();
+}
+
+function noticeInitialize(pageId) {
+	noticeManager = new enview.portal.Notice();
+	noticeManager.init(pageId);
+
+}
+
+function quickMenuInitialize(quickElement, left, top) {
+	quickMenu = new enview.portal.QuickMenu();
+	quickMenu.init(quickElement, left, top);
+}
+
+function tabInitialize()
+{
+	if(!document.getElementsByName) return false;
+	if(!document.getElementById) return false;
+	
+	var divArray = document.getElementsByTagName( "DIV" );
+	for(var i=0; i<divArray.length; i++)
+	{
+		//alert("node=" + divArray[i].className);
+		if( divArray[i].className != "tab-main" ) continue;
+		
+		var subDivArray = divArray[i].getElementsByTagName("DIV");
+		
+		var tabHeaderArray = new Array();
+		var tabContentArray = new Array();
+		//alert("subDivArray.length=" + subDivArray.length);
+		for(var j=0; j<subDivArray.length; j++)
+		{
+			if(subDivArray[j].className == "tab-header") {
+				tabHeaderArray.push( subDivArray[j] );
+				var id = subDivArray[j].id.substring( subDivArray[j].id.indexOf("-") + 1);
+				//alert("id=" + id);
+				tabContentArray.push( document.getElementById("TabContent-" + id) );
+			}
+		}
+		
+		for(var j=0; j<tabHeaderArray.length; j++)
+		{
+			var links = new Array();
+			var lists = tabHeaderArray[j].getElementsByTagName("li");
+			for(var k=0; k<lists.length; k++)
+			{
+				links[k] = lists[k].getElementsByTagName("a").item(0);
+			}
+			for(var k=0; k<links.length; k++)
+			{
+				links[k].parentNode.childArray = links;
+				links[k].header = tabHeaderArray[k];
+				links[k].content = tabContentArray[k];
+				links[k].idx = k;
+				if( j != k ) {
+					links[k].onclick=function() {
+						for(var m=0; m<this.parentNode.childArray.length; m++) {
+							//alert("m=" + m + ", idx=" + this.idx + ", id=" + links[m].main.id);
+							if( m == this.idx ) {
+								this.parentNode.childArray[m].header.style.display="block";
+								this.parentNode.childArray[m].content.style.display="block";
+							}
+							else {
+								this.parentNode.childArray[m].header.style.display="none";
+								this.parentNode.childArray[m].content.style.display="none";
+							}
+						}
+						return false;
+					}
+				}
+			}
+			
+			if( j == 0 ) {
+				tabHeaderArray[j].style.display="block";
+				tabContentArray[j].style.display="block";
+			}
+			else {
+				tabHeaderArray[j].style.display="none";
+				tabContentArray[j].style.display="none";
+			}
+		}
+	}
+}
+
+function addMouseEvent() {
+	if(navigator.userAgent.indexOf('Firefox') >= 0){  
+		(
+			function(){   
+				var events = ["mousedown", "mouseover", "mouseout", "mousemove", "mousedrag", "click", "dblclick"];     
+				for (var i = 0; i < events.length; i++){    
+					window.addEventListener(events[i], function(e){ window.event = e; }, true); 
+				}  
+			}()
+		); 
+	};
+}
+
+function invokeEnviewNotice(contextPath, id, template, left, top, width, height, langKnd) {
+
+	if( template == null || template.length==0 ) return;
+	
+	var enviewNotice = GetCookie( "ENVIEW_NOTICE_" + id );
+	if( enviewNotice == "no" ) return;
+
+	/*
+	var width = "350";
+	var height = "280";
+	var left = (screen.width/2 - width/2);
+	var top = (screen.height/2 - height/2);
+	*/
+	var newWindow = null;
+	var url = contextPath + "/" + template + "?notice_id=" + id;
+	if( langKnd != null && langKnd.length > 0 ) {
+		url += "&langKnd=" + langKnd;
+	}
+	
+	if (document.all)	// it is IE
+	{
+		var feature = "'titlebar=no,directories=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no,left=" + left + ",top=" + top + ",width=" + width + ",height=" + height;
+		newWindow = window.open(url, "NoticeWindow" + id, feature)
+	}
+	else {
+		var feature = "titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no,left=" + left + ",top=" + top + ",width=" + width + ",height=" + height;
+		//var feature = "fullscreen=no,toolbar=no,location=no,directories=no,status=no,menubar=no,	scrollbars=no,resizable=no,left=" + left + ",top=" + top + ",width=" + width + ",height=" + height;
+		newWindow = window.open(url, "NoticeWindow" + id, feature)
+		//newWindow = window.open("/enview/statics/templates/notice/notice03.jsp", "NoticeWindow" + id, feature)
+	}
+	if( newWindow != null) {
+		newWindow.focus();
+	}
+}
+
+function help() {
+	portalPage.showAbout();
+	/*
+	var url = "/enview/statics/help/about/about.html";
+	var width = "300";
+	var height = "240";
+	if (document.all)	// it is IE
+	{
+		//window.showModelessDialog(url,"","dialogHeight:" + height + "; dialogWidth:" + width + "; resizable:no; scroll=no; status=no;");
+		var left = (screen.width/2 - width/2);
+		var top = (screen.height/2 - height/2);
+		//alert("screen.width=" + screen.width + ", left=" + left + ", top=" + top);
+		var feature = "'titlebar=no,directories=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no,left=" + left + ",top=" + top + ",width=" + width + ",height=" + height;
+		window.open(url, "HelpWindow", feature)
+	}
+	else {
+		var left = (screen.width/2 - width/2);
+		var top = (screen.height/2 - height/2);
+		var feature = "titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no,left=" + left + ",top=" + top + ",width=" + width + ",height=" + height;
+		//var feature = "fullscreen=no,toolbar=no,location=no,directories=no,status=no,menubar=no,	scrollbars=no,resizable=no,left=" + left + ",top=" + top + ",width=" + width + ",height=" + height;
+		window.open(url, "HelpWindow", feature)
+	}
+	*/
+}
+
+function showModal(url, width, height) {
+	if( !width ) {
+		width = "400px";
+	}
+	if( !height ) {
+		height = "200px";
+	}
+	
+	window.showModalDialog(url,"","dialogHeight:200; dialogWidth:600");
+	//window.showModalDialog(url,"","dialogHeight:" + width + "; dialogWidth:" + height + "");
+}
+
+function showModaless(url, width, height) {
+	if( !width ) {
+		width = "700";
+	}
+	if( !height ) {
+		height = "600";
+	}
+	
+	if (document.all)	// it is IE
+	{
+		//window.showModelessDialog(url,"","dialogHeight:" + height + "; dialogWidth:" + width + "; resizable:yes;");
+		var left = (screen.width/2 - width/2);
+		var top = (screen.height/2 - height/2);
+		var feature = "titlebar=no,directories=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,left=" + left + ",top=" + top + ",width=" + width + ",height=" + height;
+		window.open(url, "HelpWindow", feature)
+	}
+	else {
+		var left = (screen.width/2 - width/2);
+		var top = (screen.height/2 - height/2);
+		var feature = "titlebar=no,directories=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,left=" + left + ",top=" + top + ",width=" + width + ",height=" + height;
+		window.open(url, "HelpWindow", feature)
+	}
+}
+function whenListMouseOver(obj) {
+	//obj.setAttribute("oldBackground", obj.style.backgroundColor);
+	//obj.style.backgroundColor='#F2F0FB';
+	obj.setAttribute("oldBackClass", obj.getAttribute("class"));
+	obj.setAttribute("oldBackClassName", obj.getAttribute("className"));
+	obj.setAttribute("class", "mouseover");
+	obj.setAttribute("className", "mouseover");
+}
+function whenListMouseOut(obj) {
+	//obj.style.backgroundColor = obj.getAttribute("oldBackground");
+	obj.setAttribute("class", obj.getAttribute("oldBackClass"));
+	obj.setAttribute("className", obj.getAttribute("oldBackClassName"));
+}
+	
+function whenSrchFocus( obj, lvS ) {
+	if( obj.value == lvS ) obj.value = "";
+}
+
+function whenSrchBlur( obj, lvS ) {
+	if( obj.value == "" ) obj.value = lvS;
+}
+
+function MM_swapImgRestore() { //v3.0
+	var i,x,a=document.MM_sr; for(i=0;a&&i<a.length&&(x=a[i])&&x.oSrc;i++) x.src=x.oSrc;
+}
+
+function MM_preloadImages() { //v3.0
+	var d=document; if(d.images){ if(!d.MM_p) d.MM_p=new Array();
+	var i,j=d.MM_p.length,a=MM_preloadImages.arguments; for(i=0; i<a.length; i++)
+	if (a[i].indexOf("#")!=0){ d.MM_p[j]=new Image; d.MM_p[j++].src=a[i];}}
+}
+
+function MM_findObj(n, d) { //v4.0
+	var p,i,x;  if(!d) d=document; if((p=n.indexOf("?"))>0&&parent.frames.length) {
+	d=parent.frames[n.substring(p+1)].document; n=n.substring(0,p);}
+	if(!(x=d[n])&&d.all) x=d.all[n]; for (i=0;!x&&i<d.forms.length;i++) x=d.forms[i][n];
+	for(i=0;!x&&d.layers&&i<d.layers.length;i++) x=MM_findObj(n,d.layers[i].document);
+	if(!x && document.getElementById) x=document.getElementById(n); return x;
+}
+
+function MM_swapImage() { //v3.0
+	var i,j=0,x,a=MM_swapImage.arguments; document.MM_sr=new Array; for(i=0;i<(a.length-2);i+=3)
+	if ((x=MM_findObj(a[i]))!=null){document.MM_sr[j++]=x; if(!x.oSrc) x.oSrc=x.src; x.src=a[i+2];}
+}
+
+function SetCookie(name,value,expire,path) {
+	/*
+	var today = new Date();
+	today.setDate( today.getDate() + parseInt( expire ) );
+	document.cookie = name + "=" + escape( value ) + "; path=/; expires=" + today.toGMTString() + '; path=' + ((!path) ? '':path);
+	*/
+	document.cookie = name + '=' + escape(value) + ((!expire) ? '':('; expires=' + expire.toGMTString())) + '; path=' + ((!path) ? '':path);
+}
+
+function GetCookie(name) {
+	var value=null, search=name+"=";
+	if (document.cookie.length > 0) {
+		var offset = document.cookie.indexOf(search);
+		if (offset != -1) {
+			offset += search.length;
+			var end = document.cookie.indexOf(";", offset);
+			if (end == -1) end = document.cookie.length;
+			value = unescape(document.cookie.substring(offset, end));
+		}
+	}
+	return value;
+}
+
+function DeleteCookie(name,path) {
+	var expireDate = new Date();
+
+	expireDate.setDate( expireDate.getDate() - 1 );
+	document.cookie = name + "= " + "; expires=" + expireDate.toGMTString() + "; path=" + path;
+}
+
+Number.prototype.to2 = function() { return (this > 9 ? "" : "0")+this; };
+Date.MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+Date.DAYS   = ["Sun", "Mon", "Tue", "Wed", "Tur", "Fri", "Sat"];
+Date.prototype.getDateString = function(dateFormat) {
+  var result = "";
+  
+  dateFormat = dateFormat == 8 && "YYYY.MM.DD" ||
+               dateFormat == 6 && "hh:mm:ss" ||
+               dateFormat ||
+               "YYYY.MM.DD hh:mm:ss";
+  for (var i = 0; i < dateFormat.length; i++) {
+    result += dateFormat.indexOf("YYYY", i) == i ? (i+=3, this.getFullYear()                     ) :
+              dateFormat.indexOf("YY",   i) == i ? (i+=1, String(this.getFullYear()).substring(2)) :
+              dateFormat.indexOf("MMM",  i) == i ? (i+=2, Date.MONTHS[this.getMonth()]           ) :
+              dateFormat.indexOf("MM",   i) == i ? (i+=1, (this.getMonth()+1).to2()              ) :
+              dateFormat.indexOf("M",    i) == i ? (      this.getMonth()+1                      ) :
+              dateFormat.indexOf("DDD",  i) == i ? (i+=2, Date.DAYS[this.getDay()]               ) :
+              dateFormat.indexOf("DD",   i) == i ? (i+=1, this.getDate().to2()                   ) :
+              dateFormat.indexOf("D"   , i) == i ? (      this.getDate()                         ) :
+              dateFormat.indexOf("hh",   i) == i ? (i+=1, this.getHours().to2()                  ) :
+              dateFormat.indexOf("h",    i) == i ? (      this.getHours()                        ) :
+              dateFormat.indexOf("mm",   i) == i ? (i+=1, this.getMinutes().to2()                ) :
+              dateFormat.indexOf("m",    i) == i ? (      this.getMinutes()                      ) :
+              dateFormat.indexOf("ss",   i) == i ? (i+=1, this.getSeconds().to2()                ) :
+              dateFormat.indexOf("s",    i) == i ? (      this.getSeconds()                      ) :
+                                                   (dateFormat.charAt(i)                         ) ;
+  }
+  return result;
+};
+
+
+function Map()
+{
+    this.keySet=new Object();
+    this.values=new Object();
+    this.size=0;
+}
+Map.prototype.put=function(key,value)
+{
+    if(!this.isValidKey(key))
+    {
+        throw new Error('Map put method called without specifying a valid key');
+    }
+    var index;
+    if(this.containsKey(key))
+    {
+        for(var i=0;i<this.size;i++)
+        {
+            if(this.keySet[i]==key)
+            {
+                index=i;
+                break;
+            }
+        }
+    }
+    else
+    {
+        index=this.size;
+        this.keySet[index]=key;
+        this.size++;
+    }
+    this.values[index]=value;
+};
+Map.prototype.getSize=function()
+{
+	return this.size;
+}
+Map.prototype.remove=function(key)
+{
+    if(!this.isValidKey(key))
+    {
+        throw new Error('Map remove method used with invalid key: '+key);
+    }
+    if(!this.containsKey(key))
+    {
+        return;
+    }
+    var index;
+    for(var i=0;i<this.size;i++)
+    {
+        if(this.keySet[i]==key)
+        {
+            index=i;
+            break;
+        }
+    }
+    delete this.keySet[index];
+    delete this.values[index];
+    for(var i=index;i<this.size-1;i++)
+    {
+        this.keySet[i]=this.keySet[i+1];
+        this.values[i]=this.values[i+1];
+    }
+    delete this.keySet[this.size-1];
+    delete this.values[this.size-1];
+    this.size--;
+};
+Map.prototype.removeAll=function()
+{
+	this.keySet=new Object();
+    this.values=new Object();
+    this.size=0;
+}
+Map.prototype.containsKey=function(key)
+{
+    if(this.get(key)!=null)
+    {
+        return true;
+    }
+    return false;
+};
+Map.prototype.getKeySet=function()
+{
+    return this.keySet;
+};
+Map.prototype.get=function(key)
+{
+    var value=null;
+    if(!key)
+    {
+        return null;
+    }
+    for(var i=0;i<this.size;i++)
+    {
+        if(this.keySet[i]==key)
+        {
+            value=this.values[i];
+            break;
+        }
+    }
+    return value;
+};
+Map.prototype.isValidKey=function(key)
+{
+    if(key == null)
+    {
+        return false;
+    }
+    return true;
+};
+
+String.prototype.trim = function(str) {
+  str = this != window?this:str;
+  return str.replace(/^\s+/g,'').replace(/\s+$/g,'');
+}
+
+ 
+String.prototype.parseJSON = function () {
+    try {
+        return !(/[^,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]/.test(
+                this.replace(/"(\\.|[^"\\])*"/g, ''))) &&
+            eval('(' + this + ')');
+    } catch (e) {
+    	alert(e);
+        return false;
+    }
+};
+
+function JSONtoString(object) {
+    var results = [];
+    for (var property in object) {
+        var value = object[property];
+        if (value)
+            results.push("\"" + property.toString() + '\": \"' + value + "\"");
+        }
+                 
+        return '{' + results.join(', ') + '}';
+}
+
+String.prototype.string = function(len){var s = '', i = 0; while (i++ < len) { s += this; } return s;};
+String.prototype.zf = function(len){return "0".string(len - this.length) + this;};
+Number.prototype.zf = function(len){return this.toString().zf(len);};
+
+Date.prototype.format = function(f) {
+    if (!this.valueOf()) return " ";
+ 
+    var weekName = ["Sun", "Mon", "Tue", "Wen", "Thu", "Fri", "Sat"];
+    var d = this;
+     
+    return f.replace(/(yyyy|yy|MM|dd|E|hh|mm|ss|a\/p)/gi, function($1) {
+        switch ($1) {
+            case "yyyy": return d.getFullYear();
+            case "yy": return (d.getFullYear() % 1000).zf(2);
+            case "MM": return (d.getMonth() + 1).zf(2);
+            case "dd": return d.getDate().zf(2);
+            case "E": return weekName[d.getDay()];
+            case "HH": return d.getHours().zf(2);
+            case "hh": return ((h = d.getHours() % 12) ? h : 12).zf(2);
+            case "mm": return d.getMinutes().zf(2);
+            case "ss": return d.getSeconds().zf(2);
+            case "a/p": return d.getHours() < 12 ? "am" : "pm";
+            default: return $1;
+        }
+    });
+};
+
+function filterTag (s) {
+    if (s == null) return;
+	 
+	s = s.replace("<", "&lt;");
+	return s.replace(">", "&gt;");
+ }
+‹/vBº      cÚNcÚNE6MZcãUÎ   e    O^partitionKey=%28https%2Cseoultech.ac.kr%29,:https://portal.seoultech.ac.kr/javascript/common_new.js necko:classified 1 strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 OK
+ETag: W/"19050-1424066896000"
+Last-Modified: Mon, 16 Feb 2015 06:08:16 GMT
+Content-Length: 19050
+Date: Wed, 01 Feb 2023 07:57:02 GMT
+Content-Type: text/javascript;charset=UTF-8
+ original-response-headers ETag: W/"19050-1424066896000"
+Connection: keep-alive
+Last-Modified: Mon, 16 Feb 2015 06:08:16 GMT
+Content-Length: 19050
+Date: Wed, 01 Feb 2023 07:57:02 GMT
+Content-Type: text/javascript;charset=UTF-8
+ ctid 2 uncompressed-len 0 net-response-time-onstart 36 net-response-time-onstop 44   Jj

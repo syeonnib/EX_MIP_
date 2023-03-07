@@ -1,0 +1,367 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+
+<meta name="google-site-verification" content="CjkdY6BqKWAVmQ78_iSq6J7ZZ9AoL7-CjFVBYGg9FU4" />
+<link rel="shortcut icon" href="/custom/favicon.ico" type="image/ico" />
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" />
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/custom/js/sorttable.js"></script>
+<script type="text/javascript" src="/custom/libraries/jquery.min.js"></script>                         
+<script type="text/javascript" src="/custom/js/seesaw.js"></script> 
+<script type="text/javascript" src="/custom/js/rosversion.js"></script> 
+<!--script type="text/javascript" src="/custom/libraries/RGraph.common.core.js" ></script Used for metrics only, should be conditional, not at the top-->
+<!--script type="text/javascript" src="/custom/libraries/RGraph.bar.js" ></script same as above -->
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17821189-2']);
+  _gaq.push(['_setDomainName', 'wiki.ros.org']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<meta name="robots" content="index,nofollow">
+
+<title>catkin/workspaces - ROS Wiki</title>
+<script type="text/javascript" src="/moin_static197/common/js/common.js"></script>
+
+<script type="text/javascript">
+<!--
+var search_hint = "Search";
+//-->
+</script>
+
+
+<link rel="stylesheet" type="text/css" charset="utf-8" media="all" href="/moin_static197/rostheme/css/common.css">
+<link rel="stylesheet" type="text/css" charset="utf-8" media="screen" href="/moin_static197/rostheme/css/screen.css">
+<link rel="stylesheet" type="text/css" charset="utf-8" media="print" href="/moin_static197/rostheme/css/print.css">
+<link rel="stylesheet" type="text/css" charset="utf-8" media="projection" href="/moin_static197/rostheme/css/projection.css">
+
+<!-- css only for MS IE6/IE7 browsers -->
+<!--[if lt IE 8]>
+   <link rel="stylesheet" type="text/css" charset="utf-8" media="all" href="/moin_static197/rostheme/css/msie.css">
+<![endif]-->
+
+
+
+
+<link rel="canonical" href="http://wiki.ros.org/catkin/workspaces" />
+
+<link rel="Start" href="/Documentation">
+<link rel="Alternate" title="Wiki Markup" href="/catkin/workspaces?action=raw">
+<link rel="Alternate" media="print" title="Print View" href="/catkin/workspaces?action=print">
+<link rel="Up" href="/catkin">
+<link rel="Search" href="/FindPage">
+<link rel="Index" href="/TitleIndex">
+<link rel="Glossary" href="/WordIndex">
+<link rel="Help" href="/HelpOnFormatting">
+</head>
+
+<body  lang="en" dir="ltr">
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-5950817-2");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+
+<script type="text/javascript">
+<!--// Initialize search form
+var f = document.getElementById('searchform');
+if(f) f.getElementsByTagName('label')[0].style.display = 'none';
+var e = document.getElementById('searchinput');
+if(e) {
+  searchChange(e);
+  searchBlur(e);
+}
+
+function handleSubmit() {
+  var f = document.getElementById('searchform');
+  var t = document.getElementById('searchinput');
+  var r = document.getElementById('real_searchinput');
+
+  //alert("handleSubmit "+ t.value);
+  if(t.value.match(/review/)) {
+    r.value = t.value;
+  } else {
+    //r.value = t.value + " -PackageReviewCategory -StackReviewCategory -M3Review -DocReview -ApiReview -HelpOn -BadContent -LocalSpellingWords";
+    r.value = t.value + " -PackageReviewCategory -StackReviewCategory -DocReview -ApiReview";
+  }
+  //return validate(f);
+}
+//-->
+</script>
+
+<div id="dpage">
+  <div id="dpage-inner">
+    <div id="header"><div id="topnav">
+
+<!-- Alert box -->
+<!-- To enable/disable the alert box, uncomment/comment the block below and update the content below the button. -->
+<!--
+    <div class="alert alert-info alert-dismissable" style="text-align: center;">
+<script>
+jQuery(function( $ ){
+    alert_box_name = 'roswiki_roscon'
+    state = localStorage.getItem(alert_box_name);
+    if (!state) {
+      localStorage.setItem(alert_box_name, 'open');
+    }
+    state = localStorage.getItem(alert_box_name);
+    if (state == 'closed') {
+        $( '#topnav .alert' ).hide();
+    }
+    $( '.close' ).click(function () {
+	console.log('in .close.click');
+        localStorage.setItem(alert_box_name, 'closed');
+        $( '#topnav .alert' ).hide();
+  });
+});
+</script>
+      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+      <a href="http://roscon.ros.org">ROSCon 2017</a> will be in Vancouver, September 21-22! <br>
+      The last few years have sold out: register now and take advantage of discounted hotel rates</a>.
+    </div>
+-->
+<!-- End Alert box -->
+
+      <table id="topnav-table">
+        <tr>
+          <td width="300" valign="top"><a href="/"><img border="0" src="/custom/images/ros_org.png" alt="ros.org" width="238" height="51"/></a></td>
+          <td width="500" valign="middle">
+            <a href="http://www.ros.org/about-ros">About</a>
+            |
+            <a href="/Support">Support</a>
+            |
+            <a href="http://discourse.ros.org/">Discussion Forum</a>
+            |
+            <a href="http://index.ros.org/">Index</a>
+            |
+            <a href="http://status.ros.org/">Service Status</a>
+            |
+            <a href="http://answers.ros.org/">Q&A answers.ros.org</a>
+          </td>
+
+      </tr>
+      <tr>
+        <td colspan="3" height="53" width="1024"><nobr><img src="/custom/images/menu_left.png" width="17" height="53" alt=""/><a href="/"><img
+        border="0" src="/custom/images/menu_documentation.png" width="237" height="53" alt="Documentation" /></a><img
+        src="/custom/images/menu_spacer.png" width="69" height="53" /><a href="https://index.ros.org/packages"><img border="0"
+        src="/custom/images/menu_browse_software.png" width="268" height="53" alt="Browse Software" /></a><img
+        src="/custom/images/menu_spacer.png" width="69" height="53" /><a href="https://discourse.ros.org/c/general"><img border="0"
+        src="/custom/images/menu_news.png" width="84" height="53" alt="News" /></a><img
+        src="/custom/images/menu_spacer.png" width="69" height="53" /><a href="/ROS/Installation"><img border="0"
+        src="/custom/images/menu_download.png" width="151" height="53" alt="Download" /></a><img
+        src="/custom/images/menu_right.png" width="60" height="53" /></nobr></td>
+
+      </tr>
+    </table> <!-- topnav-table -->
+
+    </div> <!-- /#topav -->
+  </div> <!-- /#header -->
+
+
+<div id="header2">
+
+<ul id="pagelocation">
+<li><a href="/catkin">catkin</a></li><li><a class="backlink" href="/action/fullsearch/catkin/workspaces?action=fullsearch&amp;context=180&amp;value=linkto%3A%22catkin%2Fworkspaces%22" rel="nofollow" title="Click to do a full-text search for this title">workspaces</a></li>
+</ul>
+
+<div id="locationline">
+</div>
+</div>
+
+<div id="sidebar">
+<h4>ROS 2 Documentation</h4><p>The ROS Wiki is for ROS 1. Are you using ROS 2 (Dashing/Foxy/Rolling)? <a href="http://docs.ros.org/en/rolling/">Check out the ROS 2 Documentation</a></p>
+<div class="sidepanel">
+<h1>Wiki</h1>
+
+<ul id="navibar">
+<li class="wikilink"><a href="/Distributions">Distributions</a></li><li class="wikilink"><a href="/ROS/Installation">ROS/Installation</a></li><li class="wikilink"><a href="/ROS/Tutorials">ROS/Tutorials</a></li><li class="wikilink"><a href="/RecentChanges">RecentChanges</a></li><li class="current"><a href="/catkin/workspaces">catkin/workspaces</a></li>
+</ul>
+
+</div>
+<div class="sidepanel">
+<h1>Page</h1>
+<ul class="editbar"><li><span class="disabled">Immutable Page</span></li><li class="toggleCommentsButton" style="display:none;"><a href="#" class="nbcomment" onClick="toggleComments();return false;">Comments</a></li><li><a class="nbinfo" href="/action/info/catkin/workspaces?action=info" rel="nofollow">Info</a></li><li><a class="nbattachments" href="/action/AttachFile/catkin/workspaces?action=AttachFile" rel="nofollow">Attachments</a></li><li>
+<form class="actionsmenu" method="GET" action="/catkin/workspaces">
+<div>
+    <label>More Actions:</label>
+    <select name="action"
+        onchange="if ((this.selectedIndex != 0) &&
+                      (this.options[this.selectedIndex].disabled == false)) {
+                this.form.submit();
+            }
+            this.selectedIndex = 0;">
+        <option value="raw">Raw Text</option>
+<option value="print">Print View</option>
+<option value="RenderAsDocbook">Render as Docbook</option>
+<option value="show" disabled class="disabled">Delete Cache</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="SpellCheck">Check Spelling</option>
+<option value="LikePages">Like Pages</option>
+<option value="LocalSiteMap">Local Site Map</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="RenamePage" disabled class="disabled">Rename Page</option>
+<option value="CopyPage">Copy Page</option>
+<option value="DeletePage" disabled class="disabled">Delete Page</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="MyPages">My Pages</option>
+<option value="show" disabled class="disabled">Subscribe User</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="show" disabled class="disabled">Remove Spam</option>
+<option value="show" disabled class="disabled">Revert to this revision</option>
+<option value="PackagePages">Package Pages</option>
+<option value="SyncPages">Sync Pages</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="CreatePdfDocument">CreatePdfDocument</option>
+<option value="Load">Load</option>
+<option value="RawFile">RawFile</option>
+<option value="Save">Save</option>
+<option value="SlideShow">SlideShow</option>
+    </select>
+    <input type="submit" value="Do">
+    
+</div>
+<script type="text/javascript">
+<!--// Init menu
+actionsMenuInit('More Actions:');
+//-->
+</script>
+</form>
+</li></ul>
+
+</div>
+<div class="sidepanel">
+<h1>User</h1>
+<ul id="username"><li><a href="/action/login/catkin/workspaces?action=login" id="login" rel="nofollow">Login</a></li></ul>
+</div>
+</div>
+
+<div id="page" lang="en" dir="ltr">
+
+<div dir="ltr" id="content" lang="en"><span class="anchor" id="top"></span>
+<span class="anchor" id="line-1"></span><p class="line867"><div class="table-of-contents"><p class="table-of-contents-heading">Contents<ol><li>
+<a href="#Catkin_Workspaces">Catkin Workspaces</a><ol><li>
+<a href="#Source_Space">Source Space</a></li><li>
+<a href="#Build_Space">Build Space</a></li><li>
+<a href="#Development_.28Devel.29_Space">Development (Devel) Space</a></li><li>
+<a href="#Install_Space">Install Space</a></li><li>
+<a href="#Result_space">Result space</a></li></ol></li><li>
+<a href="#Building_Packages_with_catkin">Building Packages with catkin</a></li><li>
+<a href="#Installing_Packages_with_Catkin">Installing Packages with Catkin</a></li><li>
+<a href="#Overlays">Overlays</a><ol><li>
+<a href="#Environment_Setup_File">Environment Setup File</a></li></ol></li></ol></li></ol></div><p class="line874"> <span class="anchor" id="line-2"></span>catkin packages can be built as a standalone project, in the same way that normal cmake projects can be built, but catkin also provides the concept of workspaces, where you can build multiple, interdependent packages together all at once. <span class="anchor" id="line-3"></span><span class="anchor" id="line-4"></span><p class="line867">
+<h2 id="Catkin_Workspaces">Catkin Workspaces</h2>
+<span class="anchor" id="line-5"></span><span class="anchor" id="line-6"></span><p class="line862">A <a href="/catkin/workspaces#Catkin_Workspaces">catkin workspace</a> is a folder where you modify, build, and install catkin packages. It is specified in <a class="http" href="http://www.ros.org/reps/rep-0128.html">REP 128</a>. The following is the recommended and typical <a href="/catkin/workspaces#Catkin_Workspaces">catkin workspace</a> layout: <span class="anchor" id="line-7"></span><span class="anchor" id="line-8"></span><p class="line867"><span class="anchor" id="line-9"></span><span class="anchor" id="line-10"></span><span class="anchor" id="line-11"></span><span class="anchor" id="line-12"></span><span class="anchor" id="line-13"></span><span class="anchor" id="line-14"></span><span class="anchor" id="line-15"></span><span class="anchor" id="line-16"></span><span class="anchor" id="line-17"></span><span class="anchor" id="line-18"></span><span class="anchor" id="line-19"></span><span class="anchor" id="line-20"></span><span class="anchor" id="line-21"></span><span class="anchor" id="line-22"></span><span class="anchor" id="line-23"></span><span class="anchor" id="line-24"></span><span class="anchor" id="line-25"></span><span class="anchor" id="line-26"></span><span class="anchor" id="line-27"></span><span class="anchor" id="line-28"></span><span class="anchor" id="line-29"></span><span class="anchor" id="line-30"></span><span class="anchor" id="line-31"></span><span class="anchor" id="line-32"></span><span class="anchor" id="line-33"></span><span class="anchor" id="line-34"></span><span class="anchor" id="line-35"></span><span class="anchor" id="line-36"></span><span class="anchor" id="line-37"></span><span class="anchor" id="line-38"></span><span class="anchor" id="line-39"></span><span class="anchor" id="line-40"></span><span class="anchor" id="line-41"></span><span class="anchor" id="line-42"></span><span class="anchor" id="line-43"></span><span class="anchor" id="line-44"></span><span class="anchor" id="line-45"></span><pre><span class="anchor" id="line-1-1"></span>workspace_folder/         -- WORKSPACE
+<span class="anchor" id="line-2-1"></span>  src/                    -- SOURCE SPACE
+<span class="anchor" id="line-3-1"></span>    CMakeLists.txt        -- The 'toplevel' CMake file
+<span class="anchor" id="line-4-1"></span>    package_1/
+<span class="anchor" id="line-5-1"></span>      CMakeLists.txt
+<span class="anchor" id="line-6-1"></span>      package.xml
+<span class="anchor" id="line-7-1"></span>      ...
+<span class="anchor" id="line-8-1"></span>    package_n/
+<span class="anchor" id="line-9-1"></span>      CATKIN_IGNORE       -- Optional empty file to exclude package_n from being processed
+<span class="anchor" id="line-10-1"></span>      CMakeLists.txt
+<span class="anchor" id="line-11-1"></span>      package.xml
+<span class="anchor" id="line-12-1"></span>      ...
+<span class="anchor" id="line-13-1"></span>  build/                  -- BUILD SPACE
+<span class="anchor" id="line-14-1"></span>    CATKIN_IGNORE         -- Keeps catkin from walking this directory
+<span class="anchor" id="line-15-1"></span>  devel/                  -- DEVELOPMENT SPACE (set by CATKIN_DEVEL_PREFIX)
+<span class="anchor" id="line-16-1"></span>    bin/
+<span class="anchor" id="line-17-1"></span>    etc/
+<span class="anchor" id="line-18-1"></span>    include/
+<span class="anchor" id="line-19-1"></span>    lib/
+<span class="anchor" id="line-20-1"></span>    share/
+<span class="anchor" id="line-21-1"></span>    .catkin
+<span class="anchor" id="line-22-1"></span>    env.bash
+<span class="anchor" id="line-23-1"></span>    setup.bash
+<span class="anchor" id="line-24-1"></span>    setup.sh
+<span class="anchor" id="line-25-1"></span>    ...
+<span class="anchor" id="line-26-1"></span>  install/                -- INSTALL SPACE (set by CMAKE_INSTALL_PREFIX)
+<span class="anchor" id="line-27-1"></span>    bin/
+<span class="anchor" id="line-28-1"></span>    etc/
+<span class="anchor" id="line-29-1"></span>    include/
+<span class="anchor" id="line-30-1"></span>    lib/
+<span class="anchor" id="line-31-1"></span>    share/
+<span class="anchor" id="line-32-1"></span>    .catkin             
+<span class="anchor" id="line-33-1"></span>    env.bash
+<span class="anchor" id="line-34-1"></span>    setup.bash
+<span class="anchor" id="line-35-1"></span>    setup.sh
+<span class="anchor" id="line-36-1"></span>    ...</pre><span class="anchor" id="line-46"></span><span class="anchor" id="line-47"></span><p class="line862">A <a href="/catkin/workspaces#Catkin_Workspaces">catkin workspace</a> can contain up to four different <em>spaces</em> which each serve a different role in the software development process. <span class="anchor" id="line-48"></span><span class="anchor" id="line-49"></span><p class="line867">
+<h3 id="Source_Space">Source Space</h3>
+<span class="anchor" id="line-50"></span><p class="line862">The <a href="/catkin/workspaces#Source_Space">source space</a> contains the source code of catkin packages. This is where you can extract/checkout/clone source code for the packages you want to build. Each folder within the <a href="/catkin/workspaces#Source_Space">source space</a> contains one or more catkin packages. This space should remain unchanged by configuring, building, or installing. The root of the <a href="/catkin/workspaces#Source_Space">source space</a> contains a symbolic link to catkin's boiler-plate 'toplevel' CMakeLists.txt file. This file is invoked by CMake during the configuration of the catkin projects in the workspace. It can be created by calling <tt class="backtick">catkin_init_workspace</tt> in the <a href="/catkin/workspaces#Source_Space">source space</a> directory. <span class="anchor" id="line-51"></span><span class="anchor" id="line-52"></span><p class="line867">
+<h3 id="Build_Space">Build Space</h3>
+<span class="anchor" id="line-53"></span><p class="line862">The <a href="/catkin/workspaces#Build_Space">build space</a> is where CMake is invoked to build the catkin packages in the <a href="/catkin/workspaces#Source_Space">source space</a>. CMake and catkin keep their cache information and other intermediate files here. The <a href="/catkin/workspaces#Build_Space">build space</a> does not have to be contained within the workspace nor does it have to be outside of the <a href="/catkin/workspaces#Source_Space">source space</a>, but this is recommended. <span class="anchor" id="line-54"></span><span class="anchor" id="line-55"></span><p class="line867">
+<h3 id="Development_.28Devel.29_Space">Development (Devel) Space</h3>
+<span class="anchor" id="line-56"></span><p class="line862">The <a href="/catkin/workspaces#Development_.28Devel.29_Space">development space</a> (or <a href="/catkin/workspaces#Development_.28Devel.29_Space">devel space</a>) is where built targets are placed prior to being installed. The way targets are organized in the <a href="/catkin/workspaces#Development_.28Devel.29_Space">devel space</a> is the same as their layout when they are installed. This provides a useful testing and development environment which does not require invoking the installation step. The location of the <a href="/catkin/workspaces#Development_.28Devel.29_Space">devel space</a> is controlled by a catkin specific CMake variable called CATKIN_DEVEL_PREFIX, and it defaults to <tt class="backtick">&lt;build&nbsp;space&gt;/develspace</tt>. This is the default behavior because it might be confusing to CMake users if they invoked <tt class="backtick">cmake&nbsp;..</tt> in a build folder and that modified things outside of the current directory. It is recommended, however, to set the <a href="/catkin/workspaces#Development_.28Devel.29_Space">devel space</a> directory to be a peer of the <a href="/catkin/workspaces#Build_Space">build space</a> directory. <span class="anchor" id="line-57"></span><span class="anchor" id="line-58"></span><p class="line867">
+<h3 id="Install_Space">Install Space</h3>
+<span class="anchor" id="line-59"></span><p class="line862">Once targets are built, they can be installed into the <a href="/catkin/workspaces#Install_Space">install space</a> by invoking the install target, usually with <tt class="backtick">make&nbsp;install</tt>. The <a href="/catkin/workspaces#Install_Space">install space</a> does not have to be contained within the workspace. Since the <a href="/catkin/workspaces#Install_Space">install space</a> is set by the <tt class="backtick">CMAKE_INSTALL_PREFIX</tt>, it defaults to <tt class="backtick">/usr/local</tt>, which you should not use (because uninstall is near-impossible, and using multiple ROS distributions does not work either). <span class="anchor" id="line-60"></span><span class="anchor" id="line-61"></span><p class="line867">
+<h3 id="Result_space">Result space</h3>
+<span class="anchor" id="line-62"></span><p class="line862">When ever referring to a folder which can either be a development space or an install space the generic term <a href="/catkin/workspaces#Result_Space">result space</a> is used. <span class="anchor" id="line-63"></span><span class="anchor" id="line-64"></span><p class="line867">
+<h2 id="Building_Packages_with_catkin">Building Packages with catkin</h2>
+<span class="anchor" id="line-65"></span><p class="line862">catkin packages can be built using the standard cmake workflow, i.e. invoke '<tt class="backtick">cmake&nbsp;&lt;path/to/source&nbsp;space&gt;</tt>', '<tt class="backtick">make</tt>', and then '<tt class="backtick">make&nbsp;install</tt>' all from the <a href="/catkin/workspaces#Build_Space">build space</a> directory. The <a href="/catkin/workspaces#Build_Space">build space</a> can be located anywhere, but typically we place it within the workspace at the same level as the <a href="/catkin/workspaces#Source_Space">source space</a>. <span class="anchor" id="line-66"></span><span class="anchor" id="line-67"></span><p class="line862">For detailed instructions see the <a href="/catkin/Tutorials">Tutorials</a>. <span class="anchor" id="line-68"></span><span class="anchor" id="line-69"></span><p class="line867">
+<h2 id="Installing_Packages_with_Catkin">Installing Packages with Catkin</h2>
+<span class="anchor" id="line-70"></span><p class="line874">One of the main reasons for moving away from rosbuild is that it lacked a proper install target. This prevented ros packages from being used like canonical system packages and made distribution more difficult. Catkin encourages standard compliant install layouts via CMake. Therefore, when you are ready, you can install your packages to the system for others to use, or you can more easily package your packages for distribution systems like deb or rpm. <span class="anchor" id="line-71"></span><span class="anchor" id="line-72"></span><span class="anchor" id="line-73"></span><p class="line867">
+<h2 id="Overlays">Overlays</h2>
+<span class="anchor" id="line-74"></span><p class="line862">ROS is a very large collection of packages, with many being added and modified all the time. Because ROS is complex, most users do not build all of ROS from source, but rather install prebuilt binary packages (such as .deb packages in Ubuntu). These packages are installed to the system, typically to /opt/ros/distribution_name. The user has the option of building their own packages against a particular distribution or mixing and matching parts from various installed distributions as well as their own versions of a package. For example, a developer could be working on upgrades to a ROS package such as <em>nodelet_core</em> within their workspace. They want to modify the code, build it, and have any targets that depend on nodelet_core targets (whether at build or runtime) to use their version and not the system installed version(s). To do this, ROS has a concept of <strong>overlays</strong> where the build system can traverse multiple package installations to find dependencies. <span class="anchor" id="line-75"></span><span class="anchor" id="line-76"></span><p class="line867">
+<h3 id="Environment_Setup_File">Environment Setup File</h3>
+<span class="anchor" id="line-77"></span><p class="line862">The binary catkin package includes a set of <a href="/catkin/workspaces#Environment_Setup_File">environment setup files</a> that are used to extend your shell environment, so that you can find and use any resources that have been installed to that location. This concept will be explained more <a class="nonexistent" href="/catkin/using_catkin#Environment_Setup_Files">later</a>, but for now you must source the setup file included in the root of the distribution install directory (usually /opt/ros/&lt;ros_distribution_name&gt;). For example with ROS Kinetic on Ubuntu the files would be located as such: <span class="anchor" id="line-78"></span><span class="anchor" id="line-79"></span><span class="anchor" id="line-80"></span><span class="anchor" id="line-81"></span><span class="anchor" id="line-82"></span><span class="anchor" id="line-83"></span><span class="anchor" id="line-84"></span><span class="anchor" id="line-85"></span><span class="anchor" id="line-86"></span><span class="anchor" id="line-87"></span><pre><span class="anchor" id="line-1-2"></span>/
+<span class="anchor" id="line-2-2"></span>  opt/
+<span class="anchor" id="line-3-2"></span>    ros/
+<span class="anchor" id="line-4-2"></span>      kinetic/
+<span class="anchor" id="line-5-2"></span>        setup.bash -- Environment setup file for Bash shell
+<span class="anchor" id="line-6-2"></span>        setup.sh   -- Environment setup file for Bourne shell
+<span class="anchor" id="line-7-2"></span>        setup.zsh  -- Environment setup file for zshell
+<span class="anchor" id="line-8-2"></span>        ...</pre><span class="anchor" id="line-88"></span><span class="anchor" id="line-89"></span><p class="line862">To setup your environment to use the <tt class="backtick">/opt/ros/kinetic</tt> installation space, source the setup file for your shell:  <span class="anchor" id="line-90"></span><span class="anchor" id="line-91"></span><span class="anchor" id="line-92"></span><pre><span class="anchor" id="line-1-3"></span>source /opt/ros/kinetic/setup.bash</pre><span class="anchor" id="line-93"></span><span class="anchor" id="bottom"></span></div></div>
+<div id="pagebottom"></div>
+</div>
+
+<p id="pageinfo" class="info" lang="en" dir="ltr">Wiki: catkin/workspaces  (last edited 2017-07-07 19:26:08 by <span title="DirkThomas @ 70-35-50-58.static.wiline.com[70.35.50.58]"><a href="/DirkThomas" title="DirkThomas @ 70-35-50-58.static.wiline.com[70.35.50.58]">DirkThomas</a></span>)</p>
+
+
+
+
+<div style="margin-top: 9px;" class="footer">
+Except where otherwise noted, the ROS wiki is licensed under the <br /><a href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0</a>
+<hr style="margin-top: 10px;">
+<div class="row">
+  <div class="col-md-4 col-md-offset-4">
+<a href="https://www.openrobotics.org/"><img style="margin-top: -1px;" src="/custom/images/brought_by_horiz.png"></p></a>
+  </div>
+</div>
+</div>
+
+  </div></div> <!-- /#dpage-inner, /#dpage -->
+
+
+</body>
+</html>
+
+ÖÀ·9”      dÂadÂbEUYdÂa   J    O^partitionKey=%28http%2Cros.org%29,:http://wiki.ros.org/catkin/workspaces necko:classified 1 strongly-framed 1 request-method GET request-Cookie 9sMFn1cOeS+AUxWW9zHX4QtmEYg= request-User-Agent Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:108.0) Gecko/20100101 Firefox/108.0 request-Accept-Language en-US,en;q=0.5 response-head HTTP/1.1 200 OK
+Date: Tue, 07 Mar 2023 07:18:57 GMT
+Server: Apache
+Vary: Cookie,User-Agent,Accept-Language
+Content-Length: 27593
+Content-Type: text/html; charset=utf-8
+ original-response-headers Date: Tue, 07 Mar 2023 07:18:57 GMT
+Server: Apache
+Vary: Cookie,User-Agent,Accept-Language
+Content-Length: 27593
+Keep-Alive: timeout=5, max=100
+Connection: Keep-Alive
+Content-Type: text/html; charset=utf-8
+ ctid 1 uncompressed-len 0 net-response-time-onstart 418 net-response-time-onstop 573   k…

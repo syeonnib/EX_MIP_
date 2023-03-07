@@ -1,0 +1,802 @@
+/**
+ * jQuery CSS Customizable Scrollbar
+ *
+ * Copyright 2015, Yuriy Khabarov
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ *
+ * If you found bug, please contact me via email <13real008@gmail.com>
+ *
+ * @author Yuriy Khabarov aka Gromo
+ * @version 0.2.10
+ * @url https://github.com/gromo/jquery.scrollbar/
+ *
+ */
+;
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        define(['jquery'], factory);
+    } else {
+        factory(root.jQuery);
+    }
+}(this, function ($) {
+    'use strict';
+
+    // init flags & variables
+    var debug = false;
+
+    var browser = {
+        data: {
+            index: 0,
+            name: 'scrollbar'
+        },
+        macosx: /mac/i.test(navigator.platform),
+        mobile: /android|webos|iphone|ipad|ipod|blackberry/i.test(navigator.userAgent),
+        overlay: null,
+        scroll: null,
+        scrolls: [],
+        webkit: /webkit/i.test(navigator.userAgent) && !/edge\/\d+/i.test(navigator.userAgent)
+    };
+
+    browser.scrolls.add = function (instance) {
+        this.remove(instance).push(instance);
+    };
+    browser.scrolls.remove = function (instance) {
+        while ($.inArray(instance, this) >= 0) {
+            this.splice($.inArray(instance, this), 1);
+        }
+        return this;
+    };
+
+    var defaults = {
+        "autoScrollSize": true,     // automatically calculate scrollsize
+        "autoUpdate": true,         // update scrollbar if content/container size changed
+        "debug": false,             // debug mode
+        "disableBodyScroll": false, // disable body scroll if mouse over container
+        "duration": 200,            // scroll animate duration in ms
+        "ignoreMobile": false,      // ignore mobile devices
+        "ignoreOverlay": false,     // ignore browsers with overlay scrollbars (mobile, MacOS)
+        "scrollStep": 30,           // scroll step for scrollbar arrows
+        "showArrows": false,        // add class to show arrows
+        "stepScrolling": true,      // when scrolling to scrollbar mousedown position
+
+        "scrollx": null,            // horizontal scroll element
+        "scrolly": null,            // vertical scroll element
+
+        "onDestroy": null,          // callback function on destroy,
+        "onInit": null,             // callback function on first initialization
+        "onScroll": null,           // callback function on content scrolling
+        "onUpdate": null            // callback function on init/resize (before scrollbar size calculation)
+    };
+
+
+    var BaseScrollbar = function (container) {
+
+        if (!browser.scroll) {
+            browser.overlay = isScrollOverlaysContent();
+            browser.scroll = getBrowserScrollSize();
+            updateScrollbars();
+
+            $(window).resize(function () {
+                var forceUpdate = false;
+                if (browser.scroll && (browser.scroll.height || browser.scroll.width)) {
+                    var scroll = getBrowserScrollSize();
+                    if (scroll.height !== browser.scroll.height || scroll.width !== browser.scroll.width) {
+                        browser.scroll = scroll;
+                        forceUpdate = true; // handle page zoom
+                    }
+                }
+                updateScrollbars(forceUpdate);
+            });
+        }
+
+        this.container = container;
+        this.namespace = '.scrollbar_' + browser.data.index++;
+        this.options = $.extend({}, defaults, window.jQueryScrollbarOptions || {});
+        this.scrollTo = null;
+        this.scrollx = {};
+        this.scrolly = {};
+
+        container.data(browser.data.name, this);
+        browser.scrolls.add(this);
+    };
+
+    BaseScrollbar.prototype = {
+
+        destroy: function () {
+
+            if (!this.wrapper) {
+                return;
+            }
+
+            this.container.removeData(browser.data.name);
+            browser.scrolls.remove(this);
+
+            // init variables
+            var scrollLeft = this.container.scrollLeft();
+            var scrollTop = this.container.scrollTop();
+
+            this.container.insertBefore(this.wrapper).css({
+                "height": "",
+                "margin": "",
+                "max-height": ""
+            })
+                .removeClass('scroll-content scroll-scrollx_visible scroll-scrolly_visible')
+                .off(this.namespace)
+                .scrollLeft(scrollLeft)
+                .scrollTop(scrollTop);
+
+            this.scrollx.scroll.removeClass('scroll-scrollx_visible').find('div').andSelf().off(this.namespace);
+            this.scrolly.scroll.removeClass('scroll-scrolly_visible').find('div').andSelf().off(this.namespace);
+
+            this.wrapper.remove();
+
+            $(document).add('body').off(this.namespace);
+
+            if ($.isFunction(this.options.onDestroy)){
+                this.options.onDestroy.apply(this, [this.container]);
+            }
+        },
+        init: function (options) {
+
+            // init variables
+            var S = this,
+                c = this.container,
+                cw = this.containerWrapper || c,
+                namespace = this.namespace,
+                o = $.extend(this.options, options || {}),
+                s = {x: this.scrollx, y: this.scrolly},
+                w = this.wrapper;
+
+            var initScroll = {
+                "scrollLeft": c.scrollLeft(),
+                "scrollTop": c.scrollTop()
+            };
+
+            // do not init if in ignorable browser
+            if ((browser.mobile && o.ignoreMobile)
+                || (browser.overlay && o.ignoreOverlay)
+                || (browser.macosx && !browser.webkit) // still required to ignore nonWebKit browsers on Mac
+                ) {
+                return false;
+            }
+
+            // init scroll container
+            if (!w) {
+                this.wrapper = w = $('<div>').addClass('scroll-wrapper').addClass(c.attr('class'))
+                    .css('position', c.css('position') == 'absolute' ? 'absolute' : 'relative')
+                    .insertBefore(c).append(c);
+
+                if (c.is('textarea')) {
+                    this.containerWrapper = cw = $('<div>').insertBefore(c).append(c);
+                    w.addClass('scroll-textarea');
+                }
+
+                cw.addClass('scroll-content').css({
+                    "height": "auto",
+                    "margin-bottom": browser.scroll.height * -1 + 'px',
+                    "margin-right": browser.scroll.width * -1 + 'px',
+                    "max-height": ""
+                });
+
+                c.on('scroll' + namespace, function (event) {
+                    if ($.isFunction(o.onScroll)) {
+                        o.onScroll.call(S, {
+                            "maxScroll": s.y.maxScrollOffset,
+                            "scroll": c.scrollTop(),
+                            "size": s.y.size,
+                            "visible": s.y.visible
+                        }, {
+                            "maxScroll": s.x.maxScrollOffset,
+                            "scroll": c.scrollLeft(),
+                            "size": s.x.size,
+                            "visible": s.x.visible
+                        });
+                    }
+                    s.x.isVisible && s.x.scroll.bar.css('left', c.scrollLeft() * s.x.kx + 'px');
+                    s.y.isVisible && s.y.scroll.bar.css('top', c.scrollTop() * s.y.kx + 'px');
+                });
+
+                /* prevent native scrollbars to be visible on #anchor click */
+                w.on('scroll' + namespace, function () {
+                    w.scrollTop(0).scrollLeft(0);
+                });
+
+                if (o.disableBodyScroll) {
+                    var handleMouseScroll = function (event) {
+                        isVerticalScroll(event) ?
+                            s.y.isVisible && s.y.mousewheel(event) :
+                            s.x.isVisible && s.x.mousewheel(event);
+                    };
+                    w.on('MozMousePixelScroll' + namespace, handleMouseScroll);
+                    w.on('mousewheel' + namespace, handleMouseScroll);
+
+                    if (browser.mobile) {
+                        w.on('touchstart' + namespace, function (event) {
+                            var touch = event.originalEvent.touches && event.originalEvent.touches[0] || event;
+                            var originalTouch = {
+                                "pageX": touch.pageX,
+                                "pageY": touch.pageY
+                            };
+                            var originalScroll = {
+                                "left": c.scrollLeft(),
+                                "top": c.scrollTop()
+                            };
+                            $(document).on('touchmove' + namespace, function (event) {
+                                var touch = event.originalEvent.targetTouches && event.originalEvent.targetTouches[0] || event;
+                                c.scrollLeft(originalScroll.left + originalTouch.pageX - touch.pageX);
+                                c.scrollTop(originalScroll.top + originalTouch.pageY - touch.pageY);
+                                event.preventDefault();
+                            });
+                            $(document).on('touchend' + namespace, function () {
+                                $(document).off(namespace);
+                            });
+                        });
+                    }
+                }
+                if ($.isFunction(o.onInit)){
+                    o.onInit.apply(this, [c]);
+                }
+            } else {
+                cw.css({
+                    "height": "auto",
+                    "margin-bottom": browser.scroll.height * -1 + 'px',
+                    "margin-right": browser.scroll.width * -1 + 'px',
+                    "max-height": ""
+                });
+            }
+
+            // init scrollbars & recalculate sizes
+            $.each(s, function (d, scrollx) {
+
+                var scrollCallback = null;
+                var scrollForward = 1;
+                var scrollOffset = (d === 'x') ? 'scrollLeft' : 'scrollTop';
+                var scrollStep = o.scrollStep;
+                var scrollTo = function () {
+                    var currentOffset = c[scrollOffset]();
+                    c[scrollOffset](currentOffset + scrollStep);
+                    if (scrollForward == 1 && (currentOffset + scrollStep) >= scrollToValue)
+                        currentOffset = c[scrollOffset]();
+                    if (scrollForward == -1 && (currentOffset + scrollStep) <= scrollToValue)
+                        currentOffset = c[scrollOffset]();
+                    if (c[scrollOffset]() == currentOffset && scrollCallback) {
+                        scrollCallback();
+                    }
+                }
+                var scrollToValue = 0;
+
+                if (!scrollx.scroll) {
+
+                    scrollx.scroll = S._getScroll(o['scroll' + d]).addClass('scroll-' + d);
+
+                    if(o.showArrows){
+                        scrollx.scroll.addClass('scroll-element_arrows_visible');
+                    }
+
+                    scrollx.mousewheel = function (event) {
+
+                        if (!scrollx.isVisible || (d === 'x' && isVerticalScroll(event))) {
+                            return true;
+                        }
+                        if (d === 'y' && !isVerticalScroll(event)) {
+                            s.x.mousewheel(event);
+                            return true;
+                        }
+
+                        var delta = event.originalEvent.wheelDelta * -1 || event.originalEvent.detail;
+                        var maxScrollValue = scrollx.size - scrollx.visible - scrollx.offset;
+
+                        if ((delta > 0 && scrollToValue < maxScrollValue) || (delta < 0 && scrollToValue > 0)) {
+                            scrollToValue = scrollToValue + delta;
+                            if (scrollToValue < 0)
+                                scrollToValue = 0;
+                            if (scrollToValue > maxScrollValue)
+                                scrollToValue = maxScrollValue;
+
+                            S.scrollTo = S.scrollTo || {};
+                            S.scrollTo[scrollOffset] = scrollToValue;
+                            setTimeout(function () {
+                                if (S.scrollTo) {
+                                    c.stop().animate(S.scrollTo, 240, 'linear', function () {
+                                        scrollToValue = c[scrollOffset]();
+                                    });
+                                    S.scrollTo = null;
+                                }
+                            }, 1);
+                        }
+
+                        event.preventDefault();
+                        return false;
+                    };
+
+                    scrollx.scroll
+                        .on('MozMousePixelScroll' + namespace, scrollx.mousewheel)
+                        .on('mousewheel' + namespace, scrollx.mousewheel)
+                        .on('mouseenter' + namespace, function () {
+                            scrollToValue = c[scrollOffset]();
+                        });
+
+                    // handle arrows & scroll inner mousedown event
+                    scrollx.scroll.find('.scroll-arrow, .scroll-element_track')
+                        .on('mousedown' + namespace, function (event) {
+
+                            if (event.which != 1) // lmb
+                                return true;
+
+                            scrollForward = 1;
+
+                            var data = {
+                                "eventOffset": event[(d === 'x') ? 'pageX' : 'pageY'],
+                                "maxScrollValue": scrollx.size - scrollx.visible - scrollx.offset,
+                                "scrollbarOffset": scrollx.scroll.bar.offset()[(d === 'x') ? 'left' : 'top'],
+                                "scrollbarSize": scrollx.scroll.bar[(d === 'x') ? 'outerWidth' : 'outerHeight']()
+                            };
+                            var timeout = 0, timer = 0;
+
+                            if ($(this).hasClass('scroll-arrow')) {
+                                scrollForward = $(this).hasClass("scroll-arrow_more") ? 1 : -1;
+                                scrollStep = o.scrollStep * scrollForward;
+                                scrollToValue = scrollForward > 0 ? data.maxScrollValue : 0;
+                            } else {
+                                scrollForward = (data.eventOffset > (data.scrollbarOffset + data.scrollbarSize) ? 1
+                                    : (data.eventOffset < data.scrollbarOffset ? -1 : 0));
+                                scrollStep = Math.round(scrollx.visible * 0.75) * scrollForward;
+                                scrollToValue = (data.eventOffset - data.scrollbarOffset -
+                                    (o.stepScrolling ? (scrollForward == 1 ? data.scrollbarSize : 0)
+                                        : Math.round(data.scrollbarSize / 2)));
+                                scrollToValue = c[scrollOffset]() + (scrollToValue / scrollx.kx);
+                            }
+
+                            S.scrollTo = S.scrollTo || {};
+                            S.scrollTo[scrollOffset] = o.stepScrolling ? c[scrollOffset]() + scrollStep : scrollToValue;
+
+                            if (o.stepScrolling) {
+                                scrollCallback = function () {
+                                    scrollToValue = c[scrollOffset]();
+                                    clearInterval(timer);
+                                    clearTimeout(timeout);
+                                    timeout = 0;
+                                    timer = 0;
+                                };
+                                timeout = setTimeout(function () {
+                                    timer = setInterval(scrollTo, 40);
+                                }, o.duration + 100);
+                            }
+
+                            setTimeout(function () {
+                                if (S.scrollTo) {
+                                    c.animate(S.scrollTo, o.duration);
+                                    S.scrollTo = null;
+                                }
+                            }, 1);
+
+                            return S._handleMouseDown(scrollCallback, event);
+                        });
+
+                    // handle scrollbar drag'n'drop
+                    scrollx.scroll.bar.on('mousedown' + namespace, function (event) {
+
+                        if (event.which != 1) // lmb
+                            return true;
+
+                        var eventPosition = event[(d === 'x') ? 'pageX' : 'pageY'];
+                        var initOffset = c[scrollOffset]();
+
+                        scrollx.scroll.addClass('scroll-draggable');
+
+                        $(document).on('mousemove' + namespace, function (event) {
+                            var diff = parseInt((event[(d === 'x') ? 'pageX' : 'pageY'] - eventPosition) / scrollx.kx, 10);
+                            c[scrollOffset](initOffset + diff);
+                        });
+
+                        return S._handleMouseDown(function () {
+                            scrollx.scroll.removeClass('scroll-draggable');
+                            scrollToValue = c[scrollOffset]();
+                        }, event);
+                    });
+                }
+            });
+
+            // remove classes & reset applied styles
+            $.each(s, function (d, scrollx) {
+                var scrollClass = 'scroll-scroll' + d + '_visible';
+                var scrolly = (d == "x") ? s.y : s.x;
+
+                scrollx.scroll.removeClass(scrollClass);
+                scrolly.scroll.removeClass(scrollClass);
+                cw.removeClass(scrollClass);
+            });
+
+            // calculate init sizes
+            $.each(s, function (d, scrollx) {
+                $.extend(scrollx, (d == "x") ? {
+                    "offset": parseInt(c.css('left'), 10) || 0,
+                    "size": c.prop('scrollWidth'),
+                    "visible": w.width()
+                } : {
+                    "offset": parseInt(c.css('top'), 10) || 0,
+                    "size": c.prop('scrollHeight'),
+                    "visible": w.height()
+                });
+            });
+
+            // update scrollbar visibility/dimensions
+            this._updateScroll('x', this.scrollx);
+            this._updateScroll('y', this.scrolly);
+
+            if ($.isFunction(o.onUpdate)){
+                o.onUpdate.apply(this, [c]);
+            }
+
+            // calculate scroll size
+            $.each(s, function (d, scrollx) {
+
+                var cssOffset = (d === 'x') ? 'left' : 'top';
+                var cssFullSize = (d === 'x') ? 'outerWidth' : 'outerHeight';
+                var cssSize = (d === 'x') ? 'width' : 'height';
+                var offset = parseInt(c.css(cssOffset), 10) || 0;
+
+                var AreaSize = scrollx.size;
+                var AreaVisible = scrollx.visible + offset;
+
+                var scrollSize = scrollx.scroll.size[cssFullSize]() + (parseInt(scrollx.scroll.size.css(cssOffset), 10) || 0);
+
+                if (o.autoScrollSize) {
+                    scrollx.scrollbarSize = parseInt(scrollSize * AreaVisible / AreaSize, 10);
+                    scrollx.scroll.bar.css(cssSize, scrollx.scrollbarSize + 'px');
+                }
+
+                scrollx.scrollbarSize = scrollx.scroll.bar[cssFullSize]();
+                scrollx.kx = ((scrollSize - scrollx.scrollbarSize) / (AreaSize - AreaVisible)) || 1;
+                scrollx.maxScrollOffset = AreaSize - AreaVisible;
+            });
+
+            c.scrollLeft(initScroll.scrollLeft).scrollTop(initScroll.scrollTop).trigger('scroll');
+        },
+
+        /**
+         * Get scrollx/scrolly object
+         *
+         * @param {Mixed} scroll
+         * @returns {jQuery} scroll object
+         */
+        _getScroll: function (scroll) {
+            var types = {
+                advanced: [
+                    '<div class="scroll-element">',
+                    '<div class="scroll-element_corner"></div>',
+                    '<div class="scroll-arrow scroll-arrow_less"></div>',
+                    '<div class="scroll-arrow scroll-arrow_more"></div>',
+                    '<div class="scroll-element_outer">',
+                    '<div class="scroll-element_size"></div>', // required! used for scrollbar size calculation !
+                    '<div class="scroll-element_inner-wrapper">',
+                    '<div class="scroll-element_inner scroll-element_track">', // used for handling scrollbar click
+                    '<div class="scroll-element_inner-bottom"></div>',
+                    '</div>',
+                    '</div>',
+                    '<div class="scroll-bar">', // required
+                    '<div class="scroll-bar_body">',
+                    '<div class="scroll-bar_body-inner"></div>',
+                    '</div>',
+                    '<div class="scroll-bar_bottom"></div>',
+                    '<div class="scroll-bar_center"></div>',
+                    '</div>',
+                    '</div>',
+                    '</div>'
+                ].join(''),
+                simple: [
+                    '<div class="scroll-element">',
+                    '<div class="scroll-element_outer">',
+                    '<div class="scroll-element_size"></div>', // required! used for scrollbar size calculation !
+                    '<div class="scroll-element_track"></div>', // used for handling scrollbar click
+                    '<div class="scroll-bar"></div>', // required
+                    '</div>',
+                    '</div>'
+                ].join('')
+            };
+            if (types[scroll]) {
+                scroll = types[scroll];
+            }
+            if (!scroll) {
+                scroll = types['simple'];
+            }
+            if (typeof (scroll) == 'string') {
+                scroll = $(scroll).appendTo(this.wrapper);
+            } else {
+                scroll = $(scroll);
+            }
+            $.extend(scroll, {
+                bar: scroll.find('.scroll-bar'),
+                size: scroll.find('.scroll-element_size'),
+                track: scroll.find('.scroll-element_track')
+            });
+            return scroll;
+        },
+
+        _handleMouseDown: function(callback, event) {
+
+            var namespace = this.namespace;
+
+            $(document).on('blur' + namespace, function () {
+                $(document).add('body').off(namespace);
+                callback && callback();
+            });
+            $(document).on('dragstart' + namespace, function (event) {
+                event.preventDefault();
+                return false;
+            });
+            $(document).on('mouseup' + namespace, function () {
+                $(document).add('body').off(namespace);
+                callback && callback();
+            });
+            $('body').on('selectstart' + namespace, function (event) {
+                event.preventDefault();
+                return false;
+            });
+
+            event && event.preventDefault();
+            return false;
+        },
+
+        _updateScroll: function (d, scrollx) {
+
+            var container = this.container,
+                containerWrapper = this.containerWrapper || container,
+                scrollClass = 'scroll-scroll' + d + '_visible',
+                scrolly = (d === 'x') ? this.scrolly : this.scrollx,
+                offset = parseInt(this.container.css((d === 'x') ? 'left' : 'top'), 10) || 0,
+                wrapper = this.wrapper;
+
+            var AreaSize = scrollx.size;
+            var AreaVisible = scrollx.visible + offset;
+
+            scrollx.isVisible = (AreaSize - AreaVisible) > 1; // bug in IE9/11 with 1px diff
+            if (scrollx.isVisible) {
+                scrollx.scroll.addClass(scrollClass);
+                scrolly.scroll.addClass(scrollClass);
+                containerWrapper.addClass(scrollClass);
+            } else {
+                scrollx.scroll.removeClass(scrollClass);
+                scrolly.scroll.removeClass(scrollClass);
+                containerWrapper.removeClass(scrollClass);
+            }
+
+            if (d === 'y') {
+                if(container.is('textarea') || AreaSize < AreaVisible){
+                    containerWrapper.css({
+                        "height": (AreaVisible + browser.scroll.height) + 'px',
+                        "max-height": "none"
+                    });
+                } else {
+                    containerWrapper.css({
+                        //"height": "auto", // do not reset height value: issue with height:100%!
+                        "max-height": (AreaVisible + browser.scroll.height) + 'px'
+                    });
+                }
+            }
+
+            if (scrollx.size != container.prop('scrollWidth')
+                || scrolly.size != container.prop('scrollHeight')
+                || scrollx.visible != wrapper.width()
+                || scrolly.visible != wrapper.height()
+                || scrollx.offset != (parseInt(container.css('left'), 10) || 0)
+                || scrolly.offset != (parseInt(container.css('top'), 10) || 0)
+                ) {
+                $.extend(this.scrollx, {
+                    "offset": parseInt(container.css('left'), 10) || 0,
+                    "size": container.prop('scrollWidth'),
+                    "visible": wrapper.width()
+                });
+                $.extend(this.scrolly, {
+                    "offset": parseInt(container.css('top'), 10) || 0,
+                    "size": this.container.prop('scrollHeight'),
+                    "visible": wrapper.height()
+                });
+                this._updateScroll(d === 'x' ? 'y' : 'x', scrolly);
+            }
+        }
+    };
+
+    var CustomScrollbar = BaseScrollbar;
+
+    /*
+     * Extend jQuery as plugin
+     *
+     * @param {Mixed} command to execute
+     * @param {Mixed} arguments as Array
+     * @return {jQuery}
+     */
+    $.fn.scrollbar = function (command, args) {
+        if (typeof command !== 'string') {
+            args = command;
+            command = 'init';
+        }
+        if (typeof args === 'undefined') {
+            args = [];
+        }
+        if (!$.isArray(args)) {
+            args = [args];
+        }
+        this.not('body, .scroll-wrapper').each(function () {
+            var element = $(this),
+                instance = element.data(browser.data.name);
+            if (instance || command === 'init') {
+                if (!instance) {
+                    instance = new CustomScrollbar(element);
+                }
+                if (instance[command]) {
+                    instance[command].apply(instance, args);
+                }
+            }
+        });
+        return this;
+    };
+
+    /**
+     * Connect default options to global object
+     */
+    $.fn.scrollbar.options = defaults;
+
+
+    /**
+     * Check if scroll content/container size is changed
+     */
+
+    var updateScrollbars = (function () {
+        var timer = 0,
+            timerCounter = 0;
+
+        return function (force) {
+            var i, container, options, scroll, wrapper, scrollx, scrolly;
+            for (i = 0; i < browser.scrolls.length; i++) {
+                scroll = browser.scrolls[i];
+                container = scroll.container;
+                options = scroll.options;
+                wrapper = scroll.wrapper;
+                scrollx = scroll.scrollx;
+                scrolly = scroll.scrolly;
+                if (force || (options.autoUpdate && wrapper && wrapper.is(':visible') &&
+                    (container.prop('scrollWidth') != scrollx.size || container.prop('scrollHeight') != scrolly.size || wrapper.width() != scrollx.visible || wrapper.height() != scrolly.visible))) {
+                    scroll.init();
+
+                    if (options.debug) {
+                        window.console && console.log({
+                            scrollHeight: container.prop('scrollHeight') + ':' + scroll.scrolly.size,
+                            scrollWidth: container.prop('scrollWidth') + ':' + scroll.scrollx.size,
+                            visibleHeight: wrapper.height() + ':' + scroll.scrolly.visible,
+                            visibleWidth: wrapper.width() + ':' + scroll.scrollx.visible
+                        }, true);
+                        timerCounter++;
+                    }
+                }
+            }
+            if (debug && timerCounter > 10) {
+                window.console && console.log('Scroll updates exceed 10');
+                updateScrollbars = function () {};
+            } else {
+                clearTimeout(timer);
+                timer = setTimeout(updateScrollbars, 300);
+            }
+        };
+    })();
+
+    /* ADDITIONAL FUNCTIONS */
+    /**
+     * Get native browser scrollbar size (height/width)
+     *
+     * @param {Boolean} actual size or CSS size, default - CSS size
+     * @returns {Object} with height, width
+     */
+    function getBrowserScrollSize(actualSize) {
+
+        if (browser.webkit && !actualSize) {
+            return {
+                "height": 0,
+                "width": 0
+            };
+        }
+
+        if (!browser.data.outer) {
+            var css = {
+                "border": "none",
+                "box-sizing": "content-box",
+                "height": "200px",
+                "margin": "0",
+                "padding": "0",
+                "width": "200px"
+            };
+            browser.data.inner = $("<div>").css($.extend({}, css));
+            browser.data.outer = $("<div>").css($.extend({
+                "left": "-1000px",
+                "overflow": "scroll",
+                "position": "absolute",
+                "top": "-1000px"
+            }, css)).append(browser.data.inner).appendTo("body");
+        }
+
+        browser.data.outer.scrollLeft(1000).scrollTop(1000);
+
+        return {
+            "height": Math.ceil((browser.data.outer.offset().top - browser.data.inner.offset().top) || 0),
+            "width": Math.ceil((browser.data.outer.offset().left - browser.data.inner.offset().left) || 0)
+        };
+    }
+
+    /**
+     * Check if native browser scrollbars overlay content
+     *
+     * @returns {Boolean}
+     */
+    function isScrollOverlaysContent() {
+        var scrollSize = getBrowserScrollSize(true);
+        return !(scrollSize.height || scrollSize.width);
+    }
+
+    function isVerticalScroll(event) {
+        var e = event.originalEvent;
+        if (e.axis && e.axis === e.HORIZONTAL_AXIS)
+            return false;
+        if (e.wheelDeltaX)
+            return false;
+        return true;
+    }
+
+
+    /**
+     * Extend AngularJS as UI directive
+     * and expose a provider for override default config
+     *
+     */
+    if (window.angular) {
+        (function (angular) {
+            angular.module('jQueryScrollbar', [])
+                .provider('jQueryScrollbar', function () {
+                    var defaultOptions = defaults;
+                    return {
+                        setOptions: function (options) {
+                            angular.extend(defaultOptions, options);
+                        },
+                        $get: function () {
+                            return {
+                                options: angular.copy(defaultOptions)
+                            };
+                        }
+                    };
+                })
+                .directive('jqueryScrollbar', ['jQueryScrollbar', '$parse', function (jQueryScrollbar, $parse) {
+                    return {
+                        "restrict": "AC",
+                        "link": function (scope, element, attrs) {
+                            var model = $parse(attrs.jqueryScrollbar),
+                                options = model(scope);
+                            element.scrollbar(options || jQueryScrollbar.options)
+                                .on('$destroy', function () {
+                                    element.scrollbar('destroy');
+                                });
+                        }
+                    };
+                }]);
+        })(window.angular);
+    }
+}));
+œbbåö      cÚVcÚVE6M`cãUÖ   }    O^partitionKey=%28https%2Cseoultech.ac.kr%29,:https://stportal.seoultech.ac.kr/common/js/scrollbar/0.2.10/jquery.scrollbar.js necko:classified 1 strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 OK
+Date: Wed, 01 Feb 2023 07:57:10 GMT
+ETag: "0-7dab-6020e3a0"
+Last-Modified: Mon, 08 Feb 2021 07:09:20 GMT
+Accept-Ranges: bytes
+Content-Length: 32171
+Content-Type: application/x-javascript
+X-Cache: MISS from cf4.seoultech.ac.kr
+X-Cache-Lookup: MISS from cf4.seoultech.ac.kr:3128
+Via: 1.1 cf4.seoultech.ac.kr (squid)
+ original-response-headers Date: Wed, 01 Feb 2023 07:57:10 GMT
+ETag: "0-7dab-6020e3a0"
+Last-Modified: Mon, 08 Feb 2021 07:09:20 GMT
+Accept-Ranges: bytes
+Content-Length: 32171
+Content-Type: application/x-javascript
+X-Cache: MISS from cf4.seoultech.ac.kr
+X-Cache-Lookup: MISS from cf4.seoultech.ac.kr:3128
+Via: 1.1 cf4.seoultech.ac.kr (squid)
+Connection: keep-alive
+ ctid 2 uncompressed-len 0 net-response-time-onstart 9 net-response-time-onstop 11   }«

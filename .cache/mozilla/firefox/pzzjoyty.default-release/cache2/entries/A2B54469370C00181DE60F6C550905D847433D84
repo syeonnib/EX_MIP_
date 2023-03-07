@@ -1,0 +1,734 @@
+$(function(){
+	
+	$(document).ajaxSend(function(event, request, settings) {
+		request.setRequestHeader('AJAX', 'true');
+	});
+	
+	window.onbeforeunload = function(e){
+	//	$('.wrap-loading').removeClass('hidden');
+		$('.wrap-loading').not('.not_search_page').removeClass('hidden');
+	};
+	/*$(document).on("submit", "form", function(event){
+		if(event.currentTarget.target ==""){
+			var agent = navigator.userAgent.toLowerCase();		
+			if ( (navigator.appName == 'Netscape' && navigator.userAgent.search('Trident') != -1) || (agent.indexOf("msie") != -1) ) {
+				$.blockUI({
+					css : {
+						backgroundColor: 'rgba(255, 255, 255, 1)', //배경투명하게
+						color: '#000000', border: '0px solid #a00', //테두리 없앰
+						width: '150px', height: '150px',left : '50%', top : '50%',
+						transform: 'translate(-50%, -50%)'
+					},
+					message: '<img src="/images/Loading.gif" alt="처리중입니다. 잠시만 기다려주세요." style="width: 72px; position:relative; top: 25px;" /><br><br><h4>처리중입니다.</h4><h5>잠시만 기다려주세요.</h5>'
+				});
+			}else{
+				$('.wrap-loading').removeClass('hidden');
+			}
+		}
+	});*/
+	//뒤로가기시 로딩 이미지가 존재하는 현상 때문에 추가
+	window.onpageshow = function(event) {
+	    if (event.persisted) {
+	    	$('.wrap-loading').addClass('hidden');
+	    }
+	};
+	//기능 카드 이동/스크랩 영역 펼치기
+	$(document).on("click",".card_control", function(e){
+		e.preventDefault();
+		//switch
+		if($(this).next().css("opacity") == "1"){
+			$(this).next().css("opacity", "0");
+			$(this).next().css("transition", "all .4s");
+		}
+		
+		//semicircle
+		if($(this).next().next().css("opacity") != 1){			
+			$(this).next().next().css("right", "0px");
+			$(this).next().next().css("opacity", "1");
+			$(this).next().css("transition", "all .4s");
+		}
+	});
+	
+	//기능카드 이동/스크랩 영역 닫기(전체 클릭 이벤트)
+	$('html').click(function(e) { 
+		
+		//탑메뉴
+		if(!$(e.target).is(".fnchild, .hTapBtn, .category_arrow")){
+			$(".fnchild > ul").hide();
+		}
+		
+		//카드
+		if(!$(e.target).hasClass("semicircle") && !$(e.target).hasClass("tooltip") && !$(e.target).hasClass("btn-default")) {
+			
+			$('.switch').each(function(index, item){
+				//console.log($(this).attr('style'));
+				if($(this).attr('style') != undefined){
+					$(this).removeAttr('style');
+				}
+			});
+			
+			$('.semicircle').each(function(index, item){
+				//console.log($(this).attr('style'));
+				if($(this).attr('style') != undefined){
+					$(this).removeAttr('style');
+				}
+			});
+		}
+		
+		//분류탐색
+		if(!$(e.target).hasClass("icon_directory")){
+			//console.log($('#viewGroup').length);	
+			if($('.groupBtn').length > 0){
+				if($('#viewGroup').hasClass('on')){
+					$('#viewGroup').removeClass('on');
+				}
+			}
+		}
+		
+		//검색창
+		if(!$(e.target).hasClass("search_wrap") && !$(e.target).hasClass("ico_searchbtn") && $('.search_wrap').has(e.target).length == 0){
+			if($('.search_wrap').length > 0 && $('.ico_searchbtn').length > 0){
+				$('.search_wrap').hide();
+			}
+		}
+		
+		//로그인정보
+		if(!$(e.target).hasClass("gnbusername") && $('.logonbox').has(e.target).length == 0){
+			//console.log(e.target);
+			$('.logonbox').hide();
+		}
+	});
+	
+ 	//스크랩
+ 	$(document).on("click",".scrap", function(e){
+ 		e.preventDefault();
+ 		var id = $(this).data("id"); 
+ 		var class2 = $(this).data("class2"); 
+ 		var pkgnno = $(this).data("pkgnno"); 
+ 		var title = $(this).data("title"); 
+ 		var type = "";
+ 		var messagetype = "";
+ 		
+ 		var obj = $(this);
+ 		
+ 		
+ 		if(id == "" || id == null){
+ 			$.alert({
+				title: '알림',
+				content: '기능 아이디가 존재하지 않습니다 관리자에게 문의하세요.'
+			});
+ 		}else{
+ 			var _param = null;
+ 			
+ 			if(class2 != null && class2 == "pkgn"){
+ 				_param = {
+						"fnctId" : id
+					  , "bkmkSj" : title
+					  , "bkmkCd" : "01"
+					  , "pkgnNo" : pkgnno
+					};
+ 			}else{
+ 				_param = {
+						"fnctId" : id
+					  , "bkmkCd" : "01"
+					};
+ 			}
+ 			
+ 			$.ajax({
+ 				url: "/bkmk/insertUsrFnct.do",
+ 				dataType: 'text',
+ 				type: 'post',
+ 				contentType: 'application/x-www-form-urlencoded',
+ 				data: _param,
+ 				success: function( data, textStatus, jQxhr ){
+ 					var objData = JSON.parse(data);
+ 					messagetype = objData.messagetype;
+ 					
+ 					if(objData.check == "-1"){
+ 						$.alert({
+ 							title: '알림',
+ 							content: '로그인이 필요한 서비스 입니다.<br>로그인하시겠습니까?',
+ 							buttons: {
+ 								specialKey : {
+ 									text: '확인',
+ 									action: function(){
+ 										var hrefUrl = $(location).attr('href');
+ 										if(hrefUrl.indexOf('/cnn/tsvc/') != -1){
+ 											$("#cnnTsvcVO").attr('action','/logn/PORLonForm.do');
+ 	 										$("#cnnTsvcVO").submit();
+ 										}else if(hrefUrl.indexOf('/por/lvls/') != -1){
+ 											$("#porLvlsVO").attr('action','/logn/PORLonForm.do');
+ 	 										$("#porLvlsVO").submit();
+ 										}else if(hrefUrl.indexOf('/srch/') != -1){
+ 											$('#searchServiceForm').attr('action',"/logn/PORLonForm.do");
+ 											$('#searchServiceForm').submit();  	
+ 										}else{
+ 											location.href = '/logn/PORLonForm.do';
+ 										}
+ 									}
+ 								},
+ 								alphabet: {
+ 									text: '취소'
+ 								}
+ 							}
+ 						});
+ 					}else{
+ 						if(messagetype == '1'){
+ 							$.alert({
+ 								title: '알림',
+ 								content: objData.msg
+ 							});
+ 						}else{
+ 							$.alert({
+ 	 							title: '알림',
+ 	 							content: objData.msg,
+ 	 							buttons: {
+ 	 								specialKey : {
+ 	 									text: '예',
+ 	 									action: function(){ 										
+ 	 										location.href = "/bkmk/PORBkmkMgr.do";
+ 	 									}
+ 	 								},
+ 	 								alphabet: {
+ 	 									text: '아니오'
+ 	 								}
+ 	 							}
+ 	 						});			
+ 						}
+ 						
+ 						obj.addClass('icon_bookmark2');
+ 	 			 		obj.removeClass('icon_bookmark');
+ 					}
+ 					
+ 				},
+ 				error: function( jqXhr, textStatus, errorThrown ){
+ 					console.log( errorThrown );
+ 				}
+ 			});
+ 		}
+ 		
+ 	});
+ 	
+ 	
+ 	//이동
+ 	$(document).on("click",".go", function(e){
+ 		e.preventDefault();
+ 		var url = $(this).data("url");
+ 		var fnTy = $(this).data("ty");
+ 		var fnId = $(this).data("id");
+ 		 		
+ 		if(url == ""){
+ 			$.alert({
+					title: '알림',
+					content: 'url 정보가 존재하지 않습니다.'
+				});
+ 		}else{
+ 			window.open(url);
+ 			insertSystemLogInfo("linkYn=Y&useContCd=0005&linkURL="+url+"&cn="+fnId);
+ 		}
+ 		
+ 	});
+ 	
+	//gnb
+	$(".depth1").find("li").each(function(index, item){
+		$(item).mouseenter(function(){
+			if($(item).is(".menu6")){
+				$(".depth2").addClass("all");
+				$(".img_area").hide();
+				$(".gnb_depth2").removeClass("on");
+				$(".gnb_bg").stop().animate({"height":380}, 500);
+				setTimeout(function(){
+					$(".depth2 .inner").stop().animate({"height" : 370},300);
+				}, 200);
+			}else{
+				$(".depth2").removeClass("all");
+				$(".img_area").show();
+				$(".gnb_bg").stop().animate({"height":277}, "linear");
+				$(".depth2 .inner").stop().animate({"height" : 240}).find(".gnb_depth2").eq(index).addClass("on").siblings(".gnb_depth2").removeClass("on");
+			}
+		});
+	});
+	
+	$("#header").mouseleave(function(){
+		$(".depth2").removeClass("all");
+		$(".gnb_depth2").removeClass("on");
+		$(".depth2 .inner").stop().animate({"height" : 0});
+		$(".gnb_bg").stop().animate({"height":0});
+	});
+
+	//quick menu
+	$("#quick_menu").find("#topBtn").click(function(){
+		$("html, body").stop().animate({scrollTop: 0}, 500);
+		return false;
+	});
+
+	//email selector
+	$(".select_email").change(function(){
+		var optionSelected = $(".select_email option:selected").val();
+		var $emailSelect = $(".email_input"); 
+		if(optionSelected == ""){
+			$emailSelect.attr("readonly", false).val("");
+		}else{
+			$emailSelect.attr("readonly", true).val(optionSelected);
+		}
+	});
+
+	//List 페이지 검색시 enter로 바로 검색 가능
+	$('.search_text').keyup(function(e){
+		if(e.keyCode == 13){
+			searchList();
+		}
+	});	
+	
+	//custom 파일첨부 버튼
+	$('body').on('change', '.file_input', function(){
+		var text = $(this).val();
+		$(this).closest('div').find('.file_text').val(text.substring(text.lastIndexOf('\\')+1, text.length));
+	});
+	$('.num').keyup(function(){
+		var regNumber = /^[0-9]*$/;
+		if(!regNumber.test($(this).val())) {
+			$(this).val($(this).val().replace(/[^0-9]/g, ""));
+			return;
+		}
+	});
+	
+    jconfirm.defaults = {
+            type: 'blue',
+            icon: 'fa fa-warning',
+            draggable: true,
+            dragWindowGap: 15,
+            animation: 'zoom',
+            closeAnimation: 'bottom'
+        };       
+	
+});
+
+function is_number(v) {
+    var reg = /^(\s|\d)+$/;
+    return reg.test(v);
+}
+
+//함수계산기
+function numberWithCommas(x) {
+	return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+};
+
+function removeFile($obj, delIdx){
+	var delFileTag = '<input type="hidden" name="delIdxs" value="'+delIdx+'"/>';
+	$obj.parent().parent().append(delFileTag);
+	var obj = $obj;
+	//console.log('data-idx' + $obj.parent().attr('data-idx'));
+	if($obj.parent().attr('data-idx') == 1){
+		$obj.siblings('input').val('');
+	}else{
+		$obj.parent().remove();	
+	}
+};
+
+//file type validation
+function validationFileTypeSingle(inputFileDoc, typeArray) {
+    var $file = $(inputFileDoc);
+    var $filePath = $file.val();
+    var $fileType = $filePath.substring($filePath.lastIndexOf('.') + 1, $filePath.length);   
+    if (typeArray.indexOf($fileType.toLowerCase()) == -1) {
+        $file.val('');
+        $file.siblings('.bs_file').text('');
+        alert('첨부 가능한 파일 형식은 ' + typeArray+' 입니다.');
+        return false;
+    } else {
+        return true;
+    }
+};
+function validationFileType(typeArray) {
+    var fileFlag = true;
+    $('input[type="file"]').each(function (idx, item) {
+        if ($(item).val() != '' && !validationFileTypeSingle($(item), typeArray)) {
+            fileFlag = false;
+            return false;
+        }
+    });
+    return fileFlag;
+};
+
+/* breif */
+var sta = true;
+var $window = $(window), $htmlBody = $("html, body"),
+	$specialReport = $("#specialReport"), $specialInner = $specialReport.find(".special_inner"),
+	$specialLi = $specialReport.find(".slide_list").children("li"),
+	$specialBox = $specialLi.find(".special_box"), 
+	$specialNum = $specialReport.find(".special_num"),
+	$specialDim = $(".special_dim"),
+	specialCnt = 0, specialNextCnt = 1, specialPrevCnt = $specialLi.length-1,
+	specialTime = 800, specialEffect = "easeOutCubic",
+	opaTime = 1000, opaEffect = "easeOutCubic";
+
+function specialFirst(){
+	$specialLi.eq(0).find(".special_box").animate({"opacity":1},opaTime);
+	$specialLi.eq(0).find(".opa1").delay(specialTime).animate({"opacity":1},opaTime,opaEffect).find("img").delay(specialTime+1000).animate({width : 382, opacity:1},opaTime,opaEffect);
+	$specialLi.eq(0).find(".opa2").delay(specialTime+1700).animate({"opacity":1},opaTime,opaEffect);
+	$specialReport.find(".num").text("01");
+}
+function opa($obj){
+	$obj.find(".special_box").stop().animate({"opacity":1},opaTime);
+	$obj.find(".opa1").delay(specialTime).animate({"top":0, "opacity":1},opaTime,opaEffect);
+	$obj.find(".opa2").delay(specialTime+600).animate({"top":0, "opacity":1},opaTime,opaEffect);
+};
+function opaDelay($obj){
+	$obj.find(".special_box").delay(specialTime-200).animate({"opacity":1},opaTime);
+	$obj.find(".opa1").delay((specialTime*2)-200).animate({"top":0, "opacity":1},opaTime,opaEffect);
+	$obj.find(".opa2").delay(((specialTime*2)-200)+600).animate({"top":0, "opacity":1},opaTime,opaEffect);
+};
+
+function opaDelaySec2($obj){
+	$obj.find(".opa1_1").delay(specialTime).animate({"opacity":1},4000,opaEffect);
+};
+function opaMany ($obj){
+	$obj.find(".special_box").stop().animate({"opacity":1},opaTime);
+	$obj.find(".opa1").delay(specialTime).animate({"top":0, "opacity":1},opaTime,opaEffect);
+	$obj.find(".opa2").delay(specialTime+600).animate({"top":0, "opacity":1},opaTime,opaEffect);
+	$obj.find(".opa3").delay(specialTime+800).animate({"top":0, "opacity":1},opaTime,opaEffect);
+	$obj.find(".opa4").delay(specialTime+1000).animate({"top":0, "opacity":1},opaTime,opaEffect);
+	$obj.find(".opa5").delay(specialTime+1200).animate({"top":0, "opacity":1},opaTime,opaEffect);
+	$obj.find(".opa6").delay(specialTime+1400).animate({"top":0, "opacity":1},opaTime,opaEffect);
+	$obj.find(".opa7").delay(specialTime+1600).animate({"top":0, "opacity":1},opaTime,opaEffect);
+}
+
+function specialNextMove(){
+	sta = false;
+	specialPrevCnt = specialCnt;
+	$specialLi.eq(specialCnt).stop().animate({"left":"-100%"},specialTime,specialEffect,function(){
+		sta = true;
+	});
+	$specialLi.eq(specialNextCnt).stop().find(".special_box").css({"opacity":0}).end().find(".opa_box").css({"top":"30px" , "opacity":0}).end().find(".opa1_1").css({"opacity":0});
+	$specialLi.eq(specialNextCnt).css({"left":"100%"}).stop().animate({"left":0},specialTime,specialEffect);
+	if(specialNextCnt == 0){
+		opaDelay($specialLi.eq(specialNextCnt));
+	}else if(specialNextCnt ==3 || specialNextCnt ==4 || specialNextCnt ==5 || specialNextCnt==9 || specialNextCnt==12 || specialNextCnt==13){
+		opaMany($specialLi.eq(specialNextCnt));
+	}else{
+		opa($specialLi.eq(specialNextCnt));
+	};
+	if(specialNextCnt ==2){
+		opaDelaySec2($specialLi.eq(specialNextCnt));
+	}
+	specialCnt = specialNextCnt;
+	specialNextCnt++;
+	if(specialCnt == $specialLi.length-1) specialNextCnt = 0;
+	if(specialCnt == $specialLi.length){
+		specialCnt = 0;
+		specialNextCnt = 1;
+	};
+	if(specialCnt+1 < 10){
+		$specialReport.find(".num").text("0"+(specialCnt+1));
+	}else{
+		$specialReport.find(".num").text((specialCnt+1));
+	}
+};
+function specialPrevMove(){
+	sta = false;
+	specialNextCnt = specialCnt;
+	$specialLi.eq(specialCnt).stop().animate({"left":"100%"},specialTime,specialEffect,function(){
+		sta = true;
+	});
+	$specialLi.eq(specialPrevCnt).stop().find(".special_box").css({"opacity":0}).end().find(".opa_box").css({"top":"30px" , "opacity":0}).end().find(".opa1_1").css({"opacity":0});
+	$specialLi.eq(specialPrevCnt).css({"left":"-100%"}).stop().animate({"left":0},specialTime,specialEffect);
+
+	if(specialPrevCnt == 0){
+		opaDelay($specialLi.eq(specialPrevCnt));
+	}else if(specialPrevCnt ==3 ||specialPrevCnt ==4 || specialPrevCnt ==5 || specialPrevCnt==9 || specialPrevCnt==12 || specialPrevCnt==13){
+		opaMany($specialLi.eq(specialPrevCnt));
+	}else{
+		opa($specialLi.eq(specialPrevCnt));
+	};
+	if(specialPrevCnt ==2){
+		opaDelaySec2($specialLi.eq(specialPrevCnt));
+	};
+	specialCnt = specialPrevCnt;
+	specialPrevCnt--;
+	if(specialCnt == 0){
+		specialCnt = 0;
+		specialPrevCnt = $specialLi.length-1;
+	};
+	if(specialCnt+1 < 10){
+		$specialReport.find(".num").text("0"+(specialCnt+1));
+	}else{
+		$specialReport.find(".num").text((specialCnt+1));
+	};
+	
+};
+function wScroll(){
+	$window.on("mousewheel DOMMouseScroll", function(e){
+		if($specialReport.is(".on")){
+			var delta = e.originalEvent.wheelDelta;
+			if(delta < 0){
+				sta && specialNextMove();
+			}else{
+				sta && specialPrevMove();
+			};
+			return false;
+		};
+	});
+};
+$specialInner.css({"height":$window.height(), "margin-top":-$window.height()/2});
+$window.resize(function(){
+	//$specialReport.css({"margin-top":-($window.height()/2+3)});
+	$specialInner.css({"height":$window.height(), "margin-top":-$window.height()/2});
+});
+$specialReport.find(".btn_next").click(function(){
+	specialNextMove();
+});
+$specialReport.find(".btn_prev").click(function(){
+	specialPrevMove();
+});
+function briefStart(){
+	$htmlBody.addClass("on");
+	$specialReport.addClass("on").animate({"width":"100%"}, 700, "easeInOutQuad");
+	$specialReport.delay(700).animate({"height":"100%", "margin-top":-($window.height()/2+3)}, 1000, "easeOutQuart");
+	$specialDim.addClass("on").animate({"opacity":0.7},700);
+	wScroll();
+	specialFirst();
+	setTimeout(function(){
+		$("#jquery_jplayer_2").jPlayer("play");
+	}, 1400);
+}
+function briefReset(){
+	specialCnt = 0, specialNextCnt = 1, specialPrevCnt = $specialLi.length-1;
+	$window.off("mousewheel DOMMouseScroll");
+	$htmlBody.removeClass("on");
+	$specialReport.removeClass("on").css({"width":0, "height":0, "margin-top":0});
+	$specialDim.removeClass("on").css("opacity",0);
+	$specialLi.css("left", "100%");
+	$specialLi.eq(0).css("left", 0).find(".special_box").find("h2").find("img").css({width:100, opacity:.5});
+	$specialLi.find(".special_box").css({"opacity":0}).find(".opa_box").css({"top":"30px" , "opacity":0});
+}
+
+
+function fn_popUp(id){	
+	var url = "/srch/selectPORSrchFnct.do?cn="+id;
+	var width = 1100;
+	var height = 900;
+	var wid = (screen.width - width)/2 ;
+	var hei = (screen.height - height)/2;	
+	popupChatbot = window.open(url, "상세기능팝업", "");
+	popupChatbot.focus();
+}
+
+
+
+$(".special_view").click(function(e){
+	e.preventDefault();
+	briefStart();
+});
+$(".special_close").click(function(e){
+	e.preventDefault();
+	briefReset();
+});
+var $temp = $("#temp");
+var blockUI = function(){
+	$("#blockUi").addClass("on");
+};
+var unblockUI = function () {
+    $("#blockUi").removeClass("on");
+};
+function searchList(){
+	$('#page').val(1);
+	$('.content form').submit();
+};
+
+function getCookie(name){
+	var nameOfCookie = name + "=";
+	var x = 0;
+	while (x <= document.cookie.length){
+		var y = (x + nameOfCookie.length);
+		if(document.cookie.substring(x,y) == nameOfCookie){
+		if((endOfCookie = document.cookie.indexOf(";", y)) == -1){
+			endOfCookie = document.cookie.length;				
+		}
+		return unescape(document.cookie.substring(y, endOfCookie));
+		}
+		x = document.cookie.indexOf(" ", x) + 1;
+		if(x==0)break;
+	}
+	return "";
+}
+
+//팝업창  function
+function popUpEvent(){
+	if(getCookie("scienceOnPopName") != "done"){
+		//기존 소개팝업
+		var popUrl = "/popUp/introduction.do";	
+		var popOption = "width=1000px, height=800px, resizable=yes, scrollbars=yes, status=no;";
+		window.open(popUrl,"",popOption);
+	}
+}
+
+//팝업창  function
+function popUpEventSurvey(){
+	if(getCookie("surveyEvent") != "done"){
+		//설문 이벤트 팝업(이미지 확정후 창 사이즈 조절)
+		var popUrl = "/popUp/eventInfo.do";	
+		var popOption = "width=1020px, height=1350px, resizable=yes, scrollbars=yes, status=no";
+		window.open(popUrl,"",popOption);
+	}
+}
+
+//url 에서 파라미터값 추출
+function getParam(url, sname) {
+    var params = url.substr(url.indexOf("?") + 1);
+    var sval = "";
+    params = params.split("&");
+    for (var i = 0; i < params.length; i++) {
+        temp = params[i].split("=");
+        if ([temp[0]] == sname) { sval = temp[1]; }
+    }
+    return sval;
+}
+
+//시스템로그 등록
+    //insertSystemLogInfo("linkYn=Y&useContCd=0001&linkURL=링크 URL"+"&cn="+논문id값);
+    function insertSystemLogInfo(param){	 
+    	$.ajax({
+    		type : 'post',
+    		url : '/logm/insertSystemLogInfo.do',
+    		data : param,
+    		error: function( jqXhr, textStatus, errorThrown ){
+    			console.log( errorThrown );
+    		}
+    	});	
+    }
+    
+    function logSummton(param){	
+    	$.ajax({
+    		url : "/logm/logSummton.do",
+    		data: param,
+    		type:'post',
+    		error: function( jqXhr, textStatus, errorThrown ){
+    			console.log( errorThrown );
+    		}
+    	});
+    }
+    function insertBhvrLog(param){ 
+    	$.ajax({
+    		type : 'post',
+    		url : '/logm/insertBhvrLog.do',
+    		data : param,
+    		error: function( jqXhr, textStatus, errorThrown ){
+    			console.log( errorThrown );
+    		}
+    	});
+    }
+function fn_blockUI(){
+	$.blockUI({
+		css : {
+			backgroundColor: 'rgba(255, 255, 255, 1)', //배경투명하게
+			color: '#000000', border: '0px solid #a00', //테두리 없앰
+			width: '150px', height: '150px',left : '50%', top : '50%',
+			transform: 'translate(-50%, -50%)'
+		},
+		message: '<img src="/images/Loading.gif" alt="처리중입니다. 잠시만 기다려주세요." style="width: 72px; position:relative; top: 25px;" /><br><br><h4>처리중입니다.</h4><h5>잠시만 기다려주세요.</h5>'
+	});
+}
+function fn_unBlockUI(){
+	$.unblockUI();
+	
+}
+
+/**
+ * 바이트 문자 입력가능 문자수 체크
+ * 
+ * @param id : tag id 
+ * @param title : tag title
+ * @param maxLength : 최대 입력가능 수 (byte)
+ * @returns {Boolean}
+ */
+function maxLengthCheck(id, title, maxLength){
+     var obj = $("#"+id);
+     if(maxLength == null) {
+         maxLength = obj.attr("maxLength") != null ? obj.attr("maxLength") : 1000;
+     }
+     
+     var strByteLength = function(s,b,i,c){
+   	  for(b=i=0;c=s.charCodeAt(i++);b+=c>>11?3:c>>7?2:1);
+   	  return b;
+   	};
+     
+     if(Number(strByteLength(obj.val())) > Number(maxLength)) {
+         $.alert({
+		    	title: 'MyON 정보입력',
+			    content: title + "이(가) 입력가능문자수를 초과하였습니다.\n(영문, 숫자, 일반 특수문자 : " + maxLength + " / 한글, 한자, 기타 특수문자 : " + parseInt(maxLength/3, 10) + ")."
+			});
+         obj.focus();
+         return false;
+     } else {
+         return true;
+    }
+}
+
+function escapeHtml(str) {
+	var map = {
+		'&': '&amp;',
+		'<': '&lt;',
+		'>': '&gt;',
+		'"': '&quot;',
+		"'": '&#039;'
+	};
+	return str.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
+function fn_CallURL(url) {
+	/* ajax 처리 방법  */
+	$.ajax({
+		url: url,
+		type: "get",
+		dataType: "jsonp",
+		jsonpCallback: "callbackFnct",
+		success: "callback"
+	});
+	
+	var proto = window.location.protocol;
+	var head = document.getElementsByTagName('head')[0];
+	var script = document.createElement('script');
+	var fullurl;
+	if(url.indexOf("http")>-1){
+		fullurl = url;
+	}else{
+		fullurl = proto+url;
+	}
+	script.type = 'text/javascript';
+	script.src = fullurl;
+	head.appendChild(script);
+}
+function callbackFnct(obj){
+	console.log(obj);
+}
+
+function openPCCWindow(retUrl){
+	var url = "/mypg/authReqInfoChk.do?retUrl="+encodeURIComponent(retUrl);
+	var PCC_window = window.open(url, 'PCCV3Window', 'width=474, height=822, resizable=1, scrollbars=no, status=0, titlebar=0, toolbar=0, left=300, top=200' );
+   
+   if(PCC_window == null){ 
+		 alert(" ※ 윈도우 XP SP2 또는 인터넷 익스플로러 7 사용자일 경우에는 \n    화면 상단에 있는 팝업 차단 알림줄을 클릭하여 팝업을 허용해 주시기 바랍니다. \n\n※ MSN,야후,구글 팝업 차단 툴바가 설치된 경우 팝업허용을 해주시기 바랍니다.");
+    }
+	return true;
+}h��?�      c��c��E6NPc�m�   _    O^partitionKey=%28https%2Ckisti.re.kr%29,:https://scienceon.kisti.re.kr/js/common.js?v=20221215 necko:classified 1 strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 OK
+Date: Wed, 01 Feb 2023 08:02:57 GMT
+Content-Type: application/javascript
+Content-Length: 22907
+Strict-Transport-Security: max-age=63072000; includeSubdomains;
+Last-Modified: Thu, 15 Dec 2022 10:03:45 GMT
+ETag: "597b-5efdaf7f8bfc5"
+Accept-Ranges: bytes
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+ original-response-headers Date: Wed, 01 Feb 2023 08:02:57 GMT
+Content-Type: application/javascript
+Content-Length: 22907
+Connection: keep-alive
+Strict-Transport-Security: max-age=63072000; includeSubdomains;
+Last-Modified: Thu, 15 Dec 2022 10:03:45 GMT
+ETag: "597b-5efdaf7f8bfc5"
+Accept-Ranges: bytes
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+ ctid 2 uncompressed-len 0 net-response-time-onstart 257 net-response-time-onstop 257   Y{

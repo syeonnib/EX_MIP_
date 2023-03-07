@@ -1,0 +1,374 @@
+define([ 'app', 'i18n!app/calendar/nls/calendar-i18n', 'app/app-models', 'app/org/org-models' ], function(app, i18n) {
+	app.module('calendar', function(calendar, app, Backbone, Marionette, $, _) {
+
+		calendar.CalendarModel = app.BackboneModel.extend({
+			urlRoot : 'calendar/calendars',
+			idAttribute : 'id',
+			defaults : {
+				domain : '',
+				userId : '',
+				name : '',
+				color : 'c9102a',
+				shared : 0,
+				display : 0,
+				kind : 4,
+			},
+
+			initialize : function() {
+				var calendars = this.get("calendars");
+				if (calendars) {
+					this.calendars = new calendar.calendarCollection(calendars);
+					this.unset('calendars');
+				}
+			},
+
+			parse : function(response, options) {
+				
+				switch (Number(response.kind)) {
+				case 0:
+					response.name = i18n.myCalendar;
+					break;
+				case 1:
+					response.name = i18n.groupCalendar;
+					break;
+				case 2:
+					response.name = i18n.allShareCalendar;
+					break;
+				case 3:
+					response.name = i18n.todoList;
+					break;
+				case 4:
+				default:
+					response.name = response.name;
+				}
+				
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+
+		}); // calendar.calendarModel
+
+		calendar.CalendarCollection = app.BackboneCollection.extend({
+			urlRoot : 'calendar/calendars',
+			url : function() {
+				return this.urlRoot;
+			},
+
+			model : calendar.CalendarModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.log('----------- calendar.calendarCollection.parse() {...} -----------');
+				return response;
+			},
+
+		}); // calendar.calendarCollection
+
+		calendar.CalendarShareModel = app.BackboneModel.extend({
+			urlRoot : 'calendar/calendars/shares',
+			idAttribute : 'id',
+			defaults : {
+				calendarId : 0,
+				domain : '',
+				sharer : '',
+				sharee : '',
+				userName : '',
+				name : '',
+				color : 'c9102a',
+				display : 0,
+			},
+
+			initialize : function() {
+				var calendarShares = this.get("calendarShares");
+				if (calendarShares) {
+					this.calendars = new calendar.calendarShareCollection(calendarShares);
+					this.unset('calendarShares');
+				}
+			},
+
+			parse : function(response, options) {
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+
+		}); // calendar.CalendarShareModel
+
+		calendar.CalendarShareCollection = app.BackboneCollection.extend({
+			urlRoot : 'calendar/calendars/shares',
+			url : function() {
+				return this.urlRoot;
+			},
+
+			model : calendar.CalendarShareModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.log('----------- calendar.CalendarShareCollection.parse() {...} -----------');
+				return response;
+			},
+
+		}); // calendar.CalendarShareCollection
+
+		calendar.ScheduleModel = app.BackboneModel.extend({
+			urlRoot : 'calendar/schedules',
+			idAttribute : 'SCHEDULE_IDX',
+			defaults : {
+				SCHEDULE_IDX : 0,
+				SCHEDULE_TITLE : '',
+				SCHEDULE_STMT : '',
+				SCHEDULE_SDATE : '',
+				SCHEDULE_EDATE : '',
+				P_SCHEDULE_IDX : '',
+				USERS_IDX : '',
+				USERS_NAME : '',
+				DOMAIN : '',
+				USER_GROUP_IDX : '',
+				SCHEDULE_SHARE : 0,
+				SHARE_GROUP_IDX : '',
+				SCHEDULE_TYPE : 'none',
+				SCHEDULE_REPEAT : 0,
+				SCHEDULE_ALAM : 'noAlarm',
+				SCHEDULE_DAYLY : 1,
+				SCHEDULE_ALAM_DATE : '',
+				SCHEDULE_ALAM_WAY : 0,
+				SCHEDULE_DDAY : '',
+				calendarId : '',
+				todo : 0,
+			},
+
+			initialize : function() {
+				var schedules = this.get("schedules");
+				if (schedules) {
+					this.calendars = new calendar.ScheduleCollection(schedules);
+					this.unset('schedules');
+				}
+			},
+
+			parse : function(response, options) {
+				if(response.SCHEDULE_TYPE == undefined || response.SCHEDULE_TYPE == null ) return response;
+				var category;
+				switch (Number(response.SCHEDULE_TYPE)) {
+				case 0:
+					category = 'personal';
+					break;
+				case 1:
+					category = 'visit';
+					break;
+				case 2:
+					category = 'task';
+					break;
+				case 3:
+					category = 'leave';
+					break;
+				case 4:
+					category = 'inspection';
+					break;
+				case 5:
+					category = 'participation';
+					break;
+				case 6:
+					category = 'notice';
+					break;
+				case 7:
+					category = 'nationalHoliday';
+					break;
+				case 8:
+					category = 'none';
+					break;
+				case 9:
+					category = 'holiday';
+					break;
+				default:
+					category = 'personal';
+				}
+				var scheduleAlarm;
+				switch (response.SCHEDULE_ALAM) {
+				case 0:
+					scheduleAlarm = 'noAlarm';
+					break;
+				case 1:
+					scheduleAlarm = 'startTime';
+					break;
+				case 2:
+					scheduleAlarm = 'oneHourAgo';
+					break;
+				case 3:
+					scheduleAlarm = 'oneDayAgo';
+					break;
+				case 4:
+					scheduleAlarm = 'twoDayAgo';
+					break;
+				case 5:
+					scheduleAlarm = 'threeDayAgo';
+					break;
+				case 6:
+					scheduleAlarm = 'oneWeekAgo';
+					break;
+				default:
+					scheduleAlarm = 'noAlarm';
+				}
+
+				response.SCHEDULE_TYPE = category;
+				response.SCHEDULE_ALAM = scheduleAlarm;
+				return response;
+			},
+
+			validate : function(attrs, options) {
+				var errors = {};
+				if (!_.isEmpty(errors))
+					return errors;
+			},
+
+		}); // calendar.ScheduleModel
+
+		calendar.ScheduleCollection = app.BackboneCollection.extend({
+			urlRoot : 'calendar/schedules',
+			url : function() {
+				return this.urlRoot;
+			},
+
+			model : calendar.ScheduleModel,
+
+			constructor : function() {
+				app.BackboneCollection.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.BackboneCollection.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.log('----------- calendar.ScheduleCollection.parse() {...} -----------');
+				return response;
+			},
+
+			getScheduleModel : function(attribute, value) {
+				var model = _.find(this.models, function(model) {
+					return model.get(attribute) == value;
+				});
+				return model;
+			},
+		}); // calendar.ScheduleCollection
+
+		calendar.OrgEntryPaginator = app.ClientPaginator.extend({
+
+			model : app.org.OrgEntryModel,
+
+			url : function() {
+				var url = 'org/root/entries';
+				if (/\/popup\/calendars[\/]*$/.test(location.pathname))
+					url = '../../org/root/entries';
+				return url;
+			},
+
+			paginator_core : {
+				type : 'POST',
+				dataType : 'json',
+				url : 'org/root/entries',
+			},
+
+			constructor : function() {
+				app.ClientPaginator.apply(this, arguments);
+			},
+
+			initialize : function(models, options) {
+				app.ClientPaginator.prototype.initialize.apply(this, arguments);
+			},
+
+			parse : function(response, options) {
+				app.ClientPaginator.prototype.parse.apply(this, arguments);
+				var entries = response.entries.filter(function(i, n) {
+					return _.contains(i.attributes.objectClass, 'user');
+				});
+				return entries;
+			},
+
+			setParams : function(params) {
+				var server_api = {};
+				for (prop in params) {
+					if (typeof params[prop] == 'string') {
+						server_api[prop] = params[prop];
+					} else if (typeof params[prop] == 'object') {
+						var param = params[prop];
+						for (p in param) {
+							server_api[prop + '.' + p] = param[p];
+						}
+					}
+				}
+				this.server_api = server_api;
+			},
+
+			getURL : function(params) {
+				var url = params.url ? params.url : this.url();
+
+				if (params && params.page)
+					url += '?currentPage=' + params.page;
+				else
+					url += '?currentPage=' + this.currentPage;
+
+				if (params && params.perPage)
+					url += '&perPage=' + params.perPage;
+				else
+					url += '&perPage=' + this.perPage;
+
+				if (params && params.sortField)
+					url += '&sortField=' + params.sortField;
+				else
+					url += '&sortField=' + this.sortField;
+
+				if (params && params.sortOrder)
+					url += '&sortOrder=' + params.sortOrder;
+				else
+					url += '&sortOrder=' + this.sortOrder;
+
+				if (params && params.groupBy)
+					url += '&groupBy=' + params.groupBy;
+
+				if (params && params.search)
+					url += '&search=' + encodeURIComponent(params.search);
+				else if (this.server_api && this.server_api.search)
+					url += '&search=' + encodeURIComponent(this.server_api.search);
+
+				return url;
+			},
+		}); // org.OrgEntryPaginator
+
+	});
+});3òÞÎá      cÚ[cÚ[E6MccãUÚ   |    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app/calendar/calendar-models.js?v=202301181454 necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"8910-1664418076000"
+Last-Modified: Thu, 29 Sep 2022 02:21:16 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 8910
+Date: Wed, 01 Feb 2023 07:57:14 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"8910-1664418076000"
+Last-Modified: Thu, 29 Sep 2022 02:21:16 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 8910
+Date: Wed, 01 Feb 2023 07:57:14 GMT
+ ctid 2 uncompressed-len 0 net-response-time-onstart 59 net-response-time-onstop 63   "Î

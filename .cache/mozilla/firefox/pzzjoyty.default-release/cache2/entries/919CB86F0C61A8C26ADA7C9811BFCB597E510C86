@@ -1,0 +1,331 @@
+define([ 'marionette' ], function(Marionette) {
+	var app = new Marionette.Application();
+
+	app.log = function(message) {
+		if (typeof console !== "undefined") {
+			switch (typeof message) {
+			case "object":
+				if (message instanceof Error)
+					console.log(message.name + ': ' + message.message);
+				console.dir ? console.dir(message) : console.log(message);
+				break;
+			default:
+				console.log(message);
+			}
+		}
+		return this;
+	};
+
+	app.debug = function(message) {
+		var debug = false;
+		if (debug && typeof console !== "undefined") {
+			switch (typeof message) {
+			case "object":
+				if (message instanceof Error)
+					console.log(message.name + ': ' + message.message);
+				if (console.dir)
+					console.dir(message)
+				else if (console.debug)
+					console.debug(message);
+				else
+					console.log(message);
+				break;
+			default:
+				console.debug ? console.debug(message) : console.log(message);
+			}
+		}
+		return this;
+	};
+
+	app.addRegions({
+		topRegion : 'div.mc-orgWrap',
+		headerRegion : 'div.mc-wrap div.mc-header',
+		gnbRegion : 'div.mc-container div.mc-gnb',
+		snbRegion : 'div.mc-container div.mc-snb',
+		contentRegion : 'div.mc-container div.mc-section_cen div.mc-section_cen_fix',
+		contactContentRegion : 'div.mc-container .content_cst',
+		settingsRegion : 'div.mc-container .content_cst',
+		footerRegion : 'div.mc-footer',
+		frameContentRegion : 'div.mc-container .content_frame',
+		frameSideContentRegion : 'div.mc-container .content_frame.side',
+		calendarContentRegion : 'div.mc-container .content_cst',
+	});
+
+	app.cssLoaded = function() {
+		var moduleName = app.$cssLink.data('module-name');
+		var options = app.$cssLink.data('module-options');
+		app.debug('app.cssLoaded("' + moduleName + '", options) : ' + app.$cssLink.prop('href'));
+		var loadStylesheet = function(id, href) {
+			var $head = $('head');
+			$head.children('link#' + id + ':first').remove();
+			var style = document.createElement("link");
+			style.setAttribute('rel', 'stylesheet');
+			style.setAttribute('type', 'text/css');
+			style.setAttribute('href', href);
+			style.setAttribute('id', id)
+			$head[0].appendChild(style);
+		};
+		switch (moduleName) {
+		case 'mail':
+		case 'bbs':
+			if (app.i18n.locale == 'ko') {
+				loadStylesheet('defaultStyle', 'css/default_ko.css');
+				loadStylesheet('i18nStyle', 'css/mail_ko.css');
+			} else if (app.i18n.locale == 'en') {
+				loadStylesheet('defaultStyle', 'css/default_en.css');
+				loadStylesheet('i18nStyle', 'css/mail_en.css');
+			} else if (app.i18n.locale == 'ja') {
+				loadStylesheet('defaultStyle', 'css/default_ja.css');
+				loadStylesheet('i18nStyle', 'css/mail_ja.css');
+			} else if (app.i18n.locale == 'zh-cn') {
+				loadStylesheet('defaultStyle', 'css/default_zh-cn.css');
+				loadStylesheet('i18nStyle', 'css/mail_zh-cn.css');
+			} else if (app.i18n.locale == 'zh-tw') {
+				loadStylesheet('defaultStyle', 'css/default_zh-tw.css');
+				loadStylesheet('i18nStyle', 'css/mail_zh-tw.css');
+			}
+			break;
+		case 'contact':
+			if (app.i18n.locale == 'ko') {
+				loadStylesheet('defaultStyle', 'css/default_ko.css');
+				loadStylesheet('i18nStyle', 'css/address_ko.css');
+			} else if (app.i18n.locale == 'en') {
+				loadStylesheet('defaultStyle', 'css/default_en.css');
+				loadStylesheet('i18nStyle', 'css/address_en.css');
+			} else if (app.i18n.locale == 'ja') {
+				loadStylesheet('defaultStyle', 'css/default_ja.css');
+				loadStylesheet('i18nStyle', 'css/address_ja.css');
+			} else if (app.i18n.locale == 'zh-cn') {
+				loadStylesheet('defaultStyle', 'css/default_zh-cn.css');
+				loadStylesheet('i18nStyle', 'css/address_zh-cn.css');
+			} else if (app.i18n.locale == 'zh-tw') {
+				loadStylesheet('defaultStyle', 'css/default_zh-tw.css');
+				loadStylesheet('i18nStyle', 'css/address_zh-tw.css');
+			}
+			break;
+		case 'disk':
+			if (app.i18n.locale == 'ko') {
+				loadStylesheet('defaultStyle', 'css/default_ko.css');
+				loadStylesheet('i18nStyle', 'css/webdrive_ko.css');
+			} else if (app.i18n.locale == 'en') {
+				loadStylesheet('defaultStyle', 'css/default_en.css');
+				loadStylesheet('i18nStyle', 'css/webdrive_en.css');
+			} else if (app.i18n.locale == 'ja') {
+				loadStylesheet('defaultStyle', 'css/default_ja.css');
+				loadStylesheet('i18nStyle', 'css/webdrive_ja.css');
+			} else if (app.i18n.locale == 'zh-cn') {
+				loadStylesheet('defaultStyle', 'css/default_zh-cn.css');
+				loadStylesheet('i18nStyle', 'css/webdrive_zh-cn.css');
+			} else if (app.i18n.locale == 'zh-tw') {
+				loadStylesheet('defaultStyle', 'css/default_zh-tw.css');
+				loadStylesheet('i18nStyle', 'css/webdrive_zh-tw.css');
+			}
+			break;
+		case 'calendar':
+			if (app.i18n.locale == 'ko') {
+				loadStylesheet('defaultStyle', 'css/default_ko.css');
+				loadStylesheet('i18nStyle', 'css/calendar_ko.css');
+			} else if (app.i18n.locale == 'en') {
+				loadStylesheet('defaultStyle', 'css/default_en.css');
+				loadStylesheet('i18nStyle', 'css/calendar_en.css');
+			} else if (app.i18n.locale == 'ja') {
+				loadStylesheet('defaultStyle', 'css/default_ja.css');
+				loadStylesheet('i18nStyle', 'css/calendar_ja.css');
+			} else if (app.i18n.locale == 'zh-cn') {
+				loadStylesheet('defaultStyle', 'css/default_zh-cn.css');
+				loadStylesheet('i18nStyle', 'css/calendar_zh-cn.css');
+			} else if (app.i18n.locale == 'zh-tw') {
+				loadStylesheet('defaultStyle', 'css/default_zh-tw.css');
+				loadStylesheet('i18nStyle', 'css/calendar_zh-tw.css');
+			}
+			break;
+		case 'csm':
+		case 'project':
+		case 'schedule':
+		case 'hello':
+		default:
+			loadStylesheet('defaultStyle', 'css/default_ko.css');
+			loadStylesheet('i18nStyle', 'css/mail_ko.css');
+		}
+		var $snbRegion = $(app.snbRegion.el);
+		var $contentRegion = $(app.contentRegion.el).parent();
+		var $contactContentRegion = $(app.contactContentRegion.el);
+		var $frameContentRegion = $(app.frameContentRegion.el);
+		var $frameSideContentRegion = $(app.frameSideContentRegion.el);
+		var $calendarContentRegion = $(app.calendarContentRegion.el);
+		switch (moduleName) {
+		case 'mail':
+			$snbRegion.show();
+			$contentRegion.show();
+			$contactContentRegion.hide();
+			$frameContentRegion.hide();
+			$frameSideContentRegion.hide();
+			break;
+		case 'contact':
+			$snbRegion.show();
+			$contentRegion.hide();
+			$contactContentRegion.show();
+			$frameContentRegion.hide();
+			$frameSideContentRegion.hide();
+			break;
+		case 'disk':
+			$snbRegion.show();
+			$contentRegion.show();
+			$contactContentRegion.hide();
+			$frameContentRegion.hide();
+			$frameSideContentRegion.hide();
+			break;
+		case 'csm':
+			$snbRegion.hide();
+			$contentRegion.hide();
+			$contactContentRegion.hide();
+			$frameContentRegion.show();
+			$frameSideContentRegion.hide();
+			break;
+		case 'project':
+			$snbRegion.hide();
+			$contentRegion.hide();
+			$contactContentRegion.hide();
+			$frameContentRegion.show();
+			$frameSideContentRegion.hide();
+			break;
+		case 'calendar':
+			$snbRegion.show();
+			$contentRegion.hide();
+			$contactContentRegion.hide();
+			$frameContentRegion.hide();
+			$frameSideContentRegion.hide();
+			$calendarContentRegion.show();
+			break;
+		case 'bbs':
+			$snbRegion.hide();
+			$contentRegion.hide();
+			$contactContentRegion.hide();
+			$frameContentRegion.show();
+			$frameSideContentRegion.hide();
+			break;
+		case 'schedule':
+			$snbRegion.show();
+			$contentRegion.hide();
+			$contactContentRegion.hide();
+			$frameContentRegion.hide();
+			$frameSideContentRegion.show();
+			break;
+		case 'hello':
+			$snbRegion.hide();
+			$contentRegion.hide();
+			$contactContentRegion.hide();
+			$frameContentRegion.show();
+			$frameSideContentRegion.hide();
+			break;
+		default:
+			$snbRegion.show();
+			$contentRegion.show();
+			$contactContentRegion.hide();
+			$frameContentRegion.hide();
+			$frameSideContentRegion.hide();
+		}
+		var subModule = app.module(moduleName);
+		app.currentModule = subModule;
+		subModule.start(options);
+	};
+
+	app.startSubModule = function(moduleName, options) {
+		app.debug("app.startSubModule('" + moduleName + "', options) {");
+		var subModule = app.module(moduleName);
+		if (app.currentModule === subModule) {
+			app.debug("  app.currentModule === app.module('" + moduleName + "')");
+			app.debug("} // app.startSubModule('" + moduleName + "', options)");
+			return;
+		}
+		if (app.currentModule) {
+			app.currentModule.stop();
+		}
+		// app.currentModule = subModule;
+		// subModule.start(options);
+		if (!app.$cssLink) {
+			app.$cssLink = $('head').find('link[title="switch"]:first');
+			app.$cssLink.off('load').on('load', function(event) {
+				app.cssLoaded();
+			});
+		}
+		app.$cssLink.data('module-name', moduleName);
+		app.$cssLink.data('module-options', options);
+		switch (moduleName) {
+		case 'mail':
+			app.$cssLink.prop('href', 'css/mail.css');
+			break;
+		case 'contact':
+			app.$cssLink.prop('href', 'css/address.css');
+			break;
+		case 'disk':
+			app.$cssLink.prop('href', 'css/webdrive.css');
+			break;
+		case 'calendar':
+			app.$cssLink.prop('href', 'css/calendar.css');
+			break;
+		case 'csm':
+		case 'project':
+		case 'bbs':
+		case 'schedule':
+		case 'hello':
+		default:
+			app.$cssLink.prop('href', 'css/mail.css');
+		}
+		try {
+			var link = app.$cssLink.get(0);
+			if (link.sheet && link.sheet.cssRules.length > 0) { // Chrome
+				var intervalID = setInterval(function() {
+					if (link.href == link.sheet.href) {
+						clearInterval(intervalID);
+						app.cssLoaded();
+					}
+				}, 15);
+			}
+		} catch (error) {
+			// ignore error
+		}
+		app.debug("} // app.startSubModule('" + moduleName + "', options)");
+	};
+
+	app.on('initialize:after', function() {
+		app.debug("app.on('initialize:after', function() {");
+		app.$hidablesListener = jQuery({});
+		app.$hidablesListener.on('hide.all', function(event) {
+			var $hidables = $('[hidable]');
+			$hidables.each(function(index, element) {
+				var $this = $(this);
+				if ($this.is('[hidable="true"]'))
+					$this.hide();
+				else
+					$this.attr('hidable', true);
+			});
+		});
+		$('body').click(function(event) {
+			app.$hidablesListener.trigger('hide.all');
+		});
+		if (Backbone.history) {
+			app.debug("  #before: Backbone.history.start();");
+			Backbone.history.start();
+			app.debug("  #after: Backbone.history.start();");
+		}
+		app.debug("} // app.on('initialize:after', function() {...});");
+	});
+
+	return app;
+
+}); // define([ 'marionette' ], function(){...});
+ÐM§ˆUý      cÚ[cÚ[E6MccãUÚ   c    O^partitionKey=%28http%2Cseoultech.ac.kr%29,:http://mail.seoultech.ac.kr/mail/app.js?v=202301181454 necko:classified 1 strongly-framed 1 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"10586-1664418090000"
+Last-Modified: Thu, 29 Sep 2022 02:21:30 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 10586
+Date: Wed, 01 Feb 2023 07:57:14 GMT
+ original-response-headers Accept-Ranges: bytes
+ETag: W/"10586-1664418090000"
+Last-Modified: Thu, 29 Sep 2022 02:21:30 GMT
+Content-Type: application/javascript;charset=UTF-8
+Content-Length: 10586
+Date: Wed, 01 Feb 2023 07:57:14 GMT
+ ctid 2 uncompressed-len 0 net-response-time-onstart 22 net-response-time-onstop 22   )Z

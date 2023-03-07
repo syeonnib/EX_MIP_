@@ -1,0 +1,21 @@
+[rosmaster.main][INFO] 2023-02-01 16:50:37,197: initialization complete, waiting for shutdown
+[rosmaster.main][INFO] 2023-02-01 16:50:37,197: Starting ROS Master Node
+[xmlrpc][INFO] 2023-02-01 16:50:37,198: XML-RPC server binding to 0.0.0.0:11311
+[xmlrpc][INFO] 2023-02-01 16:50:37,198: Started XML-RPC server [http://kangsuyeon:11311/]
+[xmlrpc][INFO] 2023-02-01 16:50:37,198: xml rpc node: starting XML-RPC server
+[rosmaster.master][INFO] 2023-02-01 16:50:37,198: Master initialized: port[11311], uri[http://kangsuyeon:11311/]
+[rosmaster.master][INFO] 2023-02-01 16:50:37,285: +PARAM [/run_id] by /roslaunch
+[rosmaster.master][INFO] 2023-02-01 16:50:37,285: +PARAM [/roslaunch/uris/host_kangsuyeon__40769] by /roslaunch
+[rosmaster.master][INFO] 2023-02-01 16:50:37,301: +PARAM [/rosversion] by /roslaunch
+[rosmaster.master][INFO] 2023-02-01 16:50:37,301: +PARAM [/rosdistro] by /roslaunch
+[rosmaster.master][INFO] 2023-02-01 16:50:37,306: +SERVICE [/rosout/get_loggers] /rosout http://kangsuyeon:41165/
+[rosmaster.master][INFO] 2023-02-01 16:50:37,306: +SERVICE [/rosout/set_logger_level] /rosout http://kangsuyeon:41165/
+[rosmaster.master][INFO] 2023-02-01 16:50:37,307: +PUB [/rosout_agg] /rosout http://kangsuyeon:41165/
+[rosmaster.master][INFO] 2023-02-01 16:50:37,308: +SUB [/rosout] /rosout http://kangsuyeon:41165/
+[rosmaster.master][INFO] 2023-02-01 16:50:39,810: -PUB [/rosout_agg] /rosout http://kangsuyeon:41165/
+[rosmaster.master][INFO] 2023-02-01 16:50:39,811: -SUB [/rosout] /rosout http://kangsuyeon:41165/
+[rosmaster.master][INFO] 2023-02-01 16:50:39,811: -SERVICE [/rosout/get_loggers] /rosout rosrpc://kangsuyeon:52127
+[rosmaster.master][INFO] 2023-02-01 16:50:39,811: -SERVICE [/rosout/set_logger_level] /rosout rosrpc://kangsuyeon:52127
+[rosmaster.main][INFO] 2023-02-01 16:50:39,874: keyboard interrupt, will exit
+[rosmaster.main][INFO] 2023-02-01 16:50:39,874: stopping master...
+[rospy.core][INFO] 2023-02-01 16:50:39,874: signal_shutdown [atexit]

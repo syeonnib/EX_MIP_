@@ -1,0 +1,327 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+
+<meta name="google-site-verification" content="CjkdY6BqKWAVmQ78_iSq6J7ZZ9AoL7-CjFVBYGg9FU4" />
+<link rel="shortcut icon" href="/custom/favicon.ico" type="image/ico" />
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" />
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="/custom/js/sorttable.js"></script>
+<script type="text/javascript" src="/custom/libraries/jquery.min.js"></script>                         
+<script type="text/javascript" src="/custom/js/seesaw.js"></script> 
+<script type="text/javascript" src="/custom/js/rosversion.js"></script> 
+<!--script type="text/javascript" src="/custom/libraries/RGraph.common.core.js" ></script Used for metrics only, should be conditional, not at the top-->
+<!--script type="text/javascript" src="/custom/libraries/RGraph.bar.js" ></script same as above -->
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-17821189-2']);
+  _gaq.push(['_setDomainName', 'wiki.ros.org']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+<meta name="robots" content="index,nofollow">
+
+<title>catkin/Tutorials/create_a_workspace - ROS Wiki</title>
+<script type="text/javascript" src="/moin_static197/common/js/common.js"></script>
+
+<script type="text/javascript">
+<!--
+var search_hint = "Search";
+//-->
+</script>
+
+
+<link rel="stylesheet" type="text/css" charset="utf-8" media="all" href="/moin_static197/rostheme/css/common.css">
+<link rel="stylesheet" type="text/css" charset="utf-8" media="screen" href="/moin_static197/rostheme/css/screen.css">
+<link rel="stylesheet" type="text/css" charset="utf-8" media="print" href="/moin_static197/rostheme/css/print.css">
+<link rel="stylesheet" type="text/css" charset="utf-8" media="projection" href="/moin_static197/rostheme/css/projection.css">
+
+<!-- css only for MS IE6/IE7 browsers -->
+<!--[if lt IE 8]>
+   <link rel="stylesheet" type="text/css" charset="utf-8" media="all" href="/moin_static197/rostheme/css/msie.css">
+<![endif]-->
+
+
+
+
+<link rel="canonical" href="http://wiki.ros.org/catkin/Tutorials/create_a_workspace" />
+
+<link rel="Start" href="/Documentation">
+<link rel="Alternate" title="Wiki Markup" href="/catkin/Tutorials/create_a_workspace?action=raw">
+<link rel="Alternate" media="print" title="Print View" href="/catkin/Tutorials/create_a_workspace?action=print">
+<link rel="Up" href="/catkin/Tutorials">
+<link rel="Search" href="/FindPage">
+<link rel="Index" href="/TitleIndex">
+<link rel="Glossary" href="/WordIndex">
+<link rel="Help" href="/HelpOnFormatting">
+</head>
+
+<body  lang="en" dir="ltr">
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-5950817-2");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+
+<script type="text/javascript">
+<!--// Initialize search form
+var f = document.getElementById('searchform');
+if(f) f.getElementsByTagName('label')[0].style.display = 'none';
+var e = document.getElementById('searchinput');
+if(e) {
+  searchChange(e);
+  searchBlur(e);
+}
+
+function handleSubmit() {
+  var f = document.getElementById('searchform');
+  var t = document.getElementById('searchinput');
+  var r = document.getElementById('real_searchinput');
+
+  //alert("handleSubmit "+ t.value);
+  if(t.value.match(/review/)) {
+    r.value = t.value;
+  } else {
+    //r.value = t.value + " -PackageReviewCategory -StackReviewCategory -M3Review -DocReview -ApiReview -HelpOn -BadContent -LocalSpellingWords";
+    r.value = t.value + " -PackageReviewCategory -StackReviewCategory -DocReview -ApiReview";
+  }
+  //return validate(f);
+}
+//-->
+</script>
+
+<div id="dpage">
+  <div id="dpage-inner">
+    <div id="header"><div id="topnav">
+
+<!-- Alert box -->
+<!-- To enable/disable the alert box, uncomment/comment the block below and update the content below the button. -->
+<!--
+    <div class="alert alert-info alert-dismissable" style="text-align: center;">
+<script>
+jQuery(function( $ ){
+    alert_box_name = 'roswiki_roscon'
+    state = localStorage.getItem(alert_box_name);
+    if (!state) {
+      localStorage.setItem(alert_box_name, 'open');
+    }
+    state = localStorage.getItem(alert_box_name);
+    if (state == 'closed') {
+        $( '#topnav .alert' ).hide();
+    }
+    $( '.close' ).click(function () {
+	console.log('in .close.click');
+        localStorage.setItem(alert_box_name, 'closed');
+        $( '#topnav .alert' ).hide();
+  });
+});
+</script>
+      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+      <a href="http://roscon.ros.org">ROSCon 2017</a> will be in Vancouver, September 21-22! <br>
+      The last few years have sold out: register now and take advantage of discounted hotel rates</a>.
+    </div>
+-->
+<!-- End Alert box -->
+
+      <table id="topnav-table">
+        <tr>
+          <td width="300" valign="top"><a href="/"><img border="0" src="/custom/images/ros_org.png" alt="ros.org" width="238" height="51"/></a></td>
+          <td width="500" valign="middle">
+            <a href="http://www.ros.org/about-ros">About</a>
+            |
+            <a href="/Support">Support</a>
+            |
+            <a href="http://discourse.ros.org/">Discussion Forum</a>
+            |
+            <a href="http://index.ros.org/">Index</a>
+            |
+            <a href="http://status.ros.org/">Service Status</a>
+            |
+            <a href="http://answers.ros.org/">Q&A answers.ros.org</a>
+          </td>
+
+      </tr>
+      <tr>
+        <td colspan="3" height="53" width="1024"><nobr><img src="/custom/images/menu_left.png" width="17" height="53" alt=""/><a href="/"><img
+        border="0" src="/custom/images/menu_documentation.png" width="237" height="53" alt="Documentation" /></a><img
+        src="/custom/images/menu_spacer.png" width="69" height="53" /><a href="https://index.ros.org/packages"><img border="0"
+        src="/custom/images/menu_browse_software.png" width="268" height="53" alt="Browse Software" /></a><img
+        src="/custom/images/menu_spacer.png" width="69" height="53" /><a href="https://discourse.ros.org/c/general"><img border="0"
+        src="/custom/images/menu_news.png" width="84" height="53" alt="News" /></a><img
+        src="/custom/images/menu_spacer.png" width="69" height="53" /><a href="/ROS/Installation"><img border="0"
+        src="/custom/images/menu_download.png" width="151" height="53" alt="Download" /></a><img
+        src="/custom/images/menu_right.png" width="60" height="53" /></nobr></td>
+
+      </tr>
+    </table> <!-- topnav-table -->
+
+    </div> <!-- /#topav -->
+  </div> <!-- /#header -->
+
+
+<div id="header2">
+
+<ul id="pagelocation">
+<li><a href="/catkin">catkin</a></li><li><a href="/catkin/Tutorials">Tutorials</a></li><li><a class="backlink" href="/action/fullsearch/catkin/Tutorials/create_a_workspace?action=fullsearch&amp;context=180&amp;value=linkto%3A%22catkin%2FTutorials%2Fcreate_a_workspace%22" rel="nofollow" title="Click to do a full-text search for this title">create_a_workspace</a></li>
+</ul>
+
+<div id="locationline">
+</div>
+</div>
+
+<div id="sidebar">
+<h4>ROS 2 Documentation</h4><p>The ROS Wiki is for ROS 1. Are you using ROS 2 (Dashing/Foxy/Rolling)? <a href="http://docs.ros.org/en/rolling/">Check out the ROS 2 Documentation</a></p>
+<div class="sidepanel">
+<h1>Wiki</h1>
+
+<ul id="navibar">
+<li class="wikilink"><a href="/Distributions">Distributions</a></li><li class="wikilink"><a href="/ROS/Installation">ROS/Installation</a></li><li class="wikilink"><a href="/ROS/Tutorials">ROS/Tutorials</a></li><li class="wikilink"><a href="/RecentChanges">RecentChanges</a></li><li class="current"><a href="/catkin/Tutorials/create_a_workspace">create_a_workspace</a></li>
+</ul>
+
+</div>
+<div class="sidepanel">
+<h1>Page</h1>
+<ul class="editbar"><li><span class="disabled">Immutable Page</span></li><li class="toggleCommentsButton" style="display:none;"><a href="#" class="nbcomment" onClick="toggleComments();return false;">Comments</a></li><li><a class="nbinfo" href="/action/info/catkin/Tutorials/create_a_workspace?action=info" rel="nofollow">Info</a></li><li><a class="nbattachments" href="/action/AttachFile/catkin/Tutorials/create_a_workspace?action=AttachFile" rel="nofollow">Attachments</a></li><li>
+<form class="actionsmenu" method="GET" action="/catkin/Tutorials/create_a_workspace">
+<div>
+    <label>More Actions:</label>
+    <select name="action"
+        onchange="if ((this.selectedIndex != 0) &&
+                      (this.options[this.selectedIndex].disabled == false)) {
+                this.form.submit();
+            }
+            this.selectedIndex = 0;">
+        <option value="raw">Raw Text</option>
+<option value="print">Print View</option>
+<option value="RenderAsDocbook">Render as Docbook</option>
+<option value="show" disabled class="disabled">Delete Cache</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="SpellCheck">Check Spelling</option>
+<option value="LikePages">Like Pages</option>
+<option value="LocalSiteMap">Local Site Map</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="RenamePage" disabled class="disabled">Rename Page</option>
+<option value="CopyPage">Copy Page</option>
+<option value="DeletePage" disabled class="disabled">Delete Page</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="MyPages">My Pages</option>
+<option value="show" disabled class="disabled">Subscribe User</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="show" disabled class="disabled">Remove Spam</option>
+<option value="show" disabled class="disabled">Revert to this revision</option>
+<option value="PackagePages">Package Pages</option>
+<option value="SyncPages">Sync Pages</option>
+<option value="show" disabled class="disabled">------------------------</option>
+<option value="CreatePdfDocument">CreatePdfDocument</option>
+<option value="Load">Load</option>
+<option value="RawFile">RawFile</option>
+<option value="Save">Save</option>
+<option value="SlideShow">SlideShow</option>
+    </select>
+    <input type="submit" value="Do">
+    
+</div>
+<script type="text/javascript">
+<!--// Init menu
+actionsMenuInit('More Actions:');
+//-->
+</script>
+</form>
+</li></ul>
+
+</div>
+<div class="sidepanel">
+<h1>User</h1>
+<ul id="username"><li><a href="/action/login/catkin/Tutorials/create_a_workspace?action=login" id="login" rel="nofollow">Login</a></li></ul>
+</div>
+</div>
+
+<div id="page" lang="en" dir="ltr">
+
+<div dir="ltr" id="content" lang="en"><span class="anchor" id="top"></span>
+<span class="anchor" id="line-1"></span><span class="anchor" id="line-2"></span><span class="anchor" id="line-3"></span><span class="anchor" id="line-4"></span><span class="anchor" id="line-5"></span><span class="anchor" id="line-6"></span><span class="anchor" id="line-7"></span><span class="anchor" id="line-8"></span><span class="anchor" id="line-9"></span><span class="anchor" id="line-10"></span><span class="anchor" id="line-11"></span><span class="anchor" id="line-12"></span><span class="anchor" id="line-13"></span><span class="anchor" id="line-14"></span><span class="anchor" id="line-15"></span><span class="anchor" id="line-16"></span><span class="anchor" id="line-17"></span><span class="anchor" id="line-18"></span><span class="anchor" id="line-19"></span><span class="anchor" id="line-20"></span><span class="anchor" id="line-21"></span><span class="anchor" id="line-22"></span><span class="anchor" id="line-23"></span><span class="anchor" id="line-24"></span><p class="line867"><span class="anchor" id="line-1-1"></span><span class="anchor" id="line-2-1"></span><span class="anchor" id="line-3-1"></span><span class="anchor" id="line-4-1"></span><span class="anchor" id="line-5-1"></span><div><table><tbody><tr>  <td style="background-color: #bbceee"> <img alt="(!)" height="15" src="/moin_static197/rostheme/img/idea.png" title="(!)" width="15" /> Please ask about problems and questions regarding this tutorial on <a class="http" href="http://answers.ros.org">answers.ros.org</a>. Don't forget to include in your question the link to this page, the versions of your OS &amp; ROS, and also add appropriate tags.</td>
+</tr>
+</tbody></table></div><span class="anchor" id="line-6-1"></span><span class="anchor" id="line-7-1"></span><span class="anchor" id="line-8-1"></span>
+<h1 id="Creating_a_workspace_for_catkin">Creating a workspace for catkin</h1>
+<span class="anchor" id="line-9-1"></span><strong>Description:</strong> This tutorial covers how to setup a catkin workspace in which one or more catkin packages can be built.<br>
+<br>
+ <span class="anchor" id="line-10-1"></span><span class="anchor" id="line-11-1"></span><span class="anchor" id="line-12-1"></span><strong>Keywords:</strong> catkin workspace<br>
+<br>
+ <span class="anchor" id="line-13-1"></span><span class="anchor" id="line-14-1"></span><span class="anchor" id="line-15-1"></span><strong>Tutorial Level:</strong> BEGINNER<br>
+ <br>
+ <span class="anchor" id="line-16-1"></span><span class="anchor" id="line-17-1"></span><strong>Next Tutorial:</strong>   <a href="/catkin/Tutorials/CreatingPackage">Creating catkin packages</a> <br>
+ <br>
+  <span class="anchor" id="line-18-1"></span><p class="line874"> <span class="anchor" id="line-25"></span><span class="anchor" id="line-26"></span><p class="line867"><span id="rosversion_selector" class="btn-group">
+<button id="melodic" class="btn btn-default" onClick="Version({show:['boxturtle_and_newer', 'cturtle_and_newer', 'diamondback_and_newer', 'electric_and_newer', 'fuerte_and_newer', 'groovy_and_newer', 'hydro_and_newer', 'indigo_and_newer', 'jade_and_newer', 'kinetic_and_newer', 'lunar_and_newer', 'melodic_and_newer', 'melodic_and_older', 'noetic_and_older', 'unstable_and_older', 'melodic'], hide:['melodic_and_newer', 'noetic_and_newer', 'unstable_and_newer', 'boxturtle_and_older', 'cturtle_and_older', 'diamondback_and_older', 'electric_and_older', 'fuerte_and_older', 'groovy_and_older', 'hydro_and_older', 'indigo_and_older', 'jade_and_older', 'kinetic_and_older', 'lunar_and_older', 'melodic_and_older', 'boxturtle', 'cturtle', 'diamondback', 'electric', 'fuerte', 'groovy', 'hydro', 'indigo', 'jade', 'kinetic', 'lunar', 'noetic', 'unstable'], target_ros_distro:'melodic'});this.style.color='#e6e6e6';this.style.background='#3e4f6e';var distro_button = document.getElementById('boxturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('cturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('diamondback');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('electric');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('fuerte');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('groovy');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('hydro');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('indigo');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('jade');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('kinetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('lunar');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('noetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('unstable');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}return false"> melodic </button>
+<button id="noetic" class="btn btn-default" onClick="Version({show:['boxturtle_and_newer', 'cturtle_and_newer', 'diamondback_and_newer', 'electric_and_newer', 'fuerte_and_newer', 'groovy_and_newer', 'hydro_and_newer', 'indigo_and_newer', 'jade_and_newer', 'kinetic_and_newer', 'lunar_and_newer', 'melodic_and_newer', 'noetic_and_newer', 'noetic_and_older', 'unstable_and_older', 'noetic'], hide:['noetic_and_newer', 'unstable_and_newer', 'boxturtle_and_older', 'cturtle_and_older', 'diamondback_and_older', 'electric_and_older', 'fuerte_and_older', 'groovy_and_older', 'hydro_and_older', 'indigo_and_older', 'jade_and_older', 'kinetic_and_older', 'lunar_and_older', 'melodic_and_older', 'noetic_and_older', 'boxturtle', 'cturtle', 'diamondback', 'electric', 'fuerte', 'groovy', 'hydro', 'indigo', 'jade', 'kinetic', 'lunar', 'melodic', 'unstable'], target_ros_distro:'noetic'});this.style.color='#e6e6e6';this.style.background='#3e4f6e';var distro_button = document.getElementById('boxturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('cturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('diamondback');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('electric');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('fuerte');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('groovy');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('hydro');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('indigo');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('jade');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('kinetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('lunar');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('melodic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('unstable');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}return false"> noetic </button>
+</span><span style="text-align:left">&nbsp;&nbsp;<i>Show EOL distros:</i>&nbsp;<input type="checkbox" id="rosversions_hidden_checkbox" onchange="showHiddenVersionSelector(this.checked)"></span><div id="rosversions_hidden" style="display:none"><span style="text-align:right"><i>EOL distros:</i>&nbsp;&nbsp;</span><span id="rosversion_selector_hidden" class="btn-group">
+<button id="electric" class="btn btn-default" onClick="Version({show:['boxturtle_and_newer', 'cturtle_and_newer', 'diamondback_and_newer', 'electric_and_newer', 'electric_and_older', 'fuerte_and_older', 'groovy_and_older', 'hydro_and_older', 'indigo_and_older', 'jade_and_older', 'kinetic_and_older', 'lunar_and_older', 'melodic_and_older', 'noetic_and_older', 'unstable_and_older', 'electric'], hide:['electric_and_newer', 'fuerte_and_newer', 'groovy_and_newer', 'hydro_and_newer', 'indigo_and_newer', 'jade_and_newer', 'kinetic_and_newer', 'lunar_and_newer', 'melodic_and_newer', 'noetic_and_newer', 'unstable_and_newer', 'boxturtle_and_older', 'cturtle_and_older', 'diamondback_and_older', 'electric_and_older', 'boxturtle', 'cturtle', 'diamondback', 'fuerte', 'groovy', 'hydro', 'indigo', 'jade', 'kinetic', 'lunar', 'melodic', 'noetic', 'unstable'], target_ros_distro:'electric'});this.style.color='#e6e6e6';this.style.background='#3e4f6e';var distro_button = document.getElementById('boxturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('cturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('diamondback');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('fuerte');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('groovy');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('hydro');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('indigo');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('jade');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('kinetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('lunar');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('melodic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('noetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('unstable');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}return false"> electric </button>
+<button id="fuerte" class="btn btn-default" onClick="Version({show:['boxturtle_and_newer', 'cturtle_and_newer', 'diamondback_and_newer', 'electric_and_newer', 'fuerte_and_newer', 'fuerte_and_older', 'groovy_and_older', 'hydro_and_older', 'indigo_and_older', 'jade_and_older', 'kinetic_and_older', 'lunar_and_older', 'melodic_and_older', 'noetic_and_older', 'unstable_and_older', 'fuerte'], hide:['fuerte_and_newer', 'groovy_and_newer', 'hydro_and_newer', 'indigo_and_newer', 'jade_and_newer', 'kinetic_and_newer', 'lunar_and_newer', 'melodic_and_newer', 'noetic_and_newer', 'unstable_and_newer', 'boxturtle_and_older', 'cturtle_and_older', 'diamondback_and_older', 'electric_and_older', 'fuerte_and_older', 'boxturtle', 'cturtle', 'diamondback', 'electric', 'groovy', 'hydro', 'indigo', 'jade', 'kinetic', 'lunar', 'melodic', 'noetic', 'unstable'], target_ros_distro:'fuerte'});this.style.color='#e6e6e6';this.style.background='#3e4f6e';var distro_button = document.getElementById('boxturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('cturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('diamondback');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('electric');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('groovy');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('hydro');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('indigo');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('jade');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('kinetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('lunar');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('melodic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('noetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('unstable');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}return false"> fuerte </button>
+<button id="groovy" class="btn btn-default" onClick="Version({show:['boxturtle_and_newer', 'cturtle_and_newer', 'diamondback_and_newer', 'electric_and_newer', 'fuerte_and_newer', 'groovy_and_newer', 'groovy_and_older', 'hydro_and_older', 'indigo_and_older', 'jade_and_older', 'kinetic_and_older', 'lunar_and_older', 'melodic_and_older', 'noetic_and_older', 'unstable_and_older', 'groovy'], hide:['groovy_and_newer', 'hydro_and_newer', 'indigo_and_newer', 'jade_and_newer', 'kinetic_and_newer', 'lunar_and_newer', 'melodic_and_newer', 'noetic_and_newer', 'unstable_and_newer', 'boxturtle_and_older', 'cturtle_and_older', 'diamondback_and_older', 'electric_and_older', 'fuerte_and_older', 'groovy_and_older', 'boxturtle', 'cturtle', 'diamondback', 'electric', 'fuerte', 'hydro', 'indigo', 'jade', 'kinetic', 'lunar', 'melodic', 'noetic', 'unstable'], target_ros_distro:'groovy'});this.style.color='#e6e6e6';this.style.background='#3e4f6e';var distro_button = document.getElementById('boxturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('cturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('diamondback');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('electric');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('fuerte');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('hydro');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('indigo');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('jade');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('kinetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('lunar');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('melodic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('noetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('unstable');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}return false"> groovy </button>
+<button id="hydro" class="btn btn-default" onClick="Version({show:['boxturtle_and_newer', 'cturtle_and_newer', 'diamondback_and_newer', 'electric_and_newer', 'fuerte_and_newer', 'groovy_and_newer', 'hydro_and_newer', 'hydro_and_older', 'indigo_and_older', 'jade_and_older', 'kinetic_and_older', 'lunar_and_older', 'melodic_and_older', 'noetic_and_older', 'unstable_and_older', 'hydro'], hide:['hydro_and_newer', 'indigo_and_newer', 'jade_and_newer', 'kinetic_and_newer', 'lunar_and_newer', 'melodic_and_newer', 'noetic_and_newer', 'unstable_and_newer', 'boxturtle_and_older', 'cturtle_and_older', 'diamondback_and_older', 'electric_and_older', 'fuerte_and_older', 'groovy_and_older', 'hydro_and_older', 'boxturtle', 'cturtle', 'diamondback', 'electric', 'fuerte', 'groovy', 'indigo', 'jade', 'kinetic', 'lunar', 'melodic', 'noetic', 'unstable'], target_ros_distro:'hydro'});this.style.color='#e6e6e6';this.style.background='#3e4f6e';var distro_button = document.getElementById('boxturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('cturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('diamondback');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('electric');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('fuerte');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('groovy');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('indigo');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('jade');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('kinetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('lunar');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('melodic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('noetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('unstable');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}return false"> hydro </button>
+<button id="indigo" class="btn btn-default" onClick="Version({show:['boxturtle_and_newer', 'cturtle_and_newer', 'diamondback_and_newer', 'electric_and_newer', 'fuerte_and_newer', 'groovy_and_newer', 'hydro_and_newer', 'indigo_and_newer', 'indigo_and_older', 'jade_and_older', 'kinetic_and_older', 'lunar_and_older', 'melodic_and_older', 'noetic_and_older', 'unstable_and_older', 'indigo'], hide:['indigo_and_newer', 'jade_and_newer', 'kinetic_and_newer', 'lunar_and_newer', 'melodic_and_newer', 'noetic_and_newer', 'unstable_and_newer', 'boxturtle_and_older', 'cturtle_and_older', 'diamondback_and_older', 'electric_and_older', 'fuerte_and_older', 'groovy_and_older', 'hydro_and_older', 'indigo_and_older', 'boxturtle', 'cturtle', 'diamondback', 'electric', 'fuerte', 'groovy', 'hydro', 'jade', 'kinetic', 'lunar', 'melodic', 'noetic', 'unstable'], target_ros_distro:'indigo'});this.style.color='#e6e6e6';this.style.background='#3e4f6e';var distro_button = document.getElementById('boxturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('cturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('diamondback');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('electric');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('fuerte');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('groovy');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('hydro');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('jade');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('kinetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('lunar');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('melodic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('noetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('unstable');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}return false"> indigo </button>
+<button id="jade" class="btn btn-default" onClick="Version({show:['boxturtle_and_newer', 'cturtle_and_newer', 'diamondback_and_newer', 'electric_and_newer', 'fuerte_and_newer', 'groovy_and_newer', 'hydro_and_newer', 'indigo_and_newer', 'jade_and_newer', 'jade_and_older', 'kinetic_and_older', 'lunar_and_older', 'melodic_and_older', 'noetic_and_older', 'unstable_and_older', 'jade'], hide:['jade_and_newer', 'kinetic_and_newer', 'lunar_and_newer', 'melodic_and_newer', 'noetic_and_newer', 'unstable_and_newer', 'boxturtle_and_older', 'cturtle_and_older', 'diamondback_and_older', 'electric_and_older', 'fuerte_and_older', 'groovy_and_older', 'hydro_and_older', 'indigo_and_older', 'jade_and_older', 'boxturtle', 'cturtle', 'diamondback', 'electric', 'fuerte', 'groovy', 'hydro', 'indigo', 'kinetic', 'lunar', 'melodic', 'noetic', 'unstable'], target_ros_distro:'jade'});this.style.color='#e6e6e6';this.style.background='#3e4f6e';var distro_button = document.getElementById('boxturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('cturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('diamondback');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('electric');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('fuerte');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('groovy');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('hydro');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('indigo');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('kinetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('lunar');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('melodic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('noetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('unstable');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}return false"> jade </button>
+<button id="kinetic" class="btn btn-default" onClick="Version({show:['boxturtle_and_newer', 'cturtle_and_newer', 'diamondback_and_newer', 'electric_and_newer', 'fuerte_and_newer', 'groovy_and_newer', 'hydro_and_newer', 'indigo_and_newer', 'jade_and_newer', 'kinetic_and_newer', 'kinetic_and_older', 'lunar_and_older', 'melodic_and_older', 'noetic_and_older', 'unstable_and_older', 'kinetic'], hide:['kinetic_and_newer', 'lunar_and_newer', 'melodic_and_newer', 'noetic_and_newer', 'unstable_and_newer', 'boxturtle_and_older', 'cturtle_and_older', 'diamondback_and_older', 'electric_and_older', 'fuerte_and_older', 'groovy_and_older', 'hydro_and_older', 'indigo_and_older', 'jade_and_older', 'kinetic_and_older', 'boxturtle', 'cturtle', 'diamondback', 'electric', 'fuerte', 'groovy', 'hydro', 'indigo', 'jade', 'lunar', 'melodic', 'noetic', 'unstable'], target_ros_distro:'kinetic'});this.style.color='#e6e6e6';this.style.background='#3e4f6e';var distro_button = document.getElementById('boxturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('cturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('diamondback');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('electric');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('fuerte');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('groovy');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('hydro');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('indigo');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('jade');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('lunar');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('melodic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('noetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('unstable');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}return false"> kinetic </button>
+<button id="lunar" class="btn btn-default" onClick="Version({show:['boxturtle_and_newer', 'cturtle_and_newer', 'diamondback_and_newer', 'electric_and_newer', 'fuerte_and_newer', 'groovy_and_newer', 'hydro_and_newer', 'indigo_and_newer', 'jade_and_newer', 'kinetic_and_newer', 'lunar_and_newer', 'lunar_and_older', 'melodic_and_older', 'noetic_and_older', 'unstable_and_older', 'lunar'], hide:['lunar_and_newer', 'melodic_and_newer', 'noetic_and_newer', 'unstable_and_newer', 'boxturtle_and_older', 'cturtle_and_older', 'diamondback_and_older', 'electric_and_older', 'fuerte_and_older', 'groovy_and_older', 'hydro_and_older', 'indigo_and_older', 'jade_and_older', 'kinetic_and_older', 'lunar_and_older', 'boxturtle', 'cturtle', 'diamondback', 'electric', 'fuerte', 'groovy', 'hydro', 'indigo', 'jade', 'kinetic', 'melodic', 'noetic', 'unstable'], target_ros_distro:'lunar'});this.style.color='#e6e6e6';this.style.background='#3e4f6e';var distro_button = document.getElementById('boxturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('cturtle');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('diamondback');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('electric');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('fuerte');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('groovy');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('hydro');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('indigo');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('jade');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('kinetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('melodic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('noetic');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}var distro_button = document.getElementById('unstable');if (distro_button) {  distro_button.style.background='#e6e6e6';  distro_button.style.color='#3e4f6e';}return false"> lunar </button>
+</span>
+</div> <span class="anchor" id="line-27"></span><span class="anchor" id="line-28"></span><p class="line867"><div class="table-of-contents"><p class="table-of-contents-heading">Contents<ol><li>
+<a href="#Prerequisites">Prerequisites</a></li></ol></li></ol></div><p class="line874"> <span class="anchor" id="line-29"></span><span class="anchor" id="line-30"></span><p class="line867">
+<h2 id="Prerequisites">Prerequisites</h2>
+<span class="anchor" id="line-31"></span><p class="line862">This tutorial assumes that you have <a class="http" href="http://www.ros.org/wiki/catkin#Installing_catkin">installed catkin</a> and sourced your environment. If you installed catkin via apt-get for ROS $ROS_DISTRO, your command would look like this: <span class="anchor" id="line-32"></span><span class="anchor" id="line-33"></span><p class="line867"><span class="anchor" id="line-34"></span><span class="anchor" id="line-35"></span><pre><span class="anchor" id="line-1-2"></span>$ source /opt/ros/$ROS_DISTRO/setup.bash</pre><span class="anchor" id="line-36"></span><span class="anchor" id="line-37"></span><span class="anchor" id="line-38"></span><p class="line867"><div dir="ltr" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.content" lang="en"><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.top"></span>
+<span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-1"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-2"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-3"></span><p class="line862">Let's create and build a <a href="/catkin/workspaces">catkin workspace</a>: <span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-4"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-5"></span><p class="line867"><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-6"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-7"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-8"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-9"></span><pre><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-1-1"></span>$ mkdir -p ~/catkin_ws/src
+<span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-2-1"></span>$ cd ~/catkin_ws/
+<span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-3-1"></span>$ catkin_make</pre><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-10"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-11"></span><p class="line862">The <a href="/catkin/commands/catkin_make">catkin_make</a> command is a convenience tool for working with <a href="/catkin/workspaces">catkin workspaces</a>. Running it the first time in your workspace, it will create a <tt class="backtick">CMakeLists.txt</tt> link in your 'src' folder. <span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-12"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-13"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-14"></span><p class="line867"><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-15"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-16"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-17"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-18"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-19"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-20"></span><div class="blue solid"><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-1-2"></span><p class="line867"><strong>Python 3 users in ROS Melodic and earlier</strong>: note, if you are building ROS from source to achieve Python 3 compatibility, and have setup your system appropriately (ie: have the Python 3 versions of all the required ROS Python packages installed, such as <tt class="backtick">catkin</tt>) the first <a href="/catkin/commands/catkin_make">catkin_make</a> command in a clean <a href="/catkin/workspaces">catkin workspace</a> must be: <span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-2-2"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-3-2"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-4-1"></span><pre><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-1-3"></span>$ catkin_make -DPYTHON_EXECUTABLE=/usr/bin/python3</pre><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-5-1"></span><p class="line862">This will configure <a href="/catkin/commands/catkin_make">catkin_make</a> with Python 3. You may then proceed to use just <tt>catkin_make</tt> for subsequent builds. </div><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-21"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-22"></span><p class="line862">Additionally, if you look in your current directory you should now have a 'build' and 'devel' folder. Inside the 'devel' folder you can see that there are now several setup.*sh files. Sourcing any of these files will overlay this workspace on top of your environment. To understand more about this see the general catkin documentation: <a href="/catkin">catkin</a>. Before continuing source your new setup.*sh file: <span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-23"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-24"></span><p class="line867"><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-25"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-26"></span><pre><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-1-4"></span>$ source devel/setup.bash</pre><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-27"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-28"></span><p class="line862">To make sure your workspace is properly overlayed by the setup script, make sure <tt class="backtick">ROS_PACKAGE_PATH</tt> environment variable includes the directory you're in. <span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-29"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-30"></span><p class="line867"><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-31"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-32"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-33"></span><pre><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-1-5"></span>$ echo $ROS_PACKAGE_PATH
+<span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-2-3"></span>/home/youruser/catkin_ws/src:/opt/ros/kinetic/share</pre><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.line-34"></span><span class="anchor" id="ROS.2FTutorials.2Fcatkin.2FCreateWorkspace.bottom"></span></div> <span class="anchor" id="line-39"></span><span class="anchor" id="line-40"></span><span class="anchor" id="line-41"></span><span class="anchor" id="line-42"></span><p class="line867"><span class="anchor" id="line-43"></span><p class="line862">Next you should go ahead and learn how to <a href="/catkin/Tutorials/using_a_workspace">use the workspace</a>. <span class="anchor" id="line-44"></span><span class="anchor" id="line-45"></span><p class="line862">If you are following the ROS tutorials series instead of the catkin tutorials, please continue with <a href="/catkin/Tutorials/CreatingPackage">Creating a ROS Package</a>. <span class="anchor" id="line-46"></span><span class="anchor" id="line-47"></span><p class="line867"><span class="anchor" id="line-48"></span><p class="line867"><span class="anchor" id="line-49"></span><p class="line867"><span class="anchor" id="line-50"></span><span class="anchor" id="bottom"></span></div></div>
+<div id="pagebottom"></div>
+</div>
+
+<p id="pageinfo" class="info" lang="en" dir="ltr">Wiki: catkin/Tutorials/create_a_workspace  (last edited 2017-05-11 21:48:23 by <span title="William J. Woodall @ 70-35-50-58.static.wiline.com[70.35.50.58]"><a href="/WilliamWoodall" title="William J. Woodall @ 70-35-50-58.static.wiline.com[70.35.50.58]">WilliamWoodall</a></span>)</p>
+
+
+
+
+<div style="margin-top: 9px;" class="footer">
+Except where otherwise noted, the ROS wiki is licensed under the <br /><a href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0</a>
+<hr style="margin-top: 10px;">
+<div class="row">
+  <div class="col-md-4 col-md-offset-4">
+<a href="https://www.openrobotics.org/"><img style="margin-top: -1px;" src="/custom/images/brought_by_horiz.png"></p></a>
+  </div>
+</div>
+</div>
+
+  </div></div> <!-- /#dpage-inner, /#dpage -->
+
+
+</body>
+</html>
+
+¸AJH›®      dãdãEUWldã   \    O^partitionKey=%28http%2Cros.org%29,:http://wiki.ros.org/catkin/Tutorials/create_a_workspace necko:classified 1 strongly-framed 1 request-method GET request-Cookie LNRMymwJDA3tGOj5sW2UaOj/XQI= request-User-Agent Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:108.0) Gecko/20100101 Firefox/108.0 request-Accept-Language en-US,en;q=0.5 response-head HTTP/1.1 200 OK
+Date: Tue, 07 Mar 2023 07:09:04 GMT
+Server: Apache
+Vary: Cookie,User-Agent,Accept-Language
+Content-Length: 53897
+Content-Type: text/html; charset=utf-8
+ original-response-headers Date: Tue, 07 Mar 2023 07:09:04 GMT
+Server: Apache
+Vary: Cookie,User-Agent,Accept-Language
+Content-Length: 53897
+Keep-Alive: timeout=5, max=99
+Connection: Keep-Alive
+Content-Type: text/html; charset=utf-8
+ ctid 1 uncompressed-len 0 net-response-time-onstart 309 net-response-time-onstop 538   Ò‰
